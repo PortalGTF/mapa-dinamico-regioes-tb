@@ -132,9 +132,27 @@ function plotCity(cityLabel) {
   if (!coord || coord.lat === null) return;
   if (cityMarkers[cityLabel]) return;
 
-  const marker = L.marker([coord.lat, coord.lng], { icon: createCityIcon(colorForCity(cityLabel)) });
+  const marker = L.marker([coord.lat, coord.lng], {
+    icon: createCityIcon(colorForCity(cityLabel)),
+    draggable: Auth.isAdmin,
+  });
   marker.on("click", () => openCityPopup(cityLabel, marker));
+  marker.on("dragend", () => onCityDragEnd(cityLabel, marker));
   cityMarkers[cityLabel] = marker;
+}
+
+function setMarkersDraggable(enabled) {
+  Object.values(cityMarkers).forEach((marker) => {
+    if (enabled) marker.dragging.enable();
+    else marker.dragging.disable();
+  });
+}
+
+function onCityDragEnd(cityLabel, marker) {
+  const ll = marker.getLatLng();
+  Geocode.cache[cityLabel] = { lat: ll.lat, lng: ll.lng, manual: true };
+  Geocode.saveLocalCache();
+  openCityPopup(cityLabel, marker);
 }
 
 function createCityIcon(color) {
@@ -198,6 +216,7 @@ function rebuildClusters() {
 function openCityPopup(cityLabel, marker) {
   const vendedores = CITY_TO_SELLERS[cityLabel] || [];
   const regions = Regions.findByCity(cityLabel);
+  const coord = Geocode.get(cityLabel);
 
   let html = `<div class="city-popup"><h4>${cityLabel}</h4>`;
   html += `<div class="row"><strong>Vendedor(es):</strong> ${vendedores.join(", ") || "—"}</div>`;
@@ -208,6 +227,17 @@ function openCityPopup(cityLabel, marker) {
     });
   } else {
     html += `<div class="row c-warn-inline">Ainda sem região definida</div>`;
+  }
+
+  if (coord && coord.manual) {
+    html += `<div class="row loc-manual">📍 Localização corrigida manualmente</div>`;
+  }
+
+  if (Auth.isAdmin) {
+    html += `<div class="row admin-hint">Modo admin: arraste o pin no mapa se a localização estiver errada.</div>`;
+    if (coord && coord.manual) {
+      html += `<button class="btn-reset-loc" data-city="${cityLabel}">Refazer busca automática</button>`;
+    }
   }
 
   html += `<div class="actions">
@@ -225,7 +255,23 @@ function openCityPopup(cityLabel, marker) {
     popupEl.querySelectorAll("button[data-mode]").forEach((btn) => {
       btn.addEventListener("click", () => calcDistance(cityLabel, btn.dataset.mode, popupEl));
     });
+    const resetBtn = popupEl.querySelector(".btn-reset-loc");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => resetCityLocation(cityLabel, marker));
+    }
   }, 50);
+}
+
+async function resetCityLocation(cityLabel, marker) {
+  delete Geocode.cache[cityLabel];
+  Geocode.saveLocalCache();
+  marker.closePopup();
+  await Geocode.geocodeAll([cityLabel]);
+  const coord = Geocode.get(cityLabel);
+  if (coord && coord.lat !== null) {
+    marker.setLatLng([coord.lat, coord.lng]);
+  }
+  openCityPopup(cityLabel, marker);
 }
 
 async function calcDistance(cityLabel, mode, popupEl) {
@@ -492,6 +538,7 @@ function updateAdminUI() {
     ? "Há alterações salvas neste navegador ainda não exportadas/commitadas."
     : "";
 
+  setMarkersDraggable(Auth.isAdmin);
   renderRegionsList();
 }
 

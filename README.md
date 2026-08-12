@@ -71,6 +71,21 @@ Ninguém nesse modo consegue mover, criar ou apagar nada.
 5. Repita para as demais regiões. Para editar ou excluir uma região já criada, clique
    em "editar" na lista de regiões da barra lateral.
 
+### Corrigindo uma cidade com localização errada (admin)
+Serviços gratuitos de geocodificação às vezes erram — por exemplo, uma cidade pequena
+pode "cair" em outro estado com nome parecido. Para corrigir, com o modo admin ativo:
+
+1. Clique na cidade errada no mapa para abrir o popup dela.
+2. **Arraste o pin** para o lugar certo no mapa (o cursor vira uma "mãozinha" quando
+   você está em modo admin — o pin é arrastável).
+3. Pronto — assim que soltar, a correção já é salva no navegador. O popup passa a
+   mostrar "📍 Localização corrigida manualmente".
+4. Se quiser desfazer e deixar o sistema tentar geocodificar de novo automaticamente,
+   clique em "Refazer busca automática" no popup daquela cidade.
+5. Como qualquer outra edição do admin, a correção só fica visível pra você até você
+   clicar em **"Exportar cities.json"** e subir esse arquivo pro GitHub — aí vale para
+   todo mundo que acessar o link.
+
 ### Salvando as alterações para todo mundo ver (importante!)
 Como o site é estático (sem banco de dados), as edições do admin ficam guardadas
 **só no navegador dele** até serem publicadas. Para tornar as mudanças visíveis a
