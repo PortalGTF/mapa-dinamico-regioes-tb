@@ -14,10 +14,13 @@ const Routing = {
     const url = `${CONFIG.OSRM_URL}/${coords}?overview=full&geometries=geojson`;
 
     const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`OSRM respondeu ${res.status} ${res.statusText}`);
+    }
     const data = await res.json();
 
     if (!data.routes || !data.routes[0]) {
-      throw new Error("Não foi possível calcular a rota.");
+      throw new Error(data.message || "nenhuma rota encontrada entre os pontos.");
     }
 
     const route = data.routes[0];

@@ -111,5 +111,14 @@ me peça e eu regenero pra você a partir de uma planilha nova.
 - Os hashes de senha protegem contra **uso indevido casual**, não contra um ataque
   técnico sério — é adequado para controlar quem edita as regiões, não para proteger
   informação sigilosa.
+- A **origem** usa coordenadas fixas (`ORIGIN_LAT`/`ORIGIN_LNG` em `js/config.js`), e
+  não tenta geocodificar o nome "GTF - Unidade Terra Boa" — nomes de empresa não são
+  reconhecidos pelo Nominatim, só endereços/cidades públicos. O valor padrão é o
+  centro da cidade de Terra Boa - PR; se a unidade fica em outro ponto exato da
+  cidade, ajuste esses dois números (clique com o botão direito no local certo no
+  Google Maps e copie a latitude/longitude que aparece).
+- Se o cálculo de distância der erro, a mensagem agora mostra o motivo (ex: origem
+  sem coordenadas, cidade sem coordenadas, ou o próprio OSRM fora do ar) — isso ajuda
+  a diagnosticar rápido caso aconteça de novo.
 - Cidade **"Brasiléia - AC"** (vendedor "A & D") ficou fora do eixo PR/SP das demais —
   verifique se não é erro de digitação da planilha original.

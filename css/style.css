@@ -184,6 +184,80 @@ main { position: relative; flex: 1; }
 .dot-unassigned { background: #9a978f; }
 .dot-region { background: var(--accent); }
 
+/* ---------- Pins de cidade (formato gota) ---------- */
+.city-pin {
+  width: 30px;
+  height: 40px;
+  position: relative;
+}
+.city-pin .pin-body {
+  position: absolute;
+  top: 0; left: 2px;
+  width: 26px;
+  height: 26px;
+  background: var(--pin-color, #9a978f);
+  border: 2.5px solid white;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.35);
+}
+.city-pin .pin-icon {
+  position: absolute;
+  top: 3px; left: 2px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* ---------- Pin de origem (casinha) ---------- */
+.origin-pin {
+  width: 38px;
+  height: 50px;
+  position: relative;
+}
+.origin-pin .pin-body {
+  position: absolute;
+  top: 0; left: 3px;
+  width: 32px;
+  height: 32px;
+  background: #1c2024;
+  border: 3px solid white;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.45);
+}
+.origin-pin .pin-icon {
+  position: absolute;
+  top: 4px; left: 3px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  line-height: 1;
+}
+
+/* ---------- Bolhas de cluster ---------- */
+.cluster-bubble {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--cluster-color, #9a978f);
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ---------- Popups ---------- */
 .city-popup { font-size: 13px; min-width: 200px; }
 .city-popup h4 { margin: 0 0 6px; font-size: 14px; }

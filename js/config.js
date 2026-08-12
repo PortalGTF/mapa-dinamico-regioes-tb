@@ -7,6 +7,17 @@ const CONFIG = {
   ORIGIN_LABEL: "GTF - Unidade Terra Boa",
   ORIGIN_ADDRESS: "GTF - Unidade Terra Boa, Terra Boa - PR, 87240-000, Brasil",
 
+  // Coordenadas fixas da origem. Como "GTF - Unidade Terra Boa" é o nome de uma
+  // empresa (não um endereço público), o serviço gratuito de geocodificação não
+  // consegue localizá-lo — por isso usamos coordenadas fixas em vez de tentar
+  // geocodificar esse endereço toda vez.
+  // Valor abaixo = centro da cidade de Terra Boa - PR (fonte: Wikipédia / Prefeitura
+  // Municipal de Terra Boa). Se a unidade fica em outro ponto da cidade, ajuste
+  // esses dois números — clique com o botão direito no local exato no Google Maps
+  // e copie a latitude/longitude que aparece.
+  ORIGIN_LAT: -23.7678,
+  ORIGIN_LNG: -52.4439,
+
   // Hash SHA-256 da senha de administrador.
   // Senha padrão de fábrica: "trocaresta123"
   // TROQUE ISSO antes de publicar! Use o arquivo gerar-senha.html

@@ -83,6 +83,15 @@ const Geocode = {
 
   async geocodeOrigin() {
     const key = "__ORIGIN__";
+
+    // Se coordenadas fixas foram definidas em config.js, usa elas direto —
+    // mais confiável do que tentar geocodificar o nome de uma empresa.
+    if (typeof CONFIG.ORIGIN_LAT === "number" && typeof CONFIG.ORIGIN_LNG === "number") {
+      const fixed = { lat: CONFIG.ORIGIN_LAT, lng: CONFIG.ORIGIN_LNG };
+      this.cache[key] = fixed;
+      return fixed;
+    }
+
     if (this.has(key)) return this.get(key);
     await this._geocodeOne(CONFIG.ORIGIN_ADDRESS);
     const result = this.cache[CONFIG.ORIGIN_ADDRESS];

@@ -6,7 +6,9 @@
 let map;
 let originMarker = null;
 let originLatLng = null;
-let cityMarkers = {}; // { cityLabel: L.CircleMarker }
+let cityMarkers = {}; // { cityLabel: L.Marker }
+let regionClusterGroups = {}; // { regionId: L.MarkerClusterGroup }
+let unassignedClusterGroup = null; // cidades sem região
 let drawnItems; // camada onde os polígonos desenhados ficam
 let drawControl;
 let editingRegionId = null; // se != null, o modal de região está editando (não criando)
@@ -86,14 +88,15 @@ async function placeOrigin() {
   originLatLng = await Geocode.geocodeOrigin();
   if (!originLatLng || originLatLng.lat === null) return;
 
-  originMarker = L.marker([originLatLng.lat, originLatLng.lng], {
-    icon: L.divIcon({
-      className: "",
-      html: '<div style="background:#1c2024;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 2px #1c2024;"></div>',
-      iconSize: [16, 16],
-    }),
-  }).addTo(map);
+  const icon = L.divIcon({
+    className: "",
+    html: `<div class="origin-pin"><div class="pin-body"></div><div class="pin-icon">🏠</div></div>`,
+    iconSize: [38, 50],
+    iconAnchor: [19, 50],
+    popupAnchor: [0, -46],
+  });
 
+  originMarker = L.marker([originLatLng.lat, originLatLng.lng], { icon, zIndexOffset: 1000 }).addTo(map);
   originMarker.bindPopup(`<strong>${CONFIG.ORIGIN_LABEL}</strong><br>Ponto de origem das cargas`);
 }
 
@@ -105,6 +108,7 @@ async function geocodeCitiesInBackground() {
 
   // Plota imediatamente as cidades que já estão no cache
   CITIES_LIST.filter((c) => Geocode.has(c)).forEach(plotCity);
+  rebuildClusters();
 
   if (pending.length === 0) return;
 
@@ -119,6 +123,7 @@ async function geocodeCitiesInBackground() {
   });
 
   pending.forEach(plotCity);
+  rebuildClusters();
   progressEl.classList.add("hidden");
 }
 
@@ -127,16 +132,19 @@ function plotCity(cityLabel) {
   if (!coord || coord.lat === null) return;
   if (cityMarkers[cityLabel]) return;
 
-  const marker = L.circleMarker([coord.lat, coord.lng], {
-    radius: 6,
-    weight: 2,
-    color: "#ffffff",
-    fillColor: colorForCity(cityLabel),
-    fillOpacity: 0.95,
-  }).addTo(map);
-
+  const marker = L.marker([coord.lat, coord.lng], { icon: createCityIcon(colorForCity(cityLabel)) });
   marker.on("click", () => openCityPopup(cityLabel, marker));
   cityMarkers[cityLabel] = marker;
+}
+
+function createCityIcon(color) {
+  return L.divIcon({
+    className: "",
+    html: `<div class="city-pin" style="--pin-color:${color}"><div class="pin-body"></div><div class="pin-icon">🚚</div></div>`,
+    iconSize: [30, 40],
+    iconAnchor: [15, 40],
+    popupAnchor: [0, -36],
+  });
 }
 
 function colorForCity(cityLabel) {
@@ -145,10 +153,43 @@ function colorForCity(cityLabel) {
   return "#9a978f"; // sem região
 }
 
-function refreshAllMarkerColors() {
-  Object.keys(cityMarkers).forEach((label) => {
-    cityMarkers[label].setStyle({ fillColor: colorForCity(label) });
+function makeClusterIconFactory(color) {
+  return function (cluster) {
+    return L.divIcon({
+      className: "",
+      html: `<div class="cluster-bubble" style="--cluster-color:${color}">${cluster.getChildCount()}</div>`,
+      iconSize: [38, 38],
+    });
+  };
+}
+
+// Recria os grupos de cluster (um por região + um para "sem região") e
+// redistribui cada marcador de cidade no grupo certo, com a cor certa.
+function rebuildClusters() {
+  Object.values(regionClusterGroups).forEach((g) => map.removeLayer(g));
+  if (unassignedClusterGroup) map.removeLayer(unassignedClusterGroup);
+
+  regionClusterGroups = {};
+  Regions.list.forEach((r) => {
+    regionClusterGroups[r.id] = L.markerClusterGroup({
+      iconCreateFunction: makeClusterIconFactory(r.color),
+      maxClusterRadius: 50,
+    });
   });
+  unassignedClusterGroup = L.markerClusterGroup({
+    iconCreateFunction: makeClusterIconFactory("#9a978f"),
+    maxClusterRadius: 50,
+  });
+
+  Object.entries(cityMarkers).forEach(([label, marker]) => {
+    marker.setIcon(createCityIcon(colorForCity(label)));
+    const regions = Regions.findByCity(label);
+    const targetGroup = regions.length > 0 ? regionClusterGroups[regions[0].id] : unassignedClusterGroup;
+    if (targetGroup) targetGroup.addLayer(marker);
+  });
+
+  Object.values(regionClusterGroups).forEach((g) => map.addLayer(g));
+  map.addLayer(unassignedClusterGroup);
 }
 
 // ------------------------------------------------------------
@@ -193,8 +234,13 @@ async function calcDistance(cityLabel, mode, popupEl) {
   resultEl.textContent = "Calculando rota…";
 
   const dest = Geocode.get(cityLabel);
-  if (!originLatLng || !dest || dest.lat === null) {
-    resultEl.textContent = "Não foi possível calcular (coordenadas indisponíveis).";
+
+  if (!originLatLng || originLatLng.lat === null || originLatLng.lng === null) {
+    resultEl.textContent = "Coordenadas da origem indisponíveis — confira ORIGIN_LAT/ORIGIN_LNG em js/config.js.";
+    return;
+  }
+  if (!dest || dest.lat === null || dest.lng === null) {
+    resultEl.textContent = "Não foi possível localizar essa cidade no mapa (coordenadas indisponíveis).";
     return;
   }
 
@@ -205,7 +251,7 @@ async function calcDistance(cityLabel, mode, popupEl) {
     const label = mode === "volta" ? "Ida e volta" : "Ida";
     resultEl.innerHTML = `<strong>${label}:</strong> ${Routing.formatKm(km)} · ${Routing.formatMin(min)}`;
   } catch (e) {
-    resultEl.textContent = "Erro ao calcular a rota. Tente novamente.";
+    resultEl.textContent = `Erro ao calcular a rota: ${e.message || "tente novamente em alguns segundos."}`;
   }
 }
 
@@ -229,7 +275,7 @@ function applySellerFilter(sellerName) {
   citiesBox.innerHTML = "";
 
   if (!sellerName) {
-    Object.values(cityMarkers).forEach((m) => m.setStyle({ opacity: 1, fillOpacity: 0.95 }));
+    Object.values(cityMarkers).forEach((m) => m.setOpacity(1));
     return;
   }
 
@@ -238,7 +284,7 @@ function applySellerFilter(sellerName) {
 
   Object.entries(cityMarkers).forEach(([label, marker]) => {
     const dim = !citySet.has(label);
-    marker.setStyle({ opacity: dim ? 0.15 : 1, fillOpacity: dim ? 0.15 : 0.95 });
+    marker.setOpacity(dim ? 0.15 : 1);
   });
 
   cities
@@ -403,7 +449,7 @@ function saveRegionFromModal() {
     Regions.create({ name, vehicleProfile, cities: checked });
   }
 
-  refreshAllMarkerColors();
+  rebuildClusters();
   renderRegionsList();
   closeRegionModal();
 }
@@ -412,7 +458,7 @@ function deleteRegionFromModal() {
   if (!editingRegionId) return;
   if (!confirm("Excluir esta região? As cidades voltam para 'sem região'.")) return;
   Regions.remove(editingRegionId);
-  refreshAllMarkerColors();
+  rebuildClusters();
   renderRegionsList();
   closeRegionModal();
 }
