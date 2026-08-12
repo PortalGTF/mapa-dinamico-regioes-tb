@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Vuc",
+    "capacity_kg": 2000
+  },
+  {
+    "name": "3/4 Leve",
+    "capacity_kg": 4000
+  },
+  {
+    "name": "3/4 Adaptado",
+    "capacity_kg": 6000
+  },
+  {
+    "name": "Toco",
+    "capacity_kg": 7000
+  },
+  {
+    "name": "Truck",
+    "capacity_kg": 12000
+  }
+]

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Gerar hash da senha admin</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Arial, sans-serif; max-width: 640px; margin: 60px auto; padding: 0 20px; color: #1b1f24; }
+  h1 { font-size: 1.3rem; }
+  input { width: 100%; padding: 10px; font-size: 1rem; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; }
+  button { margin-top: 12px; padding: 10px 18px; font-size: 1rem; border: none; border-radius: 6px; background: #e08a3c; color: white; cursor: pointer; }
+  pre { background: #f4f1ea; padding: 14px; border-radius: 6px; word-break: break-all; white-space: pre-wrap; }
+  .step { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+</style>
+</head>
+<body>
+  <h1>Gerador de hash da senha de administrador</h1>
+  <p>Essa página não envia nada para nenhum servidor — o cálculo acontece só no seu navegador. Use isso para trocar a senha padrão do app antes de publicar.</p>
+
+  <input type="password" id="pwd" placeholder="Digite a nova senha do admin" />
+  <button onclick="gerar()">Gerar hash</button>
+
+  <div class="step">
+    <p><strong>Resultado (copie esse valor):</strong></p>
+    <pre id="resultado">—</pre>
+  </div>
+
+  <div class="step">
+    <p><strong>Onde colar:</strong> abra o arquivo <code>js/config.js</code> no repositório e substitua o valor de <code>ADMIN_PASSWORD_HASH</code> pelo hash gerado acima. Depois salve e envie (commit) o arquivo para o GitHub.</p>
+  </div>
+
+<script>
+async function gerar() {
+  const pwd = document.getElementById('pwd').value;
+  if (!pwd) { alert('Digite uma senha primeiro.'); return; }
+  const enc = new TextEncoder().encode(pwd);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  document.getElementById('resultado').textContent = hex;
+}
+</script>
+</body>
+</html>

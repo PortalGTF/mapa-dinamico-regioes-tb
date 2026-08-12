@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Regiões de Atendimento — Mapa de Vendedores</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand">
+    <span class="brand-mark">◈</span>
+    <div class="brand-text">
+      <strong>Regiões de Atendimento</strong>
+      <span>Origem: <span id="originLabel">GTF - Unidade Terra Boa</span></span>
+    </div>
+  </div>
+
+  <div class="topbar-actions">
+    <span id="modeBadge" class="badge badge-view">Modo visualização</span>
+    <button id="btnLogin" class="btn btn-outline">Entrar como admin</button>
+    <button id="btnLogout" class="btn btn-outline hidden">Sair do admin</button>
+  </div>
+</header>
+
+<div id="layout">
+  <aside id="sidebar">
+
+    <section class="panel">
+      <h2>Ver por vendedor</h2>
+      <select id="sellerSelect">
+        <option value="">— Todos —</option>
+      </select>
+      <div id="sellerCities" class="mini-list"></div>
+    </section>
+
+    <section class="panel" id="adminPanel">
+      <h2>Painel do admin</h2>
+      <p class="hint">Desenhe um polígono no mapa para capturar as cidades dentro dele e criar uma nova região.</p>
+      <button id="btnDrawRegion" class="btn btn-primary">Desenhar nova região</button>
+
+      <div class="admin-export">
+        <button id="btnExportRegions" class="btn btn-outline">Exportar regions.json</button>
+        <button id="btnExportCities" class="btn btn-outline">Exportar cities.json</button>
+      </div>
+      <p class="hint hint-small" id="draftHint"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Regiões (<span id="regionCount">0</span>)</h2>
+      <div id="regionsList" class="mini-list"></div>
+    </section>
+
+  </aside>
+
+  <main>
+    <div id="map"></div>
+    <div id="geocodeProgress" class="hidden">
+      <div class="progress-bar"><div id="progressFill"></div></div>
+      <span id="progressText">Localizando cidades…</span>
+    </div>
+    <div id="legend">
+      <span><i class="dot dot-origin"></i> Origem</span>
+      <span><i class="dot dot-unassigned"></i> Sem região</span>
+      <span><i class="dot dot-region"></i> Com região</span>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: login admin -->
+<div id="loginModal" class="modal hidden">
+  <div class="modal-box">
+    <h3>Entrar como admin</h3>
+    <input type="password" id="loginPassword" placeholder="Senha" />
+    <p id="loginError" class="error hidden">Senha incorreta.</p>
+    <div class="modal-actions">
+      <button id="btnLoginCancel" class="btn btn-outline">Cancelar</button>
+      <button id="btnLoginConfirm" class="btn btn-primary">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: criar/editar região -->
+<div id="regionModal" class="modal hidden">
+  <div class="modal-box modal-box-wide">
+    <h3 id="regionModalTitle">Nova região</h3>
+
+    <label>Nome da região</label>
+    <input type="text" id="regionName" placeholder="Ex: REGIÃO FOOD MARINGÁ" />
+
+    <label>Perfil mínimo de veículo</label>
+    <select id="regionVehicleProfile"></select>
+
+    <label>Cidades capturadas pelo polígono (desmarque as que não devem entrar)</label>
+    <div id="regionCitiesChecklist" class="checklist"></div>
+
+    <div class="modal-actions">
+      <button id="btnRegionCancel" class="btn btn-outline">Cancelar</button>
+      <button id="btnRegionDelete" class="btn btn-danger hidden">Excluir região</button>
+      <button id="btnRegionSave" class="btn btn-primary">Salvar região</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/geocode.js"></script>
+<script src="js/routing.js"></script>
+<script src="js/regions.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
