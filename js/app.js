@@ -19,6 +19,8 @@ let ringLayerGroup = null; // anéis de 50 em 50 km desenhados a partir da orige
 let lastRegionMaxBracket = null; // último raio calculado (para o toggle de anéis)
 let regionRadiusCache = {}; // { regionId: { citiesKey, bracket } } — usado na lista lateral
 let radiiComputing = false; // evita rodar dois cálculos de raio ao mesmo tempo
+let regionFenceLayer = null; // "cerca eletrônica" (contorno) da região em foco
+let currentDetailRegionId = null; // região atualmente aberta no painel de detalhes
 
 let SELLERS = {};       // { vendedor: [cidades] }
 let CITY_TO_SELLERS = {}; // { cidade: [vendedores] }
@@ -437,6 +439,7 @@ function renderRegionsList() {
       } else {
         focusRegion(region);
         openRegionDetail(region);
+        showRegionFence(region);
       }
     });
     box.appendChild(row);
@@ -569,6 +572,43 @@ function focusRegion(region) {
 }
 
 // ------------------------------------------------------------
+// "Cerca eletrônica" da região — contorno ao redor de todas as
+// cidades da região (casca convexa via Turf.js), no mesmo estilo
+// azul tracejado da ferramenta de desenhar polígono.
+// ------------------------------------------------------------
+function hideRegionFence() {
+  if (regionFenceLayer) {
+    map.removeLayer(regionFenceLayer);
+    regionFenceLayer = null;
+  }
+}
+
+function showRegionFence(region) {
+  hideRegionFence();
+
+  const coords = region.cities
+    .map((c) => Geocode.get(c))
+    .filter((c) => c && c.lat !== null)
+    .map((c) => [c.lng, c.lat]); // turf usa [lng, lat]
+
+  if (coords.length < 3) return; // precisa de pelo menos 3 pontos para formar um contorno
+
+  const points = turf.featureCollection(coords.map((c) => turf.point(c)));
+  const hull = turf.convex(points);
+  if (!hull) return;
+
+  const latlngs = hull.geometry.coordinates[0].map(([lng, lat]) => [lat, lng]);
+
+  regionFenceLayer = L.polygon(latlngs, {
+    color: "#2980b9",
+    weight: 3,
+    dashArray: "8 6",
+    fillColor: "#2980b9",
+    fillOpacity: 0.08,
+  }).addTo(map);
+}
+
+// ------------------------------------------------------------
 // Raio da região (faixas de 50 em 50 km a partir da origem)
 // ------------------------------------------------------------
 function bracketFor(km) {
@@ -576,20 +616,36 @@ function bracketFor(km) {
 }
 
 function openRegionDetail(region) {
+  currentDetailRegionId = region.id;
   document.getElementById("regionDetailTitle").textContent = region.name;
   document.getElementById("regionDetailSummary").textContent = "Calculando distâncias a partir de Terra Boa…";
   document.getElementById("regionDetailList").innerHTML = "";
   document.getElementById("regionDetailModal").classList.remove("hidden");
+  document.getElementById("btnToggleFence").textContent = "Esconder cerca da região";
   computeRegionRadius(region);
 }
 
 function closeRegionDetail() {
   document.getElementById("regionDetailModal").classList.add("hidden");
+  currentDetailRegionId = null;
+  hideRegionFence();
   if (ringLayerGroup) {
     map.removeLayer(ringLayerGroup);
     ringLayerGroup = null;
   }
   document.getElementById("btnToggleRings").textContent = "Mostrar anéis de 50 km no mapa";
+}
+
+function toggleFence() {
+  const btn = document.getElementById("btnToggleFence");
+  if (regionFenceLayer) {
+    hideRegionFence();
+    btn.textContent = "Mostrar cerca da região";
+  } else {
+    const region = Regions.list.find((r) => r.id === currentDetailRegionId);
+    if (region) showRegionFence(region);
+    btn.textContent = "Esconder cerca da região";
+  }
 }
 
 async function computeRegionRadius(region) {
@@ -1034,6 +1090,7 @@ function wireEvents() {
 
   document.getElementById("btnCloseRegionDetail").addEventListener("click", closeRegionDetail);
   document.getElementById("btnToggleRings").addEventListener("click", toggleRings);
+  document.getElementById("btnToggleFence").addEventListener("click", toggleFence);
 }
 
 function downloadFile(filename, content) {

@@ -144,6 +144,18 @@ Adicionar cidade à região"**: escolha a cidade na lista e clique em "+ Adicion
 entra na lista já marcada, junto com as demais. Funciona tanto ao criar uma região nova
 quanto ao editar uma já existente.
 
+### Cerca eletrônica (contorno da região)
+Ao clicar no nome de uma região (o mesmo clique que abre o painel de raio), o app
+também desenha automaticamente um contorno azul tracejado ao redor de todas as
+cidades daquela região — como uma "cerca eletrônica" mostrando o raio de atuação real
+da região no mapa. O contorno é calculado sozinho (não precisa redesenhar manualmente)
+a partir das cidades que compõem a região.
+
+Tem um botão **"Esconder/Mostrar cerca da região"** no painel de detalhes, caso queira
+tirar o contorno da tela sem fechar o painel. Regiões com menos de 3 cidades com
+localização conhecida não têm contorno desenhado (não dá pra formar uma área com menos
+de 3 pontos).
+
 ### Vendo em qual raio (50, 100, 150... km) uma região se enquadra
 A lista de regiões na barra lateral já mostra o raio de cada uma direto na linha
 (junto com quantidade de cidades e perfil de veículo) — calculado automaticamente em
