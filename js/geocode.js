@@ -30,6 +30,28 @@ function extractUF(cityLabel) {
   return m ? m[1].toUpperCase() : null;
 }
 
+// UF -> nome completo do estado (usado para montar a busca no formato que o
+// Nominatim entende melhor: "Cidade, Estado, Brasil" em vez de "Cidade - UF, Brasil")
+const BR_UF_TO_NAME = {
+  AC: "Acre", AL: "Alagoas", AP: "Amapá", AM: "Amazonas", BA: "Bahia",
+  CE: "Ceará", DF: "Distrito Federal", ES: "Espírito Santo", GO: "Goiás",
+  MA: "Maranhão", MT: "Mato Grosso", MS: "Mato Grosso do Sul", MG: "Minas Gerais",
+  PA: "Pará", PB: "Paraíba", PR: "Paraná", PE: "Pernambuco", PI: "Piauí",
+  RJ: "Rio de Janeiro", RN: "Rio Grande do Norte", RS: "Rio Grande do Sul",
+  RO: "Rondônia", RR: "Roraima", SC: "Santa Catarina", SP: "São Paulo",
+  SE: "Sergipe", TO: "Tocantins",
+};
+
+// Monta a string de busca no formato que o Nominatim reconhece melhor.
+// "Santa Fé - PR" -> "Santa Fé, Paraná, Brasil" (em vez de "Santa Fé - PR, Brasil",
+// que confunde a busca e faz ela cair fora da restrição de estado sem avisar).
+function buildNominatimQuery(cityLabel) {
+  const uf = extractUF(cityLabel);
+  if (!uf || !BR_UF_TO_NAME[uf]) return `${cityLabel}, Brasil`;
+  const cityName = cityLabel.replace(/-\s*[A-Za-z]{2}\s*$/, "").trim();
+  return `${cityName}, ${BR_UF_TO_NAME[uf]}, Brasil`;
+}
+
 // Caixa delimitadora aproximada de cada estado (min-lon, min-lat, max-lon, max-lat),
 // com uma margem de segurança. Usada para restringir a busca do Nominatim ao estado
 // certo, evitando que ele ache uma cidade de nome parecido em outro canto do Brasil.
@@ -104,7 +126,7 @@ const Geocode = {
   },
 
   async _geocodeOne(label) {
-    const query = `${label}, Brasil`;
+    const query = buildNominatimQuery(label);
     const expectedUF = extractUF(label);
 
     try {

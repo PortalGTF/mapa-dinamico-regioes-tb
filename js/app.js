@@ -847,7 +847,7 @@ function renderSearchCityOptions() {
 function openSearchPanelFor(cityLabel) {
   const select = document.getElementById("searchCitySelect");
   select.value = cityLabel;
-  document.getElementById("searchAddressInput").value = `${cityLabel}, Brasil`;
+  document.getElementById("searchAddressInput").value = buildNominatimQuery(cityLabel);
   document.getElementById("searchCitySelect").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
@@ -861,7 +861,7 @@ async function doSearchAddress() {
     alert("Selecione primeiro qual cidade você quer localizar/corrigir.");
     return;
   }
-  const query = input.value.trim() || `${city}, Brasil`;
+  const query = input.value.trim() || buildNominatimQuery(city);
   const expectedUF = extractUF(city);
 
   resultBox.classList.remove("hidden");
@@ -1026,7 +1026,7 @@ function wireEvents() {
 
   document.getElementById("searchCitySelect").addEventListener("change", (e) => {
     if (e.target.value) {
-      document.getElementById("searchAddressInput").value = `${e.target.value}, Brasil`;
+      document.getElementById("searchAddressInput").value = buildNominatimQuery(e.target.value);
     }
   });
 

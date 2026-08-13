@@ -87,6 +87,12 @@ que a busca encontrou, e se não bater (ou se precisou cair fora da busca restri
 mostra um **selo de aviso vermelho (!)** em cima do pin no mapa, mesmo sem precisar
 clicar nele.
 
+A busca também usa o formato de endereço mais confiável: internamente convertemos
+"Cidade - UF" para "Cidade, Estado por extenso, Brasil" (ex: "Santa Fé, Paraná,
+Brasil") antes de mandar pro serviço de busca — o formato com hífen e sigla direto
+("Santa Fé - PR, Brasil") confundia a busca e fazia ela ignorar a restrição de estado
+sem avisar.
+
 **Se você notar cidades antigas com localização errada mas sem o selo de aviso** — isso
 acontece com cidades que foram localizadas antes dessa verificação existir. Use o botão
 **"Reconferir todas as cidades"** na barra do admin: ele refaz a localização de todas as
