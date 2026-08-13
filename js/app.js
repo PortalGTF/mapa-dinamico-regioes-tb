@@ -583,28 +583,67 @@ function hideRegionFence() {
   }
 }
 
-function showRegionFence(region) {
+// Desenha a cerca eletrônica da região unindo o contorno administrativo REAL de
+// cada cidade (limite do município), não apenas uma linha ligando os pontos.
+// Isso exige buscar o contorno de cada cidade (rede, com limite de uso), então
+// mostra uma barra de progresso enquanto calcula.
+async function showRegionFence(region) {
   hideRegionFence();
 
+  const progressEl = document.getElementById("geocodeProgress");
+  const fillEl = document.getElementById("progressFill");
+  const textEl = document.getElementById("progressText");
+  progressEl.classList.remove("hidden");
+  fillEl.style.width = "0%";
+
+  let combined = null;
+  const total = region.cities.length;
+  let done = 0;
+
+  for (const cityLabel of region.cities) {
+    textEl.textContent = `Desenhando contorno da região… ${done}/${total}`;
+    const boundary = await Geocode.getCityBoundary(cityLabel);
+    done++;
+    fillEl.style.width = `${(done / total) * 100}%`;
+
+    if (boundary) {
+      try {
+        const feature = turf.feature(boundary);
+        combined = combined ? turf.union(combined, feature) : feature;
+      } catch (e) {
+        // contorno inválido para essa cidade — segue com as demais
+      }
+    }
+    await new Promise((r) => setTimeout(r, 150)); // uso respeitoso do Nominatim
+  }
+
+  progressEl.classList.add("hidden");
+
+  if (combined) {
+    regionFenceLayer = L.geoJSON(combined, {
+      style: { color: "#2980b9", weight: 3, dashArray: "8 6", fillColor: "#2980b9", fillOpacity: 0.08 },
+    }).addTo(map);
+  } else {
+    showRegionFenceHullFallback(region);
+  }
+}
+
+// Reserva: se nenhuma cidade da região tiver contorno administrativo disponível,
+// desenha ao menos uma casca convexa ao redor dos pontos (melhor que nada).
+function showRegionFenceHullFallback(region) {
   const coords = region.cities
     .map((c) => Geocode.get(c))
     .filter((c) => c && c.lat !== null)
-    .map((c) => [c.lng, c.lat]); // turf usa [lng, lat]
+    .map((c) => [c.lng, c.lat]);
 
-  if (coords.length < 3) return; // precisa de pelo menos 3 pontos para formar um contorno
+  if (coords.length < 3) return;
 
   const points = turf.featureCollection(coords.map((c) => turf.point(c)));
   const hull = turf.convex(points);
   if (!hull) return;
 
-  const latlngs = hull.geometry.coordinates[0].map(([lng, lat]) => [lat, lng]);
-
-  regionFenceLayer = L.polygon(latlngs, {
-    color: "#2980b9",
-    weight: 3,
-    dashArray: "8 6",
-    fillColor: "#2980b9",
-    fillOpacity: 0.08,
+  regionFenceLayer = L.geoJSON(hull, {
+    style: { color: "#2980b9", weight: 3, dashArray: "8 6", fillColor: "#2980b9", fillOpacity: 0.08 },
   }).addTo(map);
 }
 
@@ -620,13 +659,15 @@ function openRegionDetail(region) {
   document.getElementById("regionDetailTitle").textContent = region.name;
   document.getElementById("regionDetailSummary").textContent = "Calculando distâncias a partir de Terra Boa…";
   document.getElementById("regionDetailList").innerHTML = "";
-  document.getElementById("regionDetailModal").classList.remove("hidden");
+  document.getElementById("regionDetailModal").classList.remove("hidden", "collapsed");
+  document.getElementById("btnMinimizeRegionDetail").textContent = "—";
   document.getElementById("btnToggleFence").textContent = "Esconder cerca da região";
   computeRegionRadius(region);
 }
 
 function closeRegionDetail() {
   document.getElementById("regionDetailModal").classList.add("hidden");
+  document.getElementById("regionDetailModal").classList.remove("collapsed");
   currentDetailRegionId = null;
   hideRegionFence();
   if (ringLayerGroup) {
@@ -634,6 +675,16 @@ function closeRegionDetail() {
     ringLayerGroup = null;
   }
   document.getElementById("btnToggleRings").textContent = "Mostrar anéis de 50 km no mapa";
+}
+
+// Minimiza o painel para uma barrinha pequena, deixando o mapa (com a cerca e os
+// anéis) totalmente visível, sem perder o que já foi calculado.
+function toggleMinimizeRegionDetail() {
+  const panel = document.getElementById("regionDetailModal");
+  const btn = document.getElementById("btnMinimizeRegionDetail");
+  const collapsed = panel.classList.toggle("collapsed");
+  btn.textContent = collapsed ? "▢" : "—";
+  btn.title = collapsed ? "Expandir" : "Minimizar (deixa o mapa livre)";
 }
 
 function toggleFence() {
@@ -1089,6 +1140,7 @@ function wireEvents() {
   document.getElementById("btnSearchAddress").addEventListener("click", doSearchAddress);
 
   document.getElementById("btnCloseRegionDetail").addEventListener("click", closeRegionDetail);
+  document.getElementById("btnMinimizeRegionDetail").addEventListener("click", toggleMinimizeRegionDetail);
   document.getElementById("btnToggleRings").addEventListener("click", toggleRings);
   document.getElementById("btnToggleFence").addEventListener("click", toggleFence);
 }

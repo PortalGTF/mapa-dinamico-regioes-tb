@@ -170,6 +170,40 @@ const Geocode = {
     return res.json();
   },
 
+  // Busca o contorno administrativo real da cidade (limite do município), usado
+  // para desenhar a "cerca eletrônica" da região pelas bordas de verdade, e não só
+  // uma linha ligando os pontos. Fica em cache junto com as coordenadas da cidade.
+  async getCityBoundary(label) {
+    const existing = this.cache[label];
+    if (existing && Object.prototype.hasOwnProperty.call(existing, "boundary")) {
+      return existing.boundary;
+    }
+
+    const expectedUF = extractUF(label);
+    const query = buildNominatimQuery(label);
+    const extra = "&polygon_geojson=1&polygon_threshold=0.003";
+
+    try {
+      let data = await this._fetchNominatim(Geocode_buildUrl(query, expectedUF, true) + extra);
+      if ((!data || !data[0]) && expectedUF && BR_STATE_BBOX[expectedUF]) {
+        data = await this._fetchNominatim(Geocode_buildUrl(query, expectedUF, false) + extra);
+      }
+
+      let boundary = null;
+      if (data && data[0] && data[0].geojson) {
+        const t = data[0].geojson.type;
+        if (t === "Polygon" || t === "MultiPolygon") boundary = data[0].geojson;
+      }
+
+      if (this.cache[label]) this.cache[label].boundary = boundary;
+      this.saveLocalCache();
+      return boundary;
+    } catch (e) {
+      if (this.cache[label]) this.cache[label].boundary = null;
+      return null;
+    }
+  },
+
   // Busca livre de endereço (usada no campo de busca manual). Não mexe no
   // cache — quem chamou decide se aplica o resultado a alguma cidade.
   // Se expectedUF for informado, restringe a busca àquele estado primeiro

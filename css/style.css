@@ -1,13 +1,17 @@
 :root {
-  --ink: #1c2024;
-  --paper: #f6f5f2;
+  --ink: #1a2332;
+  --paper: #f4f6f8;
   --panel: #ffffff;
-  --line: #e2e0da;
-  --accent: #c9622f;
-  --accent-soft: #f3ded1;
-  --ok: #2f8f5b;
-  --muted: #767066;
-  --font: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --line: #e2e6ea;
+  --navy: #0e1a2b;
+  --navy-light: #16243b;
+  --accent: #0d9e94;
+  --accent-dark: #0a7d75;
+  --accent-soft: #d7f3f0;
+  --ok: #22c55e;
+  --warn: #f59e0b;
+  --muted: #6b7684;
+  --font: 'Inter', -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -34,15 +38,15 @@ button { font-family: inherit; }
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
+  background: var(--navy);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .brand { display: flex; align-items: center; gap: 10px; }
-.brand-mark { font-size: 22px; color: var(--accent); }
+.brand-logo { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.2; }
-.brand-text strong { font-size: 15px; }
-.brand-text span { font-size: 12px; color: var(--muted); }
+.brand-text strong { font-size: 15px; color: #ffffff; }
+.brand-text span { font-size: 12px; color: rgba(255,255,255,0.55); }
 
 .topbar-actions { display: flex; align-items: center; gap: 10px; }
 
@@ -53,8 +57,8 @@ button { font-family: inherit; }
   font-weight: 600;
   letter-spacing: 0.02em;
 }
-.badge-view { background: #eef1ea; color: #5a6b52; }
-.badge-admin { background: var(--accent-soft); color: var(--accent); }
+.badge-view { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.75); }
+.badge-admin { background: var(--accent); color: white; }
 
 .btn {
   border: 1px solid var(--line);
@@ -64,12 +68,20 @@ button { font-family: inherit; }
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  color: var(--ink);
 }
 .btn:hover { border-color: var(--accent); }
 .btn-outline { color: var(--ink); }
 .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
-.btn-primary:hover { background: #b2551f; }
-.btn-danger { background: #c0392b; color: white; border-color: #c0392b; }
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-danger { background: #dc2626; color: white; border-color: #dc2626; }
+
+#topbar .btn-outline {
+  background: transparent;
+  border-color: rgba(255,255,255,0.25);
+  color: #ffffff;
+}
+#topbar .btn-outline:hover { border-color: var(--accent); background: rgba(255,255,255,0.06); }
 
 .hidden { display: none !important; }
 
@@ -442,6 +454,51 @@ main { position: relative; flex: 1; }
   white-space: nowrap;
 }
 .rd-bracket-max { background: var(--accent-soft); color: var(--accent); }
+
+/* ---------- Painel flutuante (não bloqueia o mapa) ---------- */
+.side-panel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 360px;
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  overflow-y: auto;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.2);
+  padding: 16px 18px;
+  z-index: 900;
+}
+.side-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.side-panel-header h3 { margin: 0; font-size: 15px; }
+.side-panel-header-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.icon-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn:hover { border-color: var(--accent); }
+.side-panel.collapsed { width: auto; padding: 10px 12px; }
+.side-panel.collapsed #regionDetailBody { display: none; }
+.side-panel.collapsed .side-panel-header { margin-bottom: 0; }
+.side-panel .modal-actions { flex-direction: column; align-items: stretch; }
+.side-panel .modal-actions .btn { width: 100%; }
 
 .add-city-row {
   display: flex;

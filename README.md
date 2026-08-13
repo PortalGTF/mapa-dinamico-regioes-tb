@@ -144,17 +144,22 @@ Adicionar cidade à região"**: escolha a cidade na lista e clique em "+ Adicion
 entra na lista já marcada, junto com as demais. Funciona tanto ao criar uma região nova
 quanto ao editar uma já existente.
 
-### Cerca eletrônica (contorno da região)
-Ao clicar no nome de uma região (o mesmo clique que abre o painel de raio), o app
-também desenha automaticamente um contorno azul tracejado ao redor de todas as
-cidades daquela região — como uma "cerca eletrônica" mostrando o raio de atuação real
-da região no mapa. O contorno é calculado sozinho (não precisa redesenhar manualmente)
-a partir das cidades que compõem a região.
+### Cerca eletrônica (contorno real das cidades da região)
+Ao clicar no nome de uma região, o app desenha automaticamente um contorno azul
+tracejado ao redor dela — mas agora esse contorno segue o **limite administrativo
+real de cada cidade** (a fronteira do município, não só uma linha ligando os pontos),
+unindo o contorno de todas as cidades da região em um único desenho. Como isso busca
+o limite de cada cidade em um serviço externo, aparece uma barra de progresso
+enquanto calcula (pode levar alguns segundos, mais tempo quanto mais cidades a
+região tiver). Se alguma cidade não tiver contorno disponível no serviço gratuito, o
+app tenta usar as demais; se nenhuma tiver, cai de volta para uma casca convexa
+simples ao redor dos pontos (melhor que nada).
 
-Tem um botão **"Esconder/Mostrar cerca da região"** no painel de detalhes, caso queira
-tirar o contorno da tela sem fechar o painel. Regiões com menos de 3 cidades com
-localização conhecida não têm contorno desenhado (não dá pra formar uma área com menos
-de 3 pontos).
+O painel de detalhes que abre ao lado **não tampa mais o mapa** — ele fica flutuando
+no canto, e dá pra continuar vendo e navegando no mapa por baixo/ao redor dele. Tem
+um botão **"—" (minimizar)** que encolhe o painel para uma barrinha pequena, deixando
+o mapa totalmente livre, sem perder o que já foi calculado (a cerca e os anéis
+continuam no mapa mesmo com o painel minimizado) — clique de novo para expandir.
 
 ### Vendo em qual raio (50, 100, 150... km) uma região se enquadra
 A lista de regiões na barra lateral já mostra o raio de cada uma direto na linha
@@ -203,6 +208,29 @@ outros dois arquivos (`cities_list.json` e `city_to_sellers.json`) a partir dele
 me peça e eu regenero pra você a partir de uma planilha nova.
 
 ---
+
+## 6. Identidade visual (cores, fonte e logo)
+
+O app já segue a paleta e a tipografia do Portal de Cargas GTF: fundo azul-marinho
+escuro no topo, destaque em verde-azulado (teal), e fonte Inter em vez da fonte
+padrão do sistema.
+
+**Sobre o logo**: como não temos o arquivo oficial do logotipo da GTF, coloquei um
+símbolo provisório (`img/logo.svg`) no mesmo estilo circular do que aparece no
+portal. Para trocar pelo logo de verdade:
+
+1. Pegue o arquivo do logo oficial (de preferência `.svg` ou `.png` com fundo
+   transparente).
+2. Substitua o arquivo `img/logo.svg` por ele (pode manter o nome `logo.svg` mesmo
+   sendo um `.png` — só ajuste a extensão no `index.html` também, na linha do
+   `<img src="img/logo.svg" ...>`).
+3. Suba o arquivo novo pro GitHub, junto com o `index.html` se tiver mudado a
+   extensão.
+
+Se quiser ajustar as cores exatas (o teal ou o azul-marinho, por exemplo, caso a
+marca oficial use tons ligeiramente diferentes), os valores ficam centralizados no
+topo do arquivo `css/style.css`, dentro do bloco `:root` — é só trocar o valor
+hexadecimal de `--accent` (verde-azulado) ou `--navy` (azul-marinho escuro).
 
 ## 5. Limites a saber
 
