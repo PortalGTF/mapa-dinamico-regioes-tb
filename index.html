@@ -127,6 +127,19 @@
   </div>
 </div>
 
+<!-- Modal: detalhes da região (raio de 50 em 50 km) -->
+<div id="regionDetailModal" class="modal hidden">
+  <div class="modal-box modal-box-wide">
+    <h3 id="regionDetailTitle">Região</h3>
+    <div class="region-detail-summary" id="regionDetailSummary">Calculando distâncias…</div>
+    <div class="region-detail-list" id="regionDetailList"></div>
+    <div class="modal-actions">
+      <button id="btnToggleRings" class="btn btn-outline">Mostrar anéis de 50 km no mapa</button>
+      <button id="btnCloseRegionDetail" class="btn btn-primary">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>

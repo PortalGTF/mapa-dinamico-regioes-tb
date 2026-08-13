@@ -122,6 +122,18 @@ Adicionar cidade à região"**: escolha a cidade na lista e clique em "+ Adicion
 entra na lista já marcada, junto com as demais. Funciona tanto ao criar uma região nova
 quanto ao editar uma já existente.
 
+### Vendo em qual raio (50, 100, 150... km) uma região se enquadra
+Clique no nome de qualquer região na barra lateral (não no "editar") — abre um painel
+com a distância rodoviária de ida, a partir de Terra Boa - PR, até cada cidade daquela
+região, ordenadas da mais distante para a mais próxima. O raio geral da região é
+definido pela **cidade mais distante**, arredondado para cima em faixas de 50 km — por
+exemplo, uma cidade a 57 km enquadra a região no raio de até 100 km; uma cidade a 112
+km enquadra no raio de até 150 km.
+
+Tem também um botão **"Mostrar anéis de 50 km no mapa"**, que desenha círculos
+concêntricos a partir da origem (a cada 50 km, até o raio da região) diretamente no
+mapa — útil para visualizar de forma gráfica onde a região se encaixa.
+
 ### Salvando as alterações para todo mundo ver (importante!)
 Como o site é estático (sem banco de dados), as edições do admin ficam guardadas
 **só no navegador dele** até serem publicadas. Para tornar as mudanças visíveis a

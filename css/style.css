@@ -380,6 +380,38 @@ main { position: relative; flex: 1; }
 }
 .checklist input { width: auto; margin: 0; }
 
+/* ---------- Detalhes da região / raio ---------- */
+.region-detail-summary {
+  background: #f4f2ee;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 14px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.region-detail-list { max-height: 320px; overflow-y: auto; }
+.region-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 4px;
+  border-bottom: 1px dashed var(--line);
+  font-size: 13px;
+}
+.region-detail-row:last-child { border-bottom: none; }
+.rd-city { flex: 1; font-weight: 600; }
+.rd-km { color: var(--muted); width: 60px; text-align: right; }
+.rd-bracket {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: #eef1ea;
+  color: #5a6b52;
+  white-space: nowrap;
+}
+.rd-bracket-max { background: var(--accent-soft); color: var(--accent); }
+
 .add-city-row {
   display: flex;
   gap: 6px;

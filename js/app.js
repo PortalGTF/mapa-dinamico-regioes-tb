@@ -15,6 +15,8 @@ let editingRegionId = null; // se != null, o modal de região está editando (n�
 let pendingPolygonCities = []; // cidades capturadas pelo último polígono desenhado
 let searchPreviewMarker = null; // pin temporário do campo de busca de endereço
 let activeSellerFilter = null; // se != null, só mostra cidades desse vendedor no mapa
+let ringLayerGroup = null; // anéis de 50 em 50 km desenhados a partir da origem
+let lastRegionMaxBracket = null; // último raio calculado (para o toggle de anéis)
 
 let SELLERS = {};       // { vendedor: [cidades] }
 let CITY_TO_SELLERS = {}; // { cidade: [vendedores] }
@@ -426,6 +428,7 @@ function renderRegionsList() {
         openRegionModalForEdit(region.id);
       } else {
         focusRegion(region);
+        openRegionDetail(region);
       }
     });
     box.appendChild(row);
@@ -437,6 +440,119 @@ function focusRegion(region) {
   if (coords.length > 0) {
     map.fitBounds(coords.map((c) => [c.lat, c.lng]), { padding: [50, 50] });
   }
+}
+
+// ------------------------------------------------------------
+// Raio da região (faixas de 50 em 50 km a partir da origem)
+// ------------------------------------------------------------
+function bracketFor(km) {
+  return Math.ceil(km / 50) * 50;
+}
+
+function openRegionDetail(region) {
+  document.getElementById("regionDetailTitle").textContent = region.name;
+  document.getElementById("regionDetailSummary").textContent = "Calculando distâncias a partir de Terra Boa…";
+  document.getElementById("regionDetailList").innerHTML = "";
+  document.getElementById("regionDetailModal").classList.remove("hidden");
+  computeRegionRadius(region);
+}
+
+function closeRegionDetail() {
+  document.getElementById("regionDetailModal").classList.add("hidden");
+  if (ringLayerGroup) {
+    map.removeLayer(ringLayerGroup);
+    ringLayerGroup = null;
+  }
+  document.getElementById("btnToggleRings").textContent = "Mostrar anéis de 50 km no mapa";
+}
+
+async function computeRegionRadius(region) {
+  const summaryEl = document.getElementById("regionDetailSummary");
+
+  if (!originLatLng || originLatLng.lat === null) {
+    summaryEl.textContent = "Não foi possível calcular: coordenadas da origem indisponíveis.";
+    return;
+  }
+
+  const results = [];
+  for (const cityLabel of region.cities) {
+    const dest = Geocode.get(cityLabel);
+    if (!dest || dest.lat === null) {
+      results.push({ cityLabel, km: null });
+      renderRegionDetailList(results);
+      continue;
+    }
+    try {
+      const route = await Routing.getRoute(originLatLng, dest);
+      results.push({ cityLabel, km: route.km });
+    } catch (e) {
+      results.push({ cityLabel, km: null, error: true });
+    }
+    renderRegionDetailList(results);
+    await new Promise((r) => setTimeout(r, 250)); // uso respeitoso do OSRM
+  }
+
+  renderRegionDetailList(results, true);
+}
+
+function renderRegionDetailList(results, done) {
+  const listEl = document.getElementById("regionDetailList");
+  const summaryEl = document.getElementById("regionDetailSummary");
+
+  const valid = results.filter((r) => r.km !== null && !r.error);
+  const maxKm = valid.length > 0 ? Math.max(...valid.map((r) => r.km)) : null;
+  const maxBracket = maxKm !== null ? bracketFor(maxKm) : null;
+  lastRegionMaxBracket = maxBracket;
+
+  if (maxBracket !== null) {
+    summaryEl.innerHTML = `<strong>Raio da região: até ${maxBracket} km</strong><br><span class="hint">baseado na cidade mais distante (ida, a partir de Terra Boa - PR)${done ? "" : " · calculando…"}</span>`;
+  } else if (done) {
+    summaryEl.textContent = "Não foi possível calcular nenhuma distância para essa região.";
+  }
+
+  listEl.innerHTML = "";
+  results
+    .slice()
+    .sort((a, b) => (b.km || 0) - (a.km || 0))
+    .forEach((r) => {
+      const row = document.createElement("div");
+      row.className = "region-detail-row";
+      if (r.km === null) {
+        row.innerHTML = `<span class="rd-city">${r.cityLabel}</span><span class="rd-km">—</span>`;
+      } else {
+        const bracket = bracketFor(r.km);
+        const isMax = bracket === maxBracket;
+        row.innerHTML = `<span class="rd-city">${r.cityLabel}</span><span class="rd-km">${r.km.toFixed(0)} km</span><span class="rd-bracket ${isMax ? "rd-bracket-max" : ""}">até ${bracket} km</span>`;
+      }
+      listEl.appendChild(row);
+    });
+}
+
+function toggleRings() {
+  const btn = document.getElementById("btnToggleRings");
+  if (ringLayerGroup) {
+    map.removeLayer(ringLayerGroup);
+    ringLayerGroup = null;
+    btn.textContent = "Mostrar anéis de 50 km no mapa";
+    return;
+  }
+  if (!lastRegionMaxBracket || !originLatLng) return;
+
+  ringLayerGroup = L.layerGroup();
+  for (let r = 50; r <= lastRegionMaxBracket; r += 50) {
+    L.circle([originLatLng.lat, originLatLng.lng], {
+      radius: r * 1000,
+      color: r === lastRegionMaxBracket ? "#c0392b" : "#7f8c8d",
+      weight: r === lastRegionMaxBracket ? 2 : 1,
+      dashArray: "4 4",
+      fillOpacity: 0,
+    }).addTo(ringLayerGroup);
+  }
+  ringLayerGroup.addTo(map);
+  btn.textContent = "Esconder anéis do mapa";
+
+  const outerCircle = L.circle([originLatLng.lat, originLatLng.lng], { radius: lastRegionMaxBracket * 1000 });
+  map.fitBounds(outerCircle.getBounds(), { padding: [30, 30] });
 }
 
 // ------------------------------------------------------------
@@ -768,6 +884,9 @@ function wireEvents() {
   });
 
   document.getElementById("btnSearchAddress").addEventListener("click", doSearchAddress);
+
+  document.getElementById("btnCloseRegionDetail").addEventListener("click", closeRegionDetail);
+  document.getElementById("btnToggleRings").addEventListener("click", toggleRings);
 }
 
 function downloadFile(filename, content) {
