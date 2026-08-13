@@ -1,1 +1,895 @@
-{}
+{
+  "Abatiá - PR": {
+    "lat": -23.3034808,
+    "lng": -50.3118995
+  },
+  "Alto Paraná - PR": {
+    "lat": -23.131247,
+    "lng": -52.318893
+  },
+  "Alto Paraíso - PR": {
+    "lat": -23.508137,
+    "lng": -53.728537
+  },
+  "Alto Piquiri - PR": {
+    "lat": -24.0168458,
+    "lng": -53.4404929
+  },
+  "Altônia - PR": {
+    "lat": -23.8729173,
+    "lng": -53.8867801
+  },
+  "Alvorada do Sul - PR": {
+    "lat": -22.78599426036323,
+    "lng": -51.22821807861329,
+    "manual": true
+  },
+  "Amaporã - PR": {
+    "lat": -23.094272,
+    "lng": -52.786597
+  },
+  "Andirá - PR": {
+    "lat": -23.047898,
+    "lng": -50.2330026
+  },
+  "Anhumas - SP": {
+    "lat": -22.2960422,
+    "lng": -51.3836845
+  },
+  "Apucarana - PR": {
+    "lat": -23.5291436,
+    "lng": -51.4495806
+  },
+  "Arapongas - PR": {
+    "lat": -23.4060077,
+    "lng": -51.4569965
+  },
+  "Arapuã - PR": {
+    "lat": -24.311784224540528,
+    "lng": -51.7892074584961,
+    "manual": true
+  },
+  "Araruna - PR": {
+    "lat": -23.93636871081306,
+    "lng": -52.49919891357422,
+    "manual": true
+  },
+  "Ariranha do Ivaí - PR": {
+    "lat": -24.3834527,
+    "lng": -51.5876772
+  },
+  "Assaí - PR": {
+    "lat": -23.3741818,
+    "lng": -50.8434273
+  },
+  "Astorga - PR": {
+    "lat": -23.1767737,
+    "lng": -51.6780106
+  },
+  "Atalaia - PR": {
+    "lat": -15.6816304,
+    "lng": -38.9447002
+  },
+  "Bandeirantes - PR": {
+    "lat": -23.1066315,
+    "lng": -50.3755059
+  },
+  "Barbosa Ferraz - PR": {
+    "lat": -24.032353920357526,
+    "lng": -52.01099395751953,
+    "manual": true
+  },
+  "Barra do Jacaré - PR": {
+    "lat": -23.105882,
+    "lng": -50.1786368
+  },
+  "Bela Vista do Paraíso - PR": {
+    "lat": -22.9902767,
+    "lng": -51.1931034,
+    "stateFound": "Paraná",
+    "suspect": false
+  },
+  "Boa Esperança - PR": {
+    "lat": -24.2402096,
+    "lng": -52.7861154
+  },
+  "Boa Ventura de São Roque - PR": {
+    "lat": -24.88177,
+    "lng": -51.5441292
+  },
+  "Bom Sucesso - PR": {
+    "lat": -23.7101968,
+    "lng": -51.7661597
+  },
+  "Borrazópolis - PR": {
+    "lat": -23.9404111,
+    "lng": -51.5826826
+  },
+  "Brasilândia do Sul - PR": {
+    "lat": -24.1918804,
+    "lng": -53.645362
+  },
+  "Cafeara - PR": {
+    "lat": -22.7864215,
+    "lng": -51.7103761
+  },
+  "Cafezal do Sul - PR": {
+    "lat": -23.957249,
+    "lng": -53.6384815
+  },
+  "Califórnia - PR": {
+    "lat": -23.6672543,
+    "lng": -51.3554556
+  },
+  "Cambará - PR": {
+    "lat": -23.0517529,
+    "lng": -50.0599182
+  },
+  "Cambira - PR": {
+    "lat": -23.6024873,
+    "lng": -51.5900923
+  },
+  "Cambé - PR": {
+    "lat": -23.2789346,
+    "lng": -51.2808478
+  },
+  "Campina da Lagoa - PR": {
+    "lat": -24.590836606832426,
+    "lng": -52.80853271484376,
+    "manual": true
+  },
+  "Campo Mourão - PR": {
+    "lat": -24.050533419840228,
+    "lng": -52.3828125,
+    "manual": true
+  },
+  "Centenário do Sul - PR": {
+    "lat": -22.821497,
+    "lng": -51.5951456
+  },
+  "Cianorte - PR": {
+    "lat": -23.6495856,
+    "lng": -52.6137431
+  },
+  "Cidade Gaúcha - PR": {
+    "lat": -23.3735595,
+    "lng": -52.9362954
+  },
+  "Colorado - PR": {
+    "lat": -22.8385097,
+    "lng": -51.9730135
+  },
+  "Congonhinhas - PR": {
+    "lat": -23.5496855,
+    "lng": -50.5500231
+  },
+  "Cornélio Procópio - PR": {
+    "lat": -23.1779305,
+    "lng": -50.6465062
+  },
+  "Corumbataí do Sul - PR": {
+    "lat": -24.100956,
+    "lng": -52.11766
+  },
+  "Cruzeiro do Oeste - PR": {
+    "lat": -23.782169,
+    "lng": -53.0796793
+  },
+  "Cruzeiro do Sul - PR": {
+    "lat": -23.7868089,
+    "lng": -53.0681085
+  },
+  "Cruzmaltina - PR": {
+    "lat": -23.9932535,
+    "lng": -51.445863
+  },
+  "Cândido de Abreu - PR": {
+    "lat": -24.5748319,
+    "lng": -51.3430196
+  },
+  "Diamante do Norte - PR": {
+    "lat": -22.6565442,
+    "lng": -52.8589113
+  },
+  "Douradina - PR": {
+    "lat": -23.3820223,
+    "lng": -53.2960428
+  },
+  "Doutor Camargo - PR": {
+    "lat": -23.5575611,
+    "lng": -52.2185546
+  },
+  "Engenheiro Beltrão - PR": {
+    "lat": -23.7985411,
+    "lng": -52.2613
+  },
+  "Esperança Nova - PR": {
+    "lat": -23.1981679,
+    "lng": -52.1942382
+  },
+  "Farol - PR": {
+    "lat": -24.095875,
+    "lng": -52.6219138
+  },
+  "Faxinal - PR": {
+    "lat": -24.0015178,
+    "lng": -51.3188042
+  },
+  "Floraí - PR": {
+    "lat": -23.3189461,
+    "lng": -52.3019047
+  },
+  "Floresta - PR": {
+    "lat": -23.6144046,
+    "lng": -52.0819003
+  },
+  "Florestópolis - PR": {
+    "lat": -22.8663942,
+    "lng": -51.3905121
+  },
+  "Flórida - PR": {
+    "lat": -23.0861312,
+    "lng": -51.9540843
+  },
+  "Formosa do Oeste - PR": {
+    "lat": -24.2966562,
+    "lng": -53.312801
+  },
+  "Foz do Iguaçu - PR": {
+    "lat": -25.5886515,
+    "lng": -54.5917598
+  },
+  "Francisco Alves - PR": {
+    "lat": -24.0956137,
+    "lng": -53.9657517
+  },
+  "Fênix - PR": {
+    "lat": -23.9169495,
+    "lng": -51.9801443
+  },
+  "Godoy Moreira - PR": {
+    "lat": -24.1925289,
+    "lng": -51.9232662
+  },
+  "Goioerê - PR": {
+    "lat": -24.191230645094006,
+    "lng": -53.02722930908204,
+    "manual": true
+  },
+  "Grandes Rios - PR": {
+    "lat": -24.1450866,
+    "lng": -51.5061271
+  },
+  "Guairaçá - PR": {
+    "lat": -22.9352304,
+    "lng": -52.6865101
+  },
+  "Guaporema - PR": {
+    "lat": -23.3365585,
+    "lng": -52.771322
+  },
+  "Guaraci - PR": {
+    "lat": -22.970394,
+    "lng": -51.6479769
+  },
+  "Guaravera - PR": {
+    "lat": -23.6099128,
+    "lng": -51.1866732
+  },
+  "Guaíra - PR": {
+    "lat": -24.0872492,
+    "lng": -54.2042655
+  },
+  "Ibiporã - PR": {
+    "lat": -23.2383183,
+    "lng": -51.048152
+  },
+  "Icaraíma - PR": {
+    "lat": -23.3948345,
+    "lng": -53.6162036
+  },
+  "Iguaraçu - PR": {
+    "lat": -23.1964691,
+    "lng": -51.8244951
+  },
+  "Inajá - PR": {
+    "lat": -8.9009027,
+    "lng": -37.8213626
+  },
+  "Indiana - SP": {
+    "lat": -22.1748508,
+    "lng": -51.2534615
+  },
+  "Indianópolis - PR": {
+    "lat": -23.4807249,
+    "lng": -52.6987037
+  },
+  "Iporã - PR": {
+    "lat": -24.006773609388077,
+    "lng": -53.70975494384766,
+    "manual": true
+  },
+  "Irerê - PR": {
+    "lat": -23.5039166,
+    "lng": -51.126803
+  },
+  "Iretama - PR": {
+    "lat": -24.4205941,
+    "lng": -52.1013532
+  },
+  "Itaguajé - PR": {
+    "lat": -22.618282,
+    "lng": -51.967351
+  },
+  "Itambaracá - PR": {
+    "lat": -23.0176678,
+    "lng": -50.406887
+  },
+  "Itambé - PR": {
+    "lat": -23.659424,
+    "lng": -51.9903555
+  },
+  "Itaúna do Sul - PR": {
+    "lat": -22.7301935,
+    "lng": -52.8882431
+  },
+  "Ivaiporã - PR": {
+    "lat": -24.2383522,
+    "lng": -51.6693153
+  },
+  "Ivatuba - PR": {
+    "lat": -23.618722,
+    "lng": -52.2174491
+  },
+  "Ivaté - PR": {
+    "lat": -23.4084656,
+    "lng": -53.3698352
+  },
+  "Jacarezinho - PR": {
+    "lat": -23.1741908,
+    "lng": -49.9784842
+  },
+  "Jaguapitã - PR": {
+    "lat": -23.1163889,
+    "lng": -51.5288666
+  },
+  "Jandaia do Sul - PR": {
+    "lat": -23.5986044,
+    "lng": -51.6483883
+  },
+  "Janiópolis - PR": {
+    "lat": -24.1411078,
+    "lng": -52.7784958
+  },
+  "Japurá - PR": {
+    "lat": -23.470159,
+    "lng": -52.554946
+  },
+  "Jardim Alegre - PR": {
+    "lat": -24.1795192,
+    "lng": -51.6927177
+  },
+  "Jardim Olinda - PR": {
+    "lat": -22.5520625,
+    "lng": -52.036373
+  },
+  "Jataizinho - PR": {
+    "lat": -23.2562293,
+    "lng": -50.9809362
+  },
+  "Juranda - PR": {
+    "lat": -24.4210771,
+    "lng": -52.8346325
+  },
+  "Jussara - PR": {
+    "lat": -23.621931,
+    "lng": -52.46931
+  },
+  "Kaloré - PR": {
+    "lat": -23.8242643,
+    "lng": -51.6683666
+  },
+  "Leópolis - PR": {
+    "lat": -23.0789091,
+    "lng": -50.7501808
+  },
+  "Lidianópolis - PR": {
+    "lat": -24.1073464,
+    "lng": -51.6525676
+  },
+  "Loanda - PR": {
+    "lat": -22.9345765,
+    "lng": -53.1380838
+  },
+  "Lobato - PR": {
+    "lat": -23.0092459,
+    "lng": -51.9528514
+  },
+  "Londrina - PR": {
+    "lat": -23.3275089,
+    "lng": -51.1503844
+  },
+  "Luiziana - PR": {
+    "lat": -24.2838237,
+    "lng": -52.2767531
+  },
+  "Lunardelli - PR": {
+    "lat": -24.0793542,
+    "lng": -51.7421822
+  },
+  "Lupionópolis - PR": {
+    "lat": -22.7557962,
+    "lng": -51.659999
+  },
+  "Mamborê - PR": {
+    "lat": -24.3107211,
+    "lng": -52.5277524
+  },
+  "Mandaguari - PR": {
+    "lat": -23.5179845,
+    "lng": -51.6769999
+  },
+  "Mandaguaçu - PR": {
+    "lat": -23.3410384,
+    "lng": -52.0961037
+  },
+  "Manoel Ribas - PR": {
+    "lat": -24.5226725,
+    "lng": -51.6669506
+  },
+  "Maria Helena - PR": {
+    "lat": -23.61822138785719,
+    "lng": -53.2062292098999,
+    "manual": true
+  },
+  "Marialva - PR": {
+    "lat": -23.4776626,
+    "lng": -51.8034625
+  },
+  "Marilena - PR": {
+    "lat": -22.7382157,
+    "lng": -53.0238298
+  },
+  "Mariluz - PR": {
+    "lat": -24.004758061583573,
+    "lng": -53.14782142639161,
+    "manual": true
+  },
+  "Marilândia do Sul - PR": {
+    "lat": -23.752432,
+    "lng": -51.3022145
+  },
+  "Maringá - PR": {
+    "lat": -23.3908513,
+    "lng": -51.9512118
+  },
+  "Martinópolis - SP": {
+    "lat": -22.1556113012395,
+    "lng": -51.172943115234375,
+    "manual": true
+  },
+  "Marumbi - PR": {
+    "lat": -23.7079453,
+    "lng": -51.6428363
+  },
+  "Mato Rico - PR": {
+    "lat": -24.7045571,
+    "lng": -52.1493001
+  },
+  "Mauá da Serra - PR": {
+    "lat": -23.90964,
+    "lng": -51.2397442
+  },
+  "Mirador - PR": {
+    "lat": -23.257015,
+    "lng": -52.7756432
+  },
+  "Miraselva - PR": {
+    "lat": -22.9675823,
+    "lng": -51.4847793
+  },
+  "Moreira Sales - PR": {
+    "lat": -24.05649649076851,
+    "lng": -53.00971984863282,
+    "manual": true
+  },
+  "Munhoz de Melo - PR": {
+    "lat": -23.1487317,
+    "lng": -51.7723238
+  },
+  "Nossa Senhora das Graças - PR": {
+    "lat": -22.9121717,
+    "lng": -51.7946264
+  },
+  "Nova Aliança do Ivaí - PR": {
+    "lat": -23.176271,
+    "lng": -52.603244
+  },
+  "Nova América da Colina - PR": {
+    "lat": -23.3315888,
+    "lng": -50.7182735
+  },
+  "Nova Cantu - PR": {
+    "lat": -24.6739252,
+    "lng": -52.5731265
+  },
+  "Nova Esperança - PR": {
+    "lat": -23.1981679,
+    "lng": -52.1942382
+  },
+  "Nova Fátima - PR": {
+    "lat": -23.4386115,
+    "lng": -50.5653003
+  },
+  "Nova Londrina - PR": {
+    "lat": -22.7666527,
+    "lng": -52.9831405
+  },
+  "Nova Olímpia - PR": {
+    "lat": -23.4699403,
+    "lng": -53.090112
+  },
+  "Nova Santa Bárbara - PR": {
+    "lat": -23.5860638,
+    "lng": -50.7638011
+  },
+  "Nova Tebas - PR": {
+    "lat": -24.4924778,
+    "lng": -51.9629588
+  },
+  "Novo Itacolomi - PR": {
+    "lat": -23.7635774,
+    "lng": -51.5076578
+  },
+  "Ourizona - PR": {
+    "lat": -23.4047001,
+    "lng": -52.1954085
+  },
+  "Paiquerê - PR": {
+    "lat": -23.5263787,
+    "lng": -51.0836274
+  },
+  "Paiçandu - PR": {
+    "lat": -23.4603661,
+    "lng": -52.054065
+  },
+  "Palotina - PR": {
+    "lat": -24.2931182,
+    "lng": -53.8311126
+  },
+  "Paranacity - PR": {
+    "lat": -22.9288436,
+    "lng": -52.1548536
+  },
+  "Paranapoema - PR": {
+    "lat": -22.6561084,
+    "lng": -52.0865163
+  },
+  "Paranavaí - PR": {
+    "lat": -23.0791626,
+    "lng": -52.4641371
+  },
+  "Paraíso do Norte - PR": {
+    "lat": -23.2798113,
+    "lng": -52.6012924
+  },
+  "Peabiru - PR": {
+    "lat": -23.91910878641914,
+    "lng": -52.34676361083985,
+    "manual": true
+  },
+  "Perobal - PR": {
+    "lat": -23.8990762,
+    "lng": -53.4187325
+  },
+  "Pirapozinho - SP": {
+    "lat": -22.2755131,
+    "lng": -51.4953191
+  },
+  "Pitanga - PR": {
+    "lat": -24.7592722,
+    "lng": -51.7604456
+  },
+  "Pitangueiras - PR": {
+    "lat": -23.2331222,
+    "lng": -51.58589
+  },
+  "Planaltina do Paraná - PR": {
+    "lat": -23.0235277,
+    "lng": -52.9132838
+  },
+  "Porecatu - PR": {
+    "lat": -22.7531137,
+    "lng": -51.3771765
+  },
+  "Porto Rico - PR": {
+    "lat": -22.774742,
+    "lng": -53.267731
+  },
+  "Prado Ferreira - PR": {
+    "lat": -23.0394424,
+    "lng": -51.4421787
+  },
+  "Presidente Bernardes - SP": {
+    "lat": -22.0113879,
+    "lng": -51.5526111
+  },
+  "Presidente Castelo Branco - PR": {
+    "lat": -23.839604938963447,
+    "lng": -52.307281494140625,
+    "manual": true
+  },
+  "Presidente Epitácio - SP": {
+    "lat": -21.7712289,
+    "lng": -52.1450006
+  },
+  "Presidente Prudente - SP": {
+    "lat": -22.0803639,
+    "lng": -51.383875
+  },
+  "Presidente Venceslau - SP": {
+    "lat": -21.8778779,
+    "lng": -51.8355817
+  },
+  "Primeiro de Maio - PR": {
+    "lat": -25.441713,
+    "lng": -54.402456
+  },
+  "Pérola - PR": {
+    "lat": -23.80498358699655,
+    "lng": -53.685550689697266,
+    "manual": true
+  },
+  "Quarto Centenário - PR": {
+    "lat": -24.27904,
+    "lng": -53.075881
+  },
+  "Querência do Norte - PR": {
+    "lat": -23.0825988,
+    "lng": -53.4814827
+  },
+  "Quinta do Sol - PR": {
+    "lat": -23.8494169,
+    "lng": -52.1334452
+  },
+  "Rancharia - SP": {
+    "lat": -22.2245393,
+    "lng": -50.8835159
+  },
+  "Rancho Alegre - PR": {
+    "lat": -23.070922,
+    "lng": -50.9142676
+  },
+  "Rancho Alegre D'Oeste - PR": {
+    "lat": -24.3065214,
+    "lng": -52.9551791
+  },
+  "Regente Feijó - SP": {
+    "lat": -22.1939894,
+    "lng": -51.3550858
+  },
+  "Ribeirão do Pinhal - PR": {
+    "lat": -23.4063092,
+    "lng": -50.3581945
+  },
+  "Rio Bom - PR": {
+    "lat": -10.3333333,
+    "lng": -53.2
+  },
+  "Rio Branco do Ivaí - PR": {
+    "lat": -24.3193396,
+    "lng": -51.3139672
+  },
+  "Rolândia - PR": {
+    "lat": -23.338409,
+    "lng": -51.3830306
+  },
+  "Roncador - PR": {
+    "lat": -24.5952562,
+    "lng": -52.2748093,
+    "stateFound": "Paraná",
+    "suspect": false
+  },
+  "Rondon - PR": {
+    "lat": -23.4171839,
+    "lng": -52.7722221
+  },
+  "Rosário do Ivaí - PR": {
+    "lat": -24.2575958,
+    "lng": -51.2481038
+  },
+  "Sabáudia - PR": {
+    "lat": -23.318566,
+    "lng": -51.5518579
+  },
+  "Santa Amélia - PR": {
+    "lat": -23.2661996,
+    "lng": -50.4278622
+  },
+  "Santa Cecília do Pavão - PR": {
+    "lat": -23.5176577,
+    "lng": -50.7837199
+  },
+  "Santa Cruz de Monte Castelo - PR": {
+    "lat": -22.9582028,
+    "lng": -53.294859
+  },
+  "Santa Fé - PR": {
+    "lat": -3.2823624,
+    "lng": -39.9599641
+  },
+  "Santa Inês - PR": {
+    "lat": -22.640225,
+    "lng": -51.9031333
+  },
+  "Santa Isabel do Ivaí - PR": {
+    "lat": -23.0013019,
+    "lng": -53.1930281
+  },
+  "Santa Maria do Oeste - PR": {
+    "lat": -24.9392355,
+    "lng": -51.8712242
+  },
+  "Santa Mariana - PR": {
+    "lat": -23.0385823,
+    "lng": -50.5720331
+  },
+  "Santa Mônica - PR": {
+    "lat": -14.0659873,
+    "lng": -42.4845922
+  },
+  "Santo Anastácio - SP": {
+    "lat": -21.9706753,
+    "lng": -51.6491745
+  },
+  "Santo Antônio da Platina - PR": {
+    "lat": -23.2948831,
+    "lng": -50.0775277
+  },
+  "Santo Antônio do Caiuá - PR": {
+    "lat": -22.7365132,
+    "lng": -52.3446998
+  },
+  "Santo Antônio do Paraíso - PR": {
+    "lat": -23.4949247,
+    "lng": -50.6468656
+  },
+  "Santo Inácio - PR": {
+    "lat": -22.6973239,
+    "lng": -51.792679
+  },
+  "Sarandi - PR": {
+    "lat": -23.4354081,
+    "lng": -51.8845069
+  },
+  "Sertaneja - PR": {
+    "lat": -23.0367627,
+    "lng": -50.816802
+  },
+  "Sertanópolis - PR": {
+    "lat": -23.0540008,
+    "lng": -51.0298781
+  },
+  "São Carlos do Ivaí - PR": {
+    "lat": -23.9985563,
+    "lng": -51.8195344
+  },
+  "São Jorge do Ivaí - PR": {
+    "lat": -23.4327325,
+    "lng": -52.2924553
+  },
+  "São Jorge do Patrocínio - PR": {
+    "lat": -23.7632367,
+    "lng": -53.8802096
+  },
+  "São João do Caiuá - PR": {
+    "lat": -22.8544849,
+    "lng": -52.3371114
+  },
+  "São João do Ivaí - PR": {
+    "lat": -23.9949249,
+    "lng": -51.8190355
+  },
+  "São Manoel do Paraná - PR": {
+    "lat": -23.394137,
+    "lng": -52.645376
+  },
+  "São Pedro do Ivaí - PR": {
+    "lat": -23.869676917548674,
+    "lng": -51.85564041137696,
+    "manual": true
+  },
+  "São Pedro do Paraná - PR": {
+    "lat": -22.8240967,
+    "lng": -53.222755
+  },
+  "São Sebastião da Amoreira - PR": {
+    "lat": -23.4660098,
+    "lng": -50.7586107
+  },
+  "São Tomé - PR": {
+    "lat": -23.534946,
+    "lng": -52.590125
+  },
+  "Tamarana - PR": {
+    "lat": -23.7277529,
+    "lng": -51.0910638
+  },
+  "Tamboara - PR": {
+    "lat": -23.1995071,
+    "lng": -52.5000131
+  },
+  "Tapejara - PR": {
+    "lat": -23.729558,
+    "lng": -52.862872
+  },
+  "Tapira - PR": {
+    "lat": -23.323146,
+    "lng": -53.0712033
+  },
+  "Tarabai - SP": {
+    "lat": -22.3038726,
+    "lng": -51.5628675
+  },
+  "Telêmaco Borba - PR": {
+    "lat": -24.3673019,
+    "lng": -50.6613519
+  },
+  "Terra Boa - PR": {
+    "lat": -23.77026416023979,
+    "lng": -52.456111907958984,
+    "manual": true
+  },
+  "Terra Rica - PR": {
+    "lat": -22.6918021,
+    "lng": -52.7341963
+  },
+  "Terra Roxa - PR": {
+    "lat": -24.1786124,
+    "lng": -54.0883586
+  },
+  "Tibagi - PR": {
+    "lat": -24.5151667,
+    "lng": -50.4101487
+  },
+  "Tuneiras do Oeste - PR": {
+    "lat": -23.8672329,
+    "lng": -52.8749376
+  },
+  "Turvo - PR": {
+    "lat": -25.0432814,
+    "lng": -51.5388228
+  },
+  "Ubiratã - PR": {
+    "lat": -24.5316335,
+    "lng": -53.0016951
+  },
+  "Umuarama - PR": {
+    "lat": -23.7729944,
+    "lng": -53.318571
+  },
+  "Uniflor - PR": {
+    "lat": -23.0853871,
+    "lng": -52.1584403
+  },
+  "Uraí - PR": {
+    "lat": -23.2069967,
+    "lng": -50.7880191
+  },
+  "Xambrê - PR": {
+    "lat": -23.7541117,
+    "lng": -53.6261637
+  },
+  "__ORIGIN__": {
+    "lat": -23.7678,
+    "lng": -52.4439
+  },
+  "Álvares Machado - SP": {
+    "lat": -22.0797704,
+    "lng": -51.4768409
+  },
+  "Ângulo - PR": {
+    "lat": -23.1956031,
+    "lng": -51.9123057
+  }
+}

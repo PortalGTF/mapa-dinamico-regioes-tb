@@ -1,1 +1,313 @@
-[]
+[
+  {
+    "id": "r_1786631703669",
+    "name": "LONDRINA/REGIÃO",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "Cambé - PR",
+      "Ibiporã - PR",
+      "Jataizinho - PR",
+      "Londrina - PR"
+    ],
+    "color": "#e08a3c"
+  },
+  {
+    "id": "r_1786631763235",
+    "name": "ARAPONGAS",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "Apucarana - PR",
+      "Arapongas - PR",
+      "Pitangueiras - PR",
+      "Rolândia - PR",
+      "Sabáudia - PR"
+    ],
+    "color": "#3c7ce0"
+  },
+  {
+    "id": "r_1786632628141",
+    "name": "LOANDA",
+    "vehicleProfile": "Truck",
+    "cities": [
+      "Amaporã - PR",
+      "Diamante do Norte - PR",
+      "Guairaçá - PR",
+      "Itaúna do Sul - PR",
+      "Loanda - PR",
+      "Marilena - PR",
+      "Nova Londrina - PR",
+      "Planaltina do Paraná - PR",
+      "Porto Rico - PR",
+      "Querência do Norte - PR",
+      "Santa Cruz de Monte Castelo - PR",
+      "Santa Isabel do Ivaí - PR",
+      "São Pedro do Paraná - PR",
+      "Terra Rica - PR"
+    ],
+    "color": "#3ce0a8"
+  },
+  {
+    "id": "r_1786632665964",
+    "name": "S. J DO CAIUÁ",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "Esperança Nova - PR",
+      "Nova Esperança - PR",
+      "Paranacity - PR",
+      "Santo Antônio do Caiuá - PR",
+      "São João do Caiuá - PR",
+      "Uniflor - PR"
+    ],
+    "color": "#c53de1"
+  },
+  {
+    "id": "r_1786632723044",
+    "name": "PARANAVAI",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "Alto Paraná - PR",
+      "Nova Aliança do Ivaí - PR",
+      "Paranavaí - PR",
+      "Tamboara - PR"
+    ],
+    "color": "#e0c93c"
+  },
+  {
+    "id": "r_1786632776606",
+    "name": "CIANORTE",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "Cianorte - PR",
+      "Indianópolis - PR",
+      "Japurá - PR",
+      "Jussara - PR",
+      "São Manoel do Paraná - PR",
+      "São Tomé - PR",
+      "Terra Boa - PR"
+    ],
+    "color": "#181616"
+  },
+  {
+    "id": "r_1786632825243",
+    "name": "PARAISO DO NORTE",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "Floraí - PR",
+      "Guaporema - PR",
+      "Mirador - PR",
+      "Ourizona - PR",
+      "Paraíso do Norte - PR",
+      "Rondon - PR",
+      "São Jorge do Ivaí - PR"
+    ],
+    "color": "#e13d76"
+  },
+  {
+    "id": "r_1786634533628",
+    "name": "BANDEIRANTES",
+    "vehicleProfile": "3/4 Adaptado",
+    "cities": [
+      "Andirá - PR",
+      "Bandeirantes - PR",
+      "Barra do Jacaré - PR",
+      "Cambará - PR",
+      "Cornélio Procópio - PR",
+      "Itambaracá - PR",
+      "Santa Mariana - PR",
+      "Uraí - PR"
+    ],
+    "color": "#3dc5e1"
+  },
+  {
+    "id": "r_1786634613800",
+    "name": "RIB. DO PINHAL",
+    "vehicleProfile": "Toco",
+    "cities": [
+      "Abatiá - PR",
+      "Assaí - PR",
+      "Congonhinhas - PR",
+      "Jacarezinho - PR",
+      "Nova América da Colina - PR",
+      "Nova Fátima - PR",
+      "Nova Santa Bárbara - PR",
+      "Ribeirão do Pinhal - PR",
+      "Santa Amélia - PR",
+      "Santa Cecília do Pavão - PR",
+      "Santo Antônio da Platina - PR",
+      "Santo Antônio do Paraíso - PR",
+      "São Sebastião da Amoreira - PR"
+    ],
+    "color": "#6ee03c"
+  },
+  {
+    "id": "r_1786634666508",
+    "name": "TELEM.BORBA / TIBAGI",
+    "vehicleProfile": "Toco",
+    "cities": [
+      "Telêmaco Borba - PR",
+      "Tibagi - PR"
+    ],
+    "color": "#c5e13d"
+  },
+  {
+    "id": "r_1786634720502",
+    "name": "DOURADINA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "Alto Paraíso - PR",
+      "Cidade Gaúcha - PR",
+      "Douradina - PR",
+      "Icaraíma - PR",
+      "Ivaté - PR",
+      "Nova Olímpia - PR",
+      "Tapira - PR"
+    ],
+    "color": "#c0392b"
+  },
+  {
+    "id": "r_1786636080834",
+    "name": "PRESID.PRUDENTE / VENCESLAU",
+    "vehicleProfile": "Toco",
+    "cities": [
+      "Álvares Machado - SP",
+      "Anhumas - SP",
+      "Indiana - SP",
+      "Martinópolis - SP",
+      "Pirapozinho - SP",
+      "Presidente Bernardes - SP",
+      "Presidente Epitácio - SP",
+      "Presidente Prudente - SP",
+      "Presidente Venceslau - SP",
+      "Rancharia - SP",
+      "Regente Feijó - SP",
+      "Santo Anastácio - SP",
+      "Tarabai - SP"
+    ],
+    "color": "#8e44ad"
+  },
+  {
+    "id": "r_1786636558633",
+    "name": "ALTONIA",
+    "vehicleProfile": "Toco",
+    "cities": [
+      "Alto Piquiri - PR",
+      "Altônia - PR",
+      "Brasilândia do Sul - PR",
+      "Cafezal do Sul - PR",
+      "Francisco Alves - PR",
+      "Guaíra - PR",
+      "Iporã - PR",
+      "Palotina - PR",
+      "Perobal - PR",
+      "Pérola - PR",
+      "São Jorge do Patrocínio - PR",
+      "Terra Roxa - PR",
+      "Xambrê - PR"
+    ],
+    "color": "#34a216"
+  },
+  {
+    "id": "r_1786636604418",
+    "name": "FOOD MARINGA",
+    "vehicleProfile": "Vuc",
+    "cities": [
+      "Doutor Camargo - PR",
+      "Floresta - PR",
+      "Itambé - PR",
+      "Ivatuba - PR",
+      "Mandaguaçu - PR",
+      "Mandaguari - PR",
+      "Marialva - PR",
+      "Maringá - PR",
+      "Paiçandu - PR",
+      "Sarandi - PR"
+    ],
+    "color": "#d35400"
+  },
+  {
+    "id": "r_1786637220909",
+    "name": "UMUARAMA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "Cruzeiro do Oeste - PR",
+      "Cruzeiro do Sul - PR",
+      "Maria Helena - PR",
+      "Tapejara - PR",
+      "Tuneiras do Oeste - PR",
+      "Umuarama - PR"
+    ],
+    "color": "#f50000"
+  },
+  {
+    "id": "r_1786637331507",
+    "name": "GOIOERE",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "Araruna - PR",
+      "Campo Mourão - PR",
+      "Farol - PR",
+      "Formosa do Oeste - PR",
+      "Goioerê - PR",
+      "Janiópolis - PR",
+      "Mariluz - PR",
+      "Moreira Sales - PR",
+      "Peabiru - PR",
+      "Presidente Castelo Branco - PR",
+      "Quarto Centenário - PR",
+      "Engenheiro Beltrão - PR"
+    ],
+    "color": "#27ae60"
+  },
+  {
+    "id": "r_1786637737611",
+    "name": "BARBOSA / CAMP. DA LAGOA",
+    "vehicleProfile": "Vuc",
+    "cities": [
+      "Barbosa Ferraz - PR",
+      "Campina da Lagoa - PR",
+      "Corumbataí do Sul - PR",
+      "Fênix - PR",
+      "Iretama - PR",
+      "Luiziana - PR",
+      "Mato Rico - PR",
+      "Nova Cantu - PR",
+      "Nova Tebas - PR",
+      "Quinta do Sol - PR",
+      "Roncador - PR"
+    ],
+    "color": "#265f51"
+  },
+  {
+    "id": "r_1786638085252",
+    "name": "UBIRATA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "Boa Esperança - PR",
+      "Juranda - PR",
+      "Mamborê - PR",
+      "Rancho Alegre D'Oeste - PR",
+      "Ubiratã - PR"
+    ],
+    "color": "#6d65d7"
+  },
+  {
+    "id": "r_1786638163077",
+    "name": "PITANGA",
+    "vehicleProfile": "3/4 Adaptado",
+    "cities": [
+      "Ariranha do Ivaí - PR",
+      "Boa Ventura de São Roque - PR",
+      "Ivaiporã - PR",
+      "Jardim Alegre - PR",
+      "Lunardelli - PR",
+      "Manoel Ribas - PR",
+      "Pitanga - PR",
+      "Santa Maria do Oeste - PR",
+      "São Carlos do Ivaí - PR",
+      "São João do Ivaí - PR",
+      "Turvo - PR",
+      "Arapuã - PR"
+    ],
+    "color": "#7e7401"
+  }
+]
