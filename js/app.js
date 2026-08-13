@@ -174,6 +174,7 @@ function setMarkersDraggable(enabled) {
 }
 
 function onCityDragEnd(cityLabel, marker) {
+  if (!Auth.isAdmin) return;
   const ll = marker.getLatLng();
   Geocode.cache[cityLabel] = { lat: ll.lat, lng: ll.lng, manual: true };
   Geocode.saveLocalCache();
@@ -306,6 +307,7 @@ function openCityPopup(cityLabel, marker) {
 }
 
 async function resetCityLocation(cityLabel, marker) {
+  if (!Auth.isAdmin) return;
   delete Geocode.cache[cityLabel];
   Geocode.saveLocalCache();
   marker.closePopup();
@@ -616,6 +618,7 @@ function toggleRings() {
 // Desenho de região (admin)
 // ------------------------------------------------------------
 function onPolygonCreated(e) {
+  if (!Auth.isAdmin) return;
   const layer = e.layer;
   drawnItems.addLayer(layer);
 
@@ -684,6 +687,7 @@ function openRegionModal({ name, vehicleProfile, cities, color }) {
 }
 
 function addCityToRegionChecklist() {
+  if (!Auth.isAdmin) return;
   const select = document.getElementById("addCitySelect");
   const city = select.value;
   if (!city) return;
@@ -702,6 +706,7 @@ function addCityToRegionChecklist() {
 }
 
 function openRegionModalForEdit(regionId) {
+  if (!Auth.isAdmin) return;
   const region = Regions.list.find((r) => r.id === regionId);
   if (!region) return;
   editingRegionId = regionId;
@@ -715,6 +720,7 @@ function closeRegionModal() {
 }
 
 function saveRegionFromModal() {
+  if (!Auth.isAdmin) return;
   const name = document.getElementById("regionName").value.trim();
   const vehicleProfile = document.getElementById("regionVehicleProfile").value;
   const color = document.getElementById("regionColorPicker").value;
@@ -743,6 +749,7 @@ function saveRegionFromModal() {
 }
 
 function deleteRegionFromModal() {
+  if (!Auth.isAdmin) return;
   if (!editingRegionId) return;
   if (!confirm("Excluir esta região? As cidades voltam para 'sem região'.")) return;
   Regions.remove(editingRegionId);
@@ -778,6 +785,7 @@ function openSearchPanelFor(cityLabel) {
 }
 
 async function doSearchAddress() {
+  if (!Auth.isAdmin) return;
   const city = document.getElementById("searchCitySelect").value;
   const input = document.getElementById("searchAddressInput");
   const resultBox = document.getElementById("searchResultBox");
@@ -829,6 +837,7 @@ async function doSearchAddress() {
 }
 
 function applySearchResult(cityLabel) {
+  if (!Auth.isAdmin) return;
   if (!searchPreviewMarker) return;
   const ll = searchPreviewMarker.getLatLng();
   Geocode.cache[cityLabel] = { lat: ll.lat, lng: ll.lng, manual: true };
@@ -872,6 +881,8 @@ function updateAdminUI() {
     btnLogout.classList.add("hidden");
     adminToolbar.classList.add("hidden");
     document.getElementById("searchResultBox").classList.add("hidden");
+    closeRegionModal();
+    clearSearchPreview();
     if (map.hasLayer && drawControl._map) map.removeControl(drawControl);
   }
 
@@ -920,6 +931,7 @@ function wireEvents() {
   });
 
   document.getElementById("btnDrawRegion").addEventListener("click", () => {
+    if (!Auth.isAdmin) return;
     new L.Draw.Polygon(map, drawControl.options.draw.polygon).enable();
   });
 

@@ -182,6 +182,12 @@ me peça e eu regenero pra você a partir de uma planilha nova.
 - Os hashes de senha protegem contra **uso indevido casual**, não contra um ataque
   técnico sério — é adequado para controlar quem edita as regiões, não para proteger
   informação sigilosa.
+- No **modo visualização**, todas as ações que alteram dados (criar/editar/excluir
+  região, arrastar pin, buscar/corrigir endereço, adicionar cidade a uma região) ficam
+  bloqueadas duas vezes: primeiro porque os botões nem aparecem na tela, e segundo
+  porque cada função que altera dado confere de novo se a sessão é de admin antes de
+  fazer qualquer coisa. Isso evita que essas ações rodem por engano ou por algum
+  atalho fora do fluxo normal da interface.
 - A **origem** usa coordenadas fixas (`ORIGIN_LAT`/`ORIGIN_LNG` em `js/config.js`), e
   não tenta geocodificar o nome "GTF - Unidade Terra Boa" — nomes de empresa não são
   reconhecidos pelo Nominatim, só endereços/cidades públicos. O valor padrão é o
