@@ -862,11 +862,12 @@ async function doSearchAddress() {
     return;
   }
   const query = input.value.trim() || `${city}, Brasil`;
+  const expectedUF = extractUF(city);
 
   resultBox.classList.remove("hidden");
   resultBox.innerHTML = "Buscando…";
 
-  const found = await Geocode.searchAddress(query);
+  const found = await Geocode.searchAddress(query, expectedUF);
   if (!found) {
     resultBox.innerHTML = "Endereço não encontrado. Tente descrever de outro jeito (ex: adicionar bairro, rodovia, referência).";
     return;
@@ -887,8 +888,13 @@ async function doSearchAddress() {
 
   map.setView([found.lat, found.lng], 13);
 
+  const warnHtml = found.suspect
+    ? `<div class="c-warn-inline">⚠️ Esse resultado caiu fora de ${expectedUF} (achou em ${found.stateFound}) — confira com atenção antes de confirmar.</div>`
+    : "";
+
   resultBox.innerHTML = `
     <div><strong>Encontrado:</strong> ${found.displayName}</div>
+    ${warnHtml}
     <div class="hint">Arraste o pin azul no mapa se precisar ajustar antes de confirmar.</div>
     <div class="sr-actions">
       <button id="btnApplySearch">Usar esta localização para "${city}"</button>

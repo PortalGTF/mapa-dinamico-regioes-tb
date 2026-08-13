@@ -150,16 +150,25 @@ const Geocode = {
 
   // Busca livre de endereço (usada no campo de busca manual). Não mexe no
   // cache — quem chamou decide se aplica o resultado a alguma cidade.
-  async searchAddress(query) {
+  // Se expectedUF for informado, restringe a busca àquele estado primeiro
+  // (mesma lógica usada na geocodificação automática).
+  async searchAddress(query, expectedUF) {
     try {
-      const url = `${CONFIG.NOMINATIM_URL}?format=json&limit=1&countrycodes=br&addressdetails=1&q=${encodeURIComponent(query)}`;
-      const res = await fetch(url, { headers: { Accept: "application/json" } });
-      const data = await res.json();
+      let data = await this._fetchNominatim(Geocode_buildUrl(query, expectedUF, true));
+
+      if ((!data || !data[0]) && expectedUF && BR_STATE_BBOX[expectedUF]) {
+        data = await this._fetchNominatim(Geocode_buildUrl(query, expectedUF, false));
+      }
+
       if (data && data[0]) {
+        const stateFound = data[0].address && data[0].address.state;
+        const stateUF = expectedUF && stateFound ? BR_STATES[normalizeStr(stateFound)] : null;
         return {
           lat: parseFloat(data[0].lat),
           lng: parseFloat(data[0].lon),
           displayName: data[0].display_name,
+          suspect: !!(expectedUF && stateUF && stateUF !== expectedUF),
+          stateFound,
         };
       }
       return null;
