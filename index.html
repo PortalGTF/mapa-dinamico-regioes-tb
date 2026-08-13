@@ -43,6 +43,8 @@
   <button id="btnNewCity" class="btn btn-primary">+ Nova cidade</button>
   <button id="btnExportDirectory" class="btn btn-outline">Exportar diretório (vendedores/cidades)</button>
   <span class="toolbar-sep"></span>
+  <button id="btnConflicts" class="btn btn-outline">⚠ Conflitos de vendedor</button>
+  <span class="toolbar-sep"></span>
   <div class="toolbar-search">
     <select id="searchCitySelect"></select>
     <input type="text" id="searchAddressInput" placeholder="Buscar endereço/cidade…" autocomplete="off" />
@@ -160,6 +162,31 @@
   <div class="modal-actions">
     <button id="btnNewCityCancel" class="btn btn-outline">Cancelar</button>
     <button id="btnNewCitySave" class="btn btn-primary">Adicionar cidade</button>
+  </div>
+</div>
+
+<!-- Painel: conflitos de vendedor (cidades de vendedores diferentes na mesma região) -->
+<div id="conflictModal" class="side-panel side-panel-wide hidden">
+  <div class="side-panel-header" id="conflictModalHeader">
+    <h3>Conflitos de vendedor</h3>
+    <div class="side-panel-header-actions">
+      <button id="btnCloseConflicts" class="icon-btn" title="Fechar">✕</button>
+    </div>
+  </div>
+
+  <p class="hint">
+    Regiões com cidades de mais de um vendedor — o gerente comercial pediu pra não
+    cruzar vendedores na mesma rota. Nada aqui muda sozinho: toda sugestão ou comando
+    só se aplica depois de você confirmar.
+  </p>
+
+  <div id="conflictList"></div>
+
+  <div class="conflict-command">
+    <label>Comando rápido (formato: <em>mover [cidade] para [região]</em>)</label>
+    <input type="text" id="conflictCommandInput" placeholder="Ex: mover Jataizinho para Arapongas" />
+    <button id="btnRunCommand" class="btn btn-outline">Interpretar comando</button>
+    <div id="conflictCommandPreview" class="hidden"></div>
   </div>
 </div>
 

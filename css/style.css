@@ -516,6 +516,60 @@ main { position: relative; flex: 1; }
 .side-panel .modal-actions { flex-direction: column; align-items: stretch; }
 .side-panel .modal-actions .btn { width: 100%; }
 
+/* ---------- Painel de conflitos de vendedor ---------- */
+.conflict-region-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.conflict-region-card h4 { margin: 0 0 6px; font-size: 13.5px; }
+.conflict-seller-group { font-size: 12px; margin-bottom: 6px; }
+.conflict-seller-group .cg-name { font-weight: 600; }
+.conflict-seller-group .cg-cities { color: var(--muted); }
+.conflict-suggestion {
+  background: var(--paper);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+.conflict-suggestion .cs-text { margin-bottom: 6px; }
+.conflict-suggestion button {
+  padding: 5px 9px;
+  font-size: 11.5px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: white;
+  cursor: pointer;
+}
+.conflict-suggestion button:hover { border-color: var(--accent); }
+.conflict-none { font-size: 12.5px; color: var(--ok); }
+
+.conflict-command {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+.conflict-command label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+#conflictCommandPreview {
+  margin-top: 8px;
+  background: var(--paper);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+#conflictCommandPreview .cp-actions { display: flex; gap: 6px; margin-top: 8px; }
+#conflictCommandPreview button {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 11.5px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: white;
+  cursor: pointer;
+}
+
 .add-city-row {
   display: flex;
   gap: 6px;

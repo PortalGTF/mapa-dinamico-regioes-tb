@@ -63,6 +63,7 @@ function makePanelsDraggable() {
   attachDrag("loginModal", document.getElementById("loginModalHeader"));
   attachDrag("regionModal", document.getElementById("regionModalHeader"));
   attachDrag("newCityModal", document.getElementById("newCityModalHeader"));
+  attachDrag("conflictModal", document.getElementById("conflictModalHeader"));
 }
 
 function attachDrag(panelId, headerEl) {
@@ -1324,6 +1325,175 @@ function exportDirectory() {
   setTimeout(() => downloadFile("city_to_sellers.json", JSON.stringify(CITY_TO_SELLERS, null, 2)), 600);
 }
 
+// ------------------------------------------------------------
+// Conflitos de vendedor (regiões com cidades de mais de um vendedor)
+// ------------------------------------------------------------
+function detectConflicts() {
+  const conflicts = [];
+  Regions.list.forEach((region) => {
+    const sellerMap = {}; // vendedor -> [cidades daquele vendedor nessa região]
+    region.cities.forEach((city) => {
+      (CITY_TO_SELLERS[city] || []).forEach((seller) => {
+        sellerMap[seller] = sellerMap[seller] || [];
+        sellerMap[seller].push(city);
+      });
+    });
+    const sellerNames = Object.keys(sellerMap);
+    if (sellerNames.length > 1) {
+      conflicts.push({ region, sellerMap });
+    }
+  });
+  return conflicts;
+}
+
+// Sugere a melhor região existente pra uma cidade, com base em qual região aquele
+// vendedor já domina (mais cidades dele) — sem fazer chamada de rede, é só análise
+// dos dados já carregados.
+function suggestRegionForCity(cityLabel, sellerName, excludeRegionId) {
+  let best = null;
+  let bestScore = 0;
+  Regions.list.forEach((region) => {
+    if (region.id === excludeRegionId) return;
+    const count = region.cities.filter((c) => (CITY_TO_SELLERS[c] || []).includes(sellerName)).length;
+    if (count > bestScore) {
+      bestScore = count;
+      best = region;
+    }
+  });
+  return best ? { region: best, matchCount: bestScore } : null;
+}
+
+function moveCityToRegion(cityLabel, targetRegionId) {
+  Regions.list.forEach((r) => {
+    if (r.id !== targetRegionId && r.cities.includes(cityLabel)) {
+      Regions.update(r.id, { cities: r.cities.filter((c) => c !== cityLabel) });
+    }
+  });
+  const target = Regions.list.find((r) => r.id === targetRegionId);
+  if (target && !target.cities.includes(cityLabel)) {
+    Regions.update(targetRegionId, { cities: [...target.cities, cityLabel] });
+  }
+  rebuildClusters();
+  invalidateRegionRadiusCache();
+  renderRegionsList();
+}
+
+function openConflictsPanel() {
+  if (!Auth.isAdmin) return;
+  document.getElementById("conflictCommandInput").value = "";
+  document.getElementById("conflictCommandPreview").classList.add("hidden");
+  renderConflictList();
+  document.getElementById("conflictModal").classList.remove("hidden");
+}
+
+function closeConflictsPanel() {
+  document.getElementById("conflictModal").classList.add("hidden");
+}
+
+function renderConflictList() {
+  const box = document.getElementById("conflictList");
+  const conflicts = detectConflicts();
+
+  if (conflicts.length === 0) {
+    box.innerHTML = `<p class="conflict-none">Nenhum conflito encontrado — todas as regiões têm cidades de um só vendedor.</p>`;
+    return;
+  }
+
+  box.innerHTML = "";
+  conflicts.forEach(({ region, sellerMap }) => {
+    const sellersSorted = Object.entries(sellerMap).sort((a, b) => b[1].length - a[1].length);
+    const majoritySeller = sellersSorted[0][0];
+
+    const card = document.createElement("div");
+    card.className = "conflict-region-card";
+
+    let html = `<h4>${region.name}</h4>`;
+    sellersSorted.forEach(([seller, cities]) => {
+      const isMajority = seller === majoritySeller;
+      html += `<div class="conflict-seller-group">
+        <span class="cg-name">${seller}${isMajority ? " (predominante)" : ""}:</span>
+        <span class="cg-cities">${cities.join(", ")}</span>
+      </div>`;
+
+      if (!isMajority) {
+        cities.forEach((city) => {
+          const suggestion = suggestRegionForCity(city, seller, region.id);
+          if (suggestion) {
+            html += `<div class="conflict-suggestion">
+              <div class="cs-text">Sugestão: mover <strong>${city}</strong> pra <strong>${suggestion.region.name}</strong>
+              (onde ${seller} já atende ${suggestion.matchCount} outra(s) cidade(s)).</div>
+              <button data-city="${city}" data-target="${suggestion.region.id}" class="btn-apply-suggestion">Aplicar sugestão</button>
+            </div>`;
+          } else {
+            html += `<div class="conflict-suggestion">
+              <div class="cs-text">Nenhuma outra região atende ${seller} ainda — mova manualmente editando a região, ou crie uma região nova pra ele.</div>
+            </div>`;
+          }
+        });
+      }
+    });
+
+    card.innerHTML = html;
+    box.appendChild(card);
+  });
+
+  box.querySelectorAll(".btn-apply-suggestion").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const city = btn.dataset.city;
+      const targetId = btn.dataset.target;
+      const targetRegion = Regions.list.find((r) => r.id === targetId);
+      if (!confirm(`Mover "${city}" para a região "${targetRegion?.name}"?`)) return;
+      moveCityToRegion(city, targetId);
+      renderConflictList();
+    });
+  });
+}
+
+function runConflictCommand() {
+  if (!Auth.isAdmin) return;
+  const input = document.getElementById("conflictCommandInput");
+  const previewBox = document.getElementById("conflictCommandPreview");
+  const text = input.value.trim();
+
+  const m = text.match(/^mover\s+(.+?)\s+para\s+(?:a\s+)?(?:regi[aã]o\s+)?(.+)$/i);
+  if (!m) {
+    previewBox.classList.remove("hidden");
+    previewBox.innerHTML = `Não entendi esse comando. Use o formato: <strong>mover [cidade] para [região]</strong> — ou aplique uma das sugestões acima, ou edite a região manualmente pela lista de regiões.`;
+    return;
+  }
+
+  const cityQuery = normalizeStr(m[1].trim());
+  const regionQuery = normalizeStr(m[2].trim());
+
+  const city = CITIES_LIST.find((c) => normalizeStr(c).includes(cityQuery) || cityQuery.includes(normalizeStr(c.split(" - ")[0])));
+  const region = Regions.list.find((r) => normalizeStr(r.name).includes(regionQuery) || regionQuery.includes(normalizeStr(r.name)));
+
+  if (!city || !region) {
+    previewBox.classList.remove("hidden");
+    previewBox.innerHTML = `Não encontrei ${!city ? "essa cidade" : "essa região"} na base. Confira a grafia e tente de novo.`;
+    return;
+  }
+
+  previewBox.classList.remove("hidden");
+  previewBox.innerHTML = `
+    <div>Vou mover <strong>${city}</strong> para a região <strong>${region.name}</strong>.</div>
+    <div class="cp-actions">
+      <button id="btnConfirmCommand">Confirmar</button>
+      <button id="btnCancelCommand">Cancelar</button>
+    </div>
+  `;
+
+  document.getElementById("btnConfirmCommand").addEventListener("click", () => {
+    moveCityToRegion(city, region.id);
+    input.value = "";
+    previewBox.classList.add("hidden");
+    renderConflictList();
+  });
+  document.getElementById("btnCancelCommand").addEventListener("click", () => {
+    previewBox.classList.add("hidden");
+  });
+}
+
 function updateAdminUI() {
   const badge = document.getElementById("modeBadge");
   const btnLogin = document.getElementById("btnLogin");
@@ -1345,6 +1515,7 @@ function updateAdminUI() {
     adminToolbar.classList.add("hidden");
     document.getElementById("searchResultBox").classList.add("hidden");
     closeRegionModal();
+    closeConflictsPanel();
     clearSearchPreview();
     if (map.hasLayer && drawControl._map) map.removeControl(drawControl);
   }
@@ -1422,6 +1593,10 @@ function wireEvents() {
   document.getElementById("btnNewCityCancel").addEventListener("click", closeNewCityModal);
   document.getElementById("btnNewCitySave").addEventListener("click", saveNewCity);
   document.getElementById("btnExportDirectory").addEventListener("click", exportDirectory);
+
+  document.getElementById("btnConflicts").addEventListener("click", openConflictsPanel);
+  document.getElementById("btnCloseConflicts").addEventListener("click", closeConflictsPanel);
+  document.getElementById("btnRunCommand").addEventListener("click", runConflictCommand);
 
   document.getElementById("searchCitySelect").addEventListener("change", (e) => {
     if (e.target.value) {

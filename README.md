@@ -197,6 +197,22 @@ Tem também um botão **"Mostrar anéis de 50 km no mapa"**, que desenha círcul
 concêntricos a partir da origem (a cada 50 km, até o raio da região) diretamente no
 mapa — útil para visualizar de forma gráfica onde a região se encaixa.
 
+### Detectando regiões com vendedores cruzados
+Clique em **"⚠ Conflitos de vendedor"** na barra do admin. O painel mostra sozinho
+todas as regiões que têm cidades de mais de um vendedor — útil pra garantir que cada
+região/rota fique com um vendedor só, como pedido pelo gerente comercial.
+
+Pra cada cidade "fora do padrão" numa região, o app sugere pra qual outra região ela
+se encaixaria melhor (a região onde aquele vendedor já atende mais cidades), com um
+botão **"Aplicar sugestão"** — mas nada muda sozinho, só depois que você confirma.
+
+Tem também um campo de comando simples: digite algo como `mover Jataizinho para
+Arapongas` e clique em "Interpretar comando" — ele mostra uma prévia do que vai
+acontecer, e só aplica depois que você clicar em "Confirmar". Importante: isso **não é
+uma IA de verdade** (que entenderia qualquer frase) — é um reconhecedor de comando
+simples, no formato fixo "mover [cidade] para [região]". Pra qualquer outra mudança,
+use os botões de sugestão ou edite a região manualmente pela lista.
+
 ### Adicionando uma cidade nova que ainda não existe na base
 Se precisar atender uma cidade que ainda não está cadastrada, clique em **"+ Nova
 cidade"** na barra do admin:
