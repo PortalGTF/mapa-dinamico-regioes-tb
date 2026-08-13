@@ -239,17 +239,10 @@ O app já segue a paleta e a tipografia do Portal de Cargas GTF: fundo azul-mari
 escuro no topo, destaque em verde-azulado (teal), e fonte Inter em vez da fonte
 padrão do sistema.
 
-**Sobre o logo**: como não temos o arquivo oficial do logotipo da GTF, coloquei um
-símbolo provisório (`img/logo.svg`) no mesmo estilo circular do que aparece no
-portal. Para trocar pelo logo de verdade:
-
-1. Pegue o arquivo do logo oficial (de preferência `.svg` ou `.png` com fundo
-   transparente).
-2. Substitua o arquivo `img/logo.svg` por ele (pode manter o nome `logo.svg` mesmo
-   sendo um `.png` — só ajuste a extensão no `index.html` também, na linha do
-   `<img src="img/logo.svg" ...>`).
-3. Suba o arquivo novo pro GitHub, junto com o `index.html` se tiver mudado a
-   extensão.
+**Sobre o logo**: já está usando o logotipo oficial da GTF (`img/logo.png`). Se quiser
+trocar por uma versão em resolução maior ou outro formato, é só substituir esse
+arquivo (mantendo o nome `logo.png`, ou ajustando o `src` no `index.html` se mudar a
+extensão).
 
 Se quiser ajustar as cores exatas (o teal ou o azul-marinho, por exemplo, caso a
 marca oficial use tons ligeiramente diferentes), os valores ficam centralizados no

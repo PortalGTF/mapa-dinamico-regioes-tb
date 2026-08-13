@@ -45,6 +45,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderRegionsList();
   updateAdminUI();
 
+  document.getElementById("searchAddressInput").value = "";
+
   wireEvents();
 
   // Geocodifica em segundo plano tudo o que ainda não está no cache
