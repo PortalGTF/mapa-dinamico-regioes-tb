@@ -73,18 +73,38 @@ Ninguém nesse modo consegue mover, criar ou apagar nada.
 
 ### Corrigindo uma cidade com localização errada (admin)
 Serviços gratuitos de geocodificação às vezes erram — por exemplo, uma cidade pequena
-pode "cair" em outro estado com nome parecido. Para corrigir, com o modo admin ativo:
+pode "cair" em outro estado com nome parecido. O app já detecta isso sozinho: compara
+a UF do nome da cidade (ex: "- PR") com o estado que a busca encontrou, e se não bater,
+mostra um **selo de aviso vermelho (!)** em cima do pin no mapa, mesmo sem precisar
+clicar nele.
 
-1. Clique na cidade errada no mapa para abrir o popup dela.
-2. **Arraste o pin** para o lugar certo no mapa (o cursor vira uma "mãozinha" quando
-   você está em modo admin — o pin é arrastável).
-3. Pronto — assim que soltar, a correção já é salva no navegador. O popup passa a
-   mostrar "📍 Localização corrigida manualmente".
-4. Se quiser desfazer e deixar o sistema tentar geocodificar de novo automaticamente,
-   clique em "Refazer busca automática" no popup daquela cidade.
-5. Como qualquer outra edição do admin, a correção só fica visível pra você até você
-   clicar em **"Exportar cities.json"** e subir esse arquivo pro GitHub — aí vale para
-   todo mundo que acessar o link.
+Há duas formas de corrigir, com o modo admin ativo:
+
+**1. Arrastando o pin direto no mapa**
+1. Clique na cidade errada para abrir o popup.
+2. Arraste o pin até o lugar certo (o cursor vira "mãozinha" em modo admin).
+3. Ao soltar, a correção já fica salva e o aviso desaparece.
+
+**2. Buscando por nome (campo "Localizar / corrigir cidade por busca")**
+1. No painel do admin, escolha a cidade no seletor.
+2. Ajuste o texto de busca se quiser ser mais específico (ex: acrescentar bairro,
+   rodovia, ponto de referência) — por padrão já vem preenchido com "Cidade, Brasil".
+3. Clique em **"Buscar no mapa"** — um pin azul aparece no local encontrado, e o mapa
+   centraliza nele, para você conferir se caiu no lugar certo antes de confirmar.
+4. Se precisar, arraste esse pin azul para ajustar.
+5. Clique em **"Usar esta localização para [cidade]"** para aplicar.
+
+Nos dois casos, se quiser desfazer e deixar o sistema tentar geocodificar de novo do
+zero, use o botão "Refazer busca automática" no popup daquela cidade.
+
+### Cor das regiões
+Ao criar ou editar uma região, tem um seletor de cor livre — escolha qualquer cor que
+quiser, não fica preso a uma paleta fixa. Cidades sem região ficam sempre em cinza.
+
+### Desenho de polígono
+O desenho da região já é ponto a ponto: clique no mapa para marcar cada vértice do
+polígono ao redor das cidades desejadas, e dê um duplo clique para fechar a forma. O
+sistema detecta automaticamente quais cidades caíram dentro do polígono desenhado.
 
 ### Salvando as alterações para todo mundo ver (importante!)
 Como o site é estático (sem banco de dados), as edições do admin ficam guardadas

@@ -47,13 +47,13 @@ const Regions = {
     return CONFIG.REGION_COLORS[used % CONFIG.REGION_COLORS.length];
   },
 
-  create({ name, vehicleProfile, cities }) {
+  create({ name, vehicleProfile, cities, color }) {
     const region = {
       id: "r_" + Date.now(),
       name,
       vehicleProfile,
       cities,
-      color: this.nextColor(),
+      color: color || this.nextColor(),
     };
     this.list.push(region);
     this._saveDraft();

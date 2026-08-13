@@ -13,6 +13,7 @@ let drawnItems; // camada onde os polígonos desenhados ficam
 let drawControl;
 let editingRegionId = null; // se != null, o modal de região está editando (não criando)
 let pendingPolygonCities = []; // cidades capturadas pelo último polígono desenhado
+let searchPreviewMarker = null; // pin temporário do campo de busca de endereço
 
 let SELLERS = {};       // { vendedor: [cidades] }
 let CITY_TO_SELLERS = {}; // { cidade: [vendedores] }
@@ -33,6 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await placeOrigin();
 
   renderSellerOptions();
+  renderSearchCityOptions();
   renderRegionsList();
   updateAdminUI();
 
@@ -133,12 +135,29 @@ function plotCity(cityLabel) {
   if (cityMarkers[cityLabel]) return;
 
   const marker = L.marker([coord.lat, coord.lng], {
-    icon: createCityIcon(colorForCity(cityLabel)),
+    icon: createCityIcon(colorForCity(cityLabel), isSuspect(coord)),
     draggable: Auth.isAdmin,
   });
   marker.on("click", () => openCityPopup(cityLabel, marker));
   marker.on("dragend", () => onCityDragEnd(cityLabel, marker));
+  bindWarnTooltip(marker, coord);
   cityMarkers[cityLabel] = marker;
+}
+
+function isSuspect(coord) {
+  return !!(coord && coord.suspect && !coord.manual);
+}
+
+function bindWarnTooltip(marker, coord) {
+  marker.unbindTooltip();
+  if (isSuspect(coord)) {
+    marker.bindTooltip("⚠️ Verificar localização", {
+      permanent: true,
+      direction: "top",
+      offset: [0, -36],
+      className: "warn-tooltip",
+    });
+  }
 }
 
 function setMarkersDraggable(enabled) {
@@ -152,13 +171,16 @@ function onCityDragEnd(cityLabel, marker) {
   const ll = marker.getLatLng();
   Geocode.cache[cityLabel] = { lat: ll.lat, lng: ll.lng, manual: true };
   Geocode.saveLocalCache();
+  bindWarnTooltip(marker, Geocode.get(cityLabel));
+  marker.setIcon(createCityIcon(colorForCity(cityLabel), false));
   openCityPopup(cityLabel, marker);
 }
 
-function createCityIcon(color) {
+function createCityIcon(color, suspect) {
+  const badge = suspect ? `<div class="pin-warn-badge">!</div>` : "";
   return L.divIcon({
     className: "",
-    html: `<div class="city-pin" style="--pin-color:${color}"><div class="pin-body"></div><div class="pin-icon">🚚</div></div>`,
+    html: `<div class="city-pin" style="--pin-color:${color}"><div class="pin-body"></div><div class="pin-icon">🚚</div>${badge}</div>`,
     iconSize: [30, 40],
     iconAnchor: [15, 40],
     popupAnchor: [0, -36],
@@ -200,7 +222,9 @@ function rebuildClusters() {
   });
 
   Object.entries(cityMarkers).forEach(([label, marker]) => {
-    marker.setIcon(createCityIcon(colorForCity(label)));
+    const coord = Geocode.get(label);
+    marker.setIcon(createCityIcon(colorForCity(label), isSuspect(coord)));
+    bindWarnTooltip(marker, coord);
     const regions = Regions.findByCity(label);
     const targetGroup = regions.length > 0 ? regionClusterGroups[regions[0].id] : unassignedClusterGroup;
     if (targetGroup) targetGroup.addLayer(marker);
@@ -231,12 +255,16 @@ function openCityPopup(cityLabel, marker) {
 
   if (coord && coord.manual) {
     html += `<div class="row loc-manual">📍 Localização corrigida manualmente</div>`;
+  } else if (isSuspect(coord)) {
+    const expectedUF = extractUF(cityLabel);
+    html += `<div class="row c-warn-inline">⚠️ Local pode estar errado — esperado: ${expectedUF}, encontrado: ${coord.stateFound}</div>`;
   }
 
   if (Auth.isAdmin) {
-    html += `<div class="row admin-hint">Modo admin: arraste o pin no mapa se a localização estiver errada.</div>`;
+    html += `<div class="row admin-hint">Modo admin: arraste o pin no mapa, ou use "Buscar" abaixo para corrigir pelo nome.</div>`;
+    html += `<button class="btn-reset-loc" data-city="${cityLabel}" data-action="search">Buscar novo endereço</button>`;
     if (coord && coord.manual) {
-      html += `<button class="btn-reset-loc" data-city="${cityLabel}">Refazer busca automática</button>`;
+      html += `<button class="btn-reset-loc" data-city="${cityLabel}" data-action="auto">Refazer busca automática</button>`;
     }
   }
 
@@ -255,10 +283,16 @@ function openCityPopup(cityLabel, marker) {
     popupEl.querySelectorAll("button[data-mode]").forEach((btn) => {
       btn.addEventListener("click", () => calcDistance(cityLabel, btn.dataset.mode, popupEl));
     });
-    const resetBtn = popupEl.querySelector(".btn-reset-loc");
-    if (resetBtn) {
-      resetBtn.addEventListener("click", () => resetCityLocation(cityLabel, marker));
-    }
+    popupEl.querySelectorAll(".btn-reset-loc").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (btn.dataset.action === "auto") {
+          resetCityLocation(cityLabel, marker);
+        } else {
+          marker.closePopup();
+          openSearchPanelFor(cityLabel);
+        }
+      });
+    });
   }, 50);
 }
 
@@ -271,6 +305,8 @@ async function resetCityLocation(cityLabel, marker) {
   if (coord && coord.lat !== null) {
     marker.setLatLng([coord.lat, coord.lng]);
   }
+  marker.setIcon(createCityIcon(colorForCity(cityLabel), isSuspect(coord)));
+  bindWarnTooltip(marker, coord);
   openCityPopup(cityLabel, marker);
 }
 
@@ -422,16 +458,17 @@ function onPolygonCreated(e) {
 
   pendingPolygonCities = captured;
   editingRegionId = null;
-  openRegionModal({ name: "", vehicleProfile: VEHICLE_PROFILES[0]?.name, cities: captured });
+  openRegionModal({ name: "", vehicleProfile: VEHICLE_PROFILES[0]?.name, cities: captured, color: Regions.nextColor() });
 
   // remove o polígono temporário do mapa — ele não precisa ficar desenhado,
   // as cidades capturadas já foram salvas na região
   drawnItems.removeLayer(layer);
 }
 
-function openRegionModal({ name, vehicleProfile, cities }) {
+function openRegionModal({ name, vehicleProfile, cities, color }) {
   document.getElementById("regionModalTitle").textContent = editingRegionId ? "Editar região" : "Nova região";
   document.getElementById("regionName").value = name || "";
+  document.getElementById("regionColorPicker").value = color || Regions.nextColor();
 
   const select = document.getElementById("regionVehicleProfile");
   select.innerHTML = "";
@@ -476,6 +513,7 @@ function closeRegionModal() {
 function saveRegionFromModal() {
   const name = document.getElementById("regionName").value.trim();
   const vehicleProfile = document.getElementById("regionVehicleProfile").value;
+  const color = document.getElementById("regionColorPicker").value;
   const checked = Array.from(
     document.querySelectorAll("#regionCitiesChecklist input:checked")
   ).map((el) => el.value);
@@ -490,9 +528,9 @@ function saveRegionFromModal() {
   }
 
   if (editingRegionId) {
-    Regions.update(editingRegionId, { name, vehicleProfile, cities: checked });
+    Regions.update(editingRegionId, { name, vehicleProfile, cities: checked, color });
   } else {
-    Regions.create({ name, vehicleProfile, cities: checked });
+    Regions.create({ name, vehicleProfile, cities: checked, color });
   }
 
   rebuildClusters();
@@ -512,6 +550,104 @@ function deleteRegionFromModal() {
 // ------------------------------------------------------------
 // Admin: login/logout, UI e exportação
 // ------------------------------------------------------------
+// ------------------------------------------------------------
+// Busca manual de endereço (geolocalização por nome)
+// ------------------------------------------------------------
+function renderSearchCityOptions() {
+  const select = document.getElementById("searchCitySelect");
+  select.innerHTML = `<option value="">— Selecione a cidade —</option>`;
+  CITIES_LIST.slice()
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .forEach((c) => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      select.appendChild(opt);
+    });
+}
+
+function openSearchPanelFor(cityLabel) {
+  const select = document.getElementById("searchCitySelect");
+  select.value = cityLabel;
+  document.getElementById("searchAddressInput").value = `${cityLabel}, Brasil`;
+  document.getElementById("searchCitySelect").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+async function doSearchAddress() {
+  const city = document.getElementById("searchCitySelect").value;
+  const input = document.getElementById("searchAddressInput");
+  const resultBox = document.getElementById("searchResultBox");
+
+  if (!city) {
+    alert("Selecione primeiro qual cidade você quer localizar/corrigir.");
+    return;
+  }
+  const query = input.value.trim() || `${city}, Brasil`;
+
+  resultBox.classList.remove("hidden");
+  resultBox.innerHTML = "Buscando…";
+
+  const found = await Geocode.searchAddress(query);
+  if (!found) {
+    resultBox.innerHTML = "Endereço não encontrado. Tente descrever de outro jeito (ex: adicionar bairro, rodovia, referência).";
+    return;
+  }
+
+  clearSearchPreview();
+  searchPreviewMarker = L.marker([found.lat, found.lng], {
+    icon: L.divIcon({
+      className: "",
+      html: `<div class="city-pin search-pin"><div class="pin-body"></div><div class="pin-icon">🔍</div></div>`,
+      iconSize: [30, 40],
+      iconAnchor: [15, 40],
+      popupAnchor: [0, -36],
+    }),
+    draggable: true,
+    zIndexOffset: 900,
+  }).addTo(map);
+
+  map.setView([found.lat, found.lng], 13);
+
+  resultBox.innerHTML = `
+    <div><strong>Encontrado:</strong> ${found.displayName}</div>
+    <div class="hint">Arraste o pin azul no mapa se precisar ajustar antes de confirmar.</div>
+    <div class="sr-actions">
+      <button id="btnApplySearch">Usar esta localização para "${city}"</button>
+      <button id="btnCancelSearch">Cancelar</button>
+    </div>
+  `;
+
+  document.getElementById("btnApplySearch").addEventListener("click", () => applySearchResult(city));
+  document.getElementById("btnCancelSearch").addEventListener("click", () => {
+    clearSearchPreview();
+    resultBox.classList.add("hidden");
+  });
+}
+
+function applySearchResult(cityLabel) {
+  if (!searchPreviewMarker) return;
+  const ll = searchPreviewMarker.getLatLng();
+  Geocode.cache[cityLabel] = { lat: ll.lat, lng: ll.lng, manual: true };
+  Geocode.saveLocalCache();
+
+  if (cityMarkers[cityLabel]) {
+    cityMarkers[cityLabel].setLatLng(ll);
+  } else {
+    plotCity(cityLabel);
+  }
+  rebuildClusters();
+  clearSearchPreview();
+  document.getElementById("searchResultBox").classList.add("hidden");
+}
+
+function clearSearchPreview() {
+  if (searchPreviewMarker) {
+    map.removeLayer(searchPreviewMarker);
+    searchPreviewMarker = null;
+  }
+}
+
+
 function updateAdminUI() {
   const badge = document.getElementById("modeBadge");
   const btnLogin = document.getElementById("btnLogin");
@@ -592,6 +728,14 @@ function wireEvents() {
   document.getElementById("btnExportCities").addEventListener("click", () => {
     downloadFile("cities.json", Geocode.exportJSON());
   });
+
+  document.getElementById("searchCitySelect").addEventListener("change", (e) => {
+    if (e.target.value) {
+      document.getElementById("searchAddressInput").value = `${e.target.value}, Brasil`;
+    }
+  });
+
+  document.getElementById("btnSearchAddress").addEventListener("click", doSearchAddress);
 }
 
 function downloadFile(filename, content) {

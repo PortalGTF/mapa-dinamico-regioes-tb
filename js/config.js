@@ -33,9 +33,14 @@ const CONFIG = {
   NOMINATIM_URL: "https://nominatim.openstreetmap.org/search",
   OSRM_URL: "https://router.project-osrm.org/route/v1/driving",
 
-  // Paleta de cores usada para desenhar regiões no mapa (cicla automaticamente)
+  // Paleta de cores sugeridas para novas regiões (cicla automaticamente).
+  // O admin ainda pode escolher qualquer cor livremente no seletor de cores.
   REGION_COLORS: [
     "#e08a3c", "#3c7ce0", "#3ce0a8", "#e03c6e", "#a83ce0",
     "#e0c93c", "#3ce0d8", "#e0603c", "#6ee03c", "#3c50e0",
+    "#c0392b", "#8e44ad", "#16a085", "#d35400", "#2980b9",
+    "#27ae60", "#f39c12", "#c0392b", "#7f8c8d", "#2c3e50",
+    "#e67e22", "#1abc9c", "#9b59b6", "#f1c40f", "#34495e",
+    "#e74c3c", "#3498db", "#2ecc71", "#d68910", "#b03a2e",
   ],
 };

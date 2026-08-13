@@ -50,6 +50,16 @@
         <button id="btnExportCities" class="btn btn-outline">Exportar cities.json</button>
       </div>
       <p class="hint hint-small" id="draftHint"></p>
+
+      <div class="admin-search">
+        <h3>Localizar / corrigir cidade por busca</h3>
+        <label>Cidade</label>
+        <select id="searchCitySelect"></select>
+        <label>Endereço para buscar</label>
+        <input type="text" id="searchAddressInput" placeholder="Ex: Moreira Sales, Paraná, Brasil" />
+        <button id="btnSearchAddress" class="btn btn-outline">Buscar no mapa</button>
+        <div id="searchResultBox" class="search-result hidden"></div>
+      </div>
     </section>
 
     <section class="panel">
@@ -96,6 +106,9 @@
 
     <label>Perfil mínimo de veículo</label>
     <select id="regionVehicleProfile"></select>
+
+    <label>Cor da região</label>
+    <input type="color" id="regionColorPicker" value="#e08a3c" />
 
     <label>Cidades capturadas pelo polígono (desmarque as que não devem entrar)</label>
     <div id="regionCitiesChecklist" class="checklist"></div>
