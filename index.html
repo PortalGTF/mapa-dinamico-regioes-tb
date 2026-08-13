@@ -29,6 +29,21 @@
   </div>
 </header>
 
+<div id="adminToolbar" class="admin-toolbar hidden">
+  <button id="btnDrawRegion" class="btn btn-primary">Desenhar nova região</button>
+  <span class="toolbar-sep"></span>
+  <button id="btnExportRegions" class="btn btn-outline">Exportar regions.json</button>
+  <button id="btnExportCities" class="btn btn-outline">Exportar cities.json</button>
+  <span class="toolbar-sep"></span>
+  <div class="toolbar-search">
+    <select id="searchCitySelect"></select>
+    <input type="text" id="searchAddressInput" placeholder="Buscar endereço/cidade…" />
+    <button id="btnSearchAddress" class="btn btn-outline">Buscar no mapa</button>
+  </div>
+  <span class="hint hint-small" id="draftHint"></span>
+</div>
+<div id="searchResultBox" class="search-result hidden"></div>
+
 <div id="layout">
   <aside id="sidebar">
 
@@ -39,28 +54,6 @@
       </select>
       <p class="hint hint-small">Ao escolher um vendedor, os demais pontos somem do mapa — útil para desenhar a região só com as cidades dele.</p>
       <div id="sellerCities" class="mini-list"></div>
-    </section>
-
-    <section class="panel" id="adminPanel">
-      <h2>Painel do admin</h2>
-      <p class="hint">Desenhe um polígono no mapa para capturar as cidades dentro dele e criar uma nova região.</p>
-      <button id="btnDrawRegion" class="btn btn-primary">Desenhar nova região</button>
-
-      <div class="admin-export">
-        <button id="btnExportRegions" class="btn btn-outline">Exportar regions.json</button>
-        <button id="btnExportCities" class="btn btn-outline">Exportar cities.json</button>
-      </div>
-      <p class="hint hint-small" id="draftHint"></p>
-
-      <div class="admin-search">
-        <h3>Localizar / corrigir cidade por busca</h3>
-        <label>Cidade</label>
-        <select id="searchCitySelect"></select>
-        <label>Endereço para buscar</label>
-        <input type="text" id="searchAddressInput" placeholder="Ex: Moreira Sales, Paraná, Brasil" />
-        <button id="btnSearchAddress" class="btn btn-outline">Buscar no mapa</button>
-        <div id="searchResultBox" class="search-result hidden"></div>
-      </div>
     </section>
 
     <section class="panel">

@@ -17,6 +17,8 @@ let searchPreviewMarker = null; // pin temporário do campo de busca de endereç
 let activeSellerFilter = null; // se != null, só mostra cidades desse vendedor no mapa
 let ringLayerGroup = null; // anéis de 50 em 50 km desenhados a partir da origem
 let lastRegionMaxBracket = null; // último raio calculado (para o toggle de anéis)
+let regionRadiusCache = {}; // { regionId: { citiesKey, bracket } } — usado na lista lateral
+let radiiComputing = false; // evita rodar dois cálculos de raio ao mesmo tempo
 
 let SELLERS = {};       // { vendedor: [cidades] }
 let CITY_TO_SELLERS = {}; // { cidade: [vendedores] }
@@ -130,6 +132,7 @@ async function geocodeCitiesInBackground() {
   pending.forEach(plotCity);
   rebuildClusters();
   progressEl.classList.add("hidden");
+  triggerRadiiComputation();
 }
 
 function plotCity(cityLabel) {
@@ -415,11 +418,12 @@ function renderRegionsList() {
   Regions.list.forEach((region) => {
     const row = document.createElement("div");
     row.className = "region-row";
+    row.dataset.regionId = region.id;
     row.innerHTML = `
       <span class="swatch" style="background:${region.color}"></span>
       <div class="region-info">
         <div class="region-name">${region.name}</div>
-        <div class="region-meta">${region.cities.length} cidade(s) · perfil mínimo: ${region.vehicleProfile}</div>
+        <div class="region-meta">${region.cities.length} cidade(s) · perfil mínimo: ${region.vehicleProfile} · <span class="region-radius">${radiusLabel(region)}</span></div>
       </div>
       ${Auth.isAdmin ? '<span class="region-edit">editar</span>' : ""}
     `;
@@ -433,6 +437,59 @@ function renderRegionsList() {
     });
     box.appendChild(row);
   });
+
+  triggerRadiiComputation();
+}
+
+function regionCitiesKey(region) {
+  return region.cities.slice().sort().join("|");
+}
+
+function radiusLabel(region) {
+  const cached = regionRadiusCache[region.id];
+  if (cached && cached.citiesKey === regionCitiesKey(region)) {
+    return cached.bracket ? `raio até ${cached.bracket} km` : "raio indisponível";
+  }
+  return "calculando raio…";
+}
+
+function triggerRadiiComputation() {
+  if (radiiComputing) return;
+  radiiComputing = true;
+  computeAllRegionRadii().finally(() => {
+    radiiComputing = false;
+  });
+}
+
+async function computeAllRegionRadii() {
+  if (!originLatLng || originLatLng.lat === null) return;
+
+  for (const region of Regions.list) {
+    const key = regionCitiesKey(region);
+    if (regionRadiusCache[region.id] && regionRadiusCache[region.id].citiesKey === key) continue;
+
+    let maxKm = null;
+    for (const cityLabel of region.cities) {
+      const dest = Geocode.get(cityLabel);
+      if (!dest || dest.lat === null) continue;
+      try {
+        const route = await Routing.getRoute(originLatLng, dest);
+        if (maxKm === null || route.km > maxKm) maxKm = route.km;
+      } catch (e) {
+        // ignora e segue tentando as outras cidades da região
+      }
+      await new Promise((r) => setTimeout(r, 150)); // uso respeitoso do OSRM
+    }
+
+    regionRadiusCache[region.id] = { citiesKey: key, bracket: maxKm === null ? null : bracketFor(maxKm) };
+    updateRegionRowRadius(region.id);
+  }
+}
+
+function updateRegionRowRadius(regionId) {
+  const row = document.querySelector(`.region-row[data-region-id="${regionId}"] .region-radius`);
+  const region = Regions.list.find((r) => r.id === regionId);
+  if (row && region) row.textContent = radiusLabel(region);
 }
 
 function focusRegion(region) {
@@ -799,21 +856,22 @@ function updateAdminUI() {
   const badge = document.getElementById("modeBadge");
   const btnLogin = document.getElementById("btnLogin");
   const btnLogout = document.getElementById("btnLogout");
-  const adminPanel = document.getElementById("adminPanel");
+  const adminToolbar = document.getElementById("adminToolbar");
 
   if (Auth.isAdmin) {
     badge.textContent = "Modo admin";
     badge.className = "badge badge-admin";
     btnLogin.classList.add("hidden");
     btnLogout.classList.remove("hidden");
-    adminPanel.classList.remove("hidden");
+    adminToolbar.classList.remove("hidden");
     map.addControl(drawControl);
   } else {
     badge.textContent = "Modo visualização";
     badge.className = "badge badge-view";
     btnLogin.classList.remove("hidden");
     btnLogout.classList.add("hidden");
-    adminPanel.classList.add("hidden");
+    adminToolbar.classList.add("hidden");
+    document.getElementById("searchResultBox").classList.add("hidden");
     if (map.hasLayer && drawControl._map) map.removeControl(drawControl);
   }
 
@@ -823,6 +881,7 @@ function updateAdminUI() {
 
   setMarkersDraggable(Auth.isAdmin);
   renderRegionsList();
+  setTimeout(() => map.invalidateSize(), 60);
 }
 
 function wireEvents() {

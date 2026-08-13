@@ -60,7 +60,10 @@ Ninguém nesse modo consegue mover, criar ou apagar nada.
 
 ### Modo admin (com senha)
 1. Clique em **"Entrar como admin"** no topo e digite a senha.
-2. Clique em **"Desenhar nova região"** e desenhe um polígono no mapa em volta das
+2. Uma barra horizontal aparece logo abaixo do topo, com as ferramentas do admin:
+   desenhar região, exportar `regions.json`/`cities.json`, e o campo de busca de
+   endereço.
+3. Clique em **"Desenhar nova região"** e desenhe um polígono no mapa em volta das
    cidades que devem compor a região (clique para adicionar pontos, dê duplo clique
    para fechar o polígono).
 3. Um formulário abre com as cidades detectadas dentro do polígono. Você pode:
@@ -123,9 +126,14 @@ entra na lista já marcada, junto com as demais. Funciona tanto ao criar uma reg
 quanto ao editar uma já existente.
 
 ### Vendo em qual raio (50, 100, 150... km) uma região se enquadra
-Clique no nome de qualquer região na barra lateral (não no "editar") — abre um painel
-com a distância rodoviária de ida, a partir de Terra Boa - PR, até cada cidade daquela
-região, ordenadas da mais distante para a mais próxima. O raio geral da região é
+A lista de regiões na barra lateral já mostra o raio de cada uma direto na linha
+(junto com quantidade de cidades e perfil de veículo) — calculado automaticamente em
+segundo plano ao abrir o app. Enquanto calcula, aparece "calculando raio…"; pode levar
+alguns segundos dependendo de quantas regiões e cidades existem.
+
+Clique no nome de qualquer região (não no "editar") para abrir um painel com o
+detalhamento completo: a distância rodoviária de ida, a partir de Terra Boa - PR, até
+cada cidade daquela região, ordenadas da mais distante para a mais próxima. O raio geral da região é
 definido pela **cidade mais distante**, arredondado para cima em faixas de 50 km — por
 exemplo, uma cidade a 57 km enquadra a região no raio de até 100 km; uma cidade a 112
 km enquadra no raio de até 150 km.
