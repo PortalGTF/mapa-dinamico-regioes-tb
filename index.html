@@ -85,76 +85,84 @@
   </main>
 </div>
 
-<!-- Modal: login admin -->
-<div id="loginModal" class="modal hidden">
-  <div class="modal-box">
+<!-- Painel: login admin -->
+<div id="loginModal" class="side-panel hidden">
+  <div class="side-panel-header" id="loginModalHeader">
     <h3>Entrar como admin</h3>
-    <input type="password" id="loginPassword" placeholder="Senha" />
-    <p id="loginError" class="error hidden">Senha incorreta.</p>
-    <div class="modal-actions">
-      <button id="btnLoginCancel" class="btn btn-outline">Cancelar</button>
-      <button id="btnLoginConfirm" class="btn btn-primary">Entrar</button>
-    </div>
+  </div>
+  <input type="password" id="loginPassword" placeholder="Senha" />
+  <p id="loginError" class="error hidden">Senha incorreta.</p>
+  <div class="modal-actions">
+    <button id="btnLoginCancel" class="btn btn-outline">Cancelar</button>
+    <button id="btnLoginConfirm" class="btn btn-primary">Entrar</button>
   </div>
 </div>
 
-<!-- Modal: criar/editar região -->
-<div id="regionModal" class="modal hidden">
-  <div class="modal-box modal-box-wide">
+<!-- Painel: criar/editar região -->
+<div id="regionModal" class="side-panel side-panel-wide hidden">
+  <div class="side-panel-header" id="regionModalHeader">
     <h3 id="regionModalTitle">Nova região</h3>
-
-    <label>Nome da região</label>
-    <input type="text" id="regionName" placeholder="Ex: REGIÃO FOOD MARINGÁ" />
-
-    <label>Perfil mínimo de veículo</label>
-    <select id="regionVehicleProfile"></select>
-
-    <label>Cor da região</label>
-    <input type="color" id="regionColorPicker" value="#0d9e94" />
-
-    <label>Cidades capturadas pelo polígono (desmarque as que não devem entrar)</label>
-    <div id="regionCitiesChecklist" class="checklist"></div>
-
-    <div class="add-city-row">
-      <select id="addCitySelect"></select>
-      <button id="btnAddCityToRegion" class="btn btn-outline btn-small" type="button">+ Adicionar</button>
-    </div>
-
-    <div class="modal-actions">
-      <button id="btnRegionCancel" class="btn btn-outline">Cancelar</button>
-      <button id="btnRegionDelete" class="btn btn-danger hidden">Excluir região</button>
-      <button id="btnRegionSave" class="btn btn-primary">Salvar região</button>
-    </div>
   </div>
-</div>
 
-<!-- Modal: nova cidade -->
-<div id="newCityModal" class="modal hidden">
-  <div class="modal-box modal-box-wide">
-    <h3>Adicionar nova cidade</h3>
-
-    <label>Nome da cidade</label>
-    <input type="text" id="newCityName" placeholder="Ex: Nova Esperança" />
-
-    <label>UF</label>
-    <select id="newCityUF"></select>
-
-    <label>Vendedor(es) responsável(is)</label>
-    <div id="newCitySellersChecklist" class="checklist"></div>
-
-    <label>Incluir já numa região? (opcional)</label>
-    <select id="newCityRegion">
-      <option value="">— Não incluir em nenhuma região agora —</option>
+  <div id="regionMergeBlock" class="hidden">
+    <label>Somar essas cidades a uma região já existente? (opcional)</label>
+    <select id="regionMergeTarget">
+      <option value="">— Criar uma região nova —</option>
     </select>
+  </div>
 
-    <p class="hint hint-small" id="newCityError"></p>
+  <label>Nome da região</label>
+  <input type="text" id="regionName" placeholder="Ex: REGIÃO FOOD MARINGÁ" />
 
-    <div class="modal-actions">
-      <button id="btnNewCityCancel" class="btn btn-outline">Cancelar</button>
-      <button id="btnNewCitySave" class="btn btn-primary">Adicionar cidade</button>
-    </div>
+  <label>Perfil mínimo de veículo</label>
+  <select id="regionVehicleProfile"></select>
+
+  <label>Cor da região</label>
+  <input type="color" id="regionColorPicker" value="#0d9e94" />
+
+  <label>Cidades capturadas pelo polígono (desmarque as que não devem entrar)</label>
+  <div id="regionCitiesChecklist" class="checklist"></div>
+
+  <div class="add-city-row">
+    <select id="addCitySelect"></select>
+    <button id="btnAddCityToRegion" class="btn btn-outline btn-small" type="button">+ Adicionar</button>
+  </div>
+
+  <div class="modal-actions">
+    <button id="btnRegionCancel" class="btn btn-outline">Cancelar</button>
+    <button id="btnRegionDelete" class="btn btn-danger hidden">Excluir região</button>
+    <button id="btnRegionSave" class="btn btn-primary">Salvar região</button>
   </div>
 </div>
+
+<!-- Painel: nova cidade -->
+<div id="newCityModal" class="side-panel side-panel-wide hidden">
+  <div class="side-panel-header" id="newCityModalHeader">
+    <h3>Adicionar nova cidade</h3>
+  </div>
+
+  <label>Nome da cidade</label>
+  <input type="text" id="newCityName" placeholder="Ex: Nova Esperança" />
+
+  <label>UF</label>
+  <select id="newCityUF"></select>
+
+  <label>Vendedor(es) responsável(is)</label>
+  <div id="newCitySellersChecklist" class="checklist"></div>
+
+  <label>Incluir já numa região? (opcional)</label>
+  <select id="newCityRegion">
+    <option value="">— Não incluir em nenhuma região agora —</option>
+  </select>
+
+  <p class="hint hint-small" id="newCityError"></p>
+
+  <div class="modal-actions">
+    <button id="btnNewCityCancel" class="btn btn-outline">Cancelar</button>
+    <button id="btnNewCitySave" class="btn btn-primary">Adicionar cidade</button>
+  </div>
+</div>
+
 
 <!-- Painel flutuante: detalhes da região (raio de 50 em 50 km + cerca eletrônica) -->
 <div id="regionDetailModal" class="side-panel hidden">

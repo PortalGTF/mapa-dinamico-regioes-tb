@@ -48,10 +48,77 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("searchAddressInput").value = "";
 
   wireEvents();
+  makePanelsDraggable();
 
   // Geocodifica em segundo plano tudo o que ainda não está no cache
   geocodeCitiesInBackground();
 });
+
+// ------------------------------------------------------------
+// Painéis arrastáveis — segura no cabeçalho (título) e arrasta pra
+// qualquer lugar da tela, sem tampar o mapa.
+// ------------------------------------------------------------
+function makePanelsDraggable() {
+  attachDrag("regionDetailModal", document.querySelector("#regionDetailModal .side-panel-header"));
+  attachDrag("loginModal", document.getElementById("loginModalHeader"));
+  attachDrag("regionModal", document.getElementById("regionModalHeader"));
+  attachDrag("newCityModal", document.getElementById("newCityModalHeader"));
+}
+
+function attachDrag(panelId, headerEl) {
+  const panel = document.getElementById(panelId);
+  if (!panel || !headerEl) return;
+
+  let dragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  function start(clientX, clientY) {
+    const rect = panel.getBoundingClientRect();
+    panel.style.left = `${rect.left}px`;
+    panel.style.top = `${rect.top}px`;
+    panel.style.right = "auto";
+    panel.style.transform = "none";
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
+    dragging = true;
+  }
+
+  function move(clientX, clientY) {
+    if (!dragging) return;
+    const maxLeft = window.innerWidth - 40;
+    const maxTop = window.innerHeight - 40;
+    panel.style.left = `${Math.min(Math.max(0, clientX - offsetX), maxLeft)}px`;
+    panel.style.top = `${Math.min(Math.max(0, clientY - offsetY), maxTop)}px`;
+  }
+
+  headerEl.addEventListener("mousedown", (e) => {
+    if (e.target.closest(".icon-btn")) return;
+    start(e.clientX, e.clientY);
+  });
+  window.addEventListener("mousemove", (e) => move(e.clientX, e.clientY));
+  window.addEventListener("mouseup", () => (dragging = false));
+
+  headerEl.addEventListener(
+    "touchstart",
+    (e) => {
+      if (e.target.closest(".icon-btn")) return;
+      const t = e.touches[0];
+      start(t.clientX, t.clientY);
+    },
+    { passive: true }
+  );
+  window.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!dragging) return;
+      const t = e.touches[0];
+      move(t.clientX, t.clientY);
+    },
+    { passive: true }
+  );
+  window.addEventListener("touchend", () => (dragging = false));
+}
 
 async function loadStaticData() {
   const [sellers, cityToSellers, citiesList, profiles] = await Promise.all([
@@ -850,6 +917,28 @@ function openRegionModal({ name, vehicleProfile, cities, color }) {
   document.getElementById("regionName").value = name || "";
   document.getElementById("regionColorPicker").value = color || Regions.nextColor();
 
+  // O bloco de "somar a região existente" só faz sentido ao criar uma região nova
+  // a partir de um polígono desenhado — não ao editar uma região já existente.
+  const mergeBlock = document.getElementById("regionMergeBlock");
+  const mergeSelect = document.getElementById("regionMergeTarget");
+  if (!editingRegionId) {
+    mergeBlock.classList.remove("hidden");
+    mergeSelect.innerHTML = `<option value="">— Criar uma região nova —</option>`;
+    Regions.list
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+      .forEach((r) => {
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = r.name;
+        mergeSelect.appendChild(opt);
+      });
+    mergeSelect.value = "";
+    updateRegionModalMergeState();
+  } else {
+    mergeBlock.classList.add("hidden");
+  }
+
   const select = document.getElementById("regionVehicleProfile");
   select.innerHTML = "";
   VEHICLE_PROFILES.forEach((p) => {
@@ -887,6 +976,29 @@ function openRegionModal({ name, vehicleProfile, cities, color }) {
 
   document.getElementById("btnRegionDelete").classList.toggle("hidden", !editingRegionId);
   document.getElementById("regionModal").classList.remove("hidden");
+}
+
+function updateRegionModalMergeState() {
+  const mergeId = document.getElementById("regionMergeTarget").value;
+  const nameInput = document.getElementById("regionName");
+  const profileSelect = document.getElementById("regionVehicleProfile");
+  const colorInput = document.getElementById("regionColorPicker");
+
+  if (mergeId) {
+    const target = Regions.list.find((r) => r.id === mergeId);
+    if (target) {
+      nameInput.value = target.name;
+      profileSelect.value = target.vehicleProfile;
+      colorInput.value = target.color;
+    }
+    nameInput.disabled = true;
+    profileSelect.disabled = true;
+    colorInput.disabled = true;
+  } else {
+    nameInput.disabled = false;
+    profileSelect.disabled = false;
+    colorInput.disabled = false;
+  }
 }
 
 function addCityToRegionChecklist() {
@@ -927,11 +1039,12 @@ function saveRegionFromModal() {
   const name = document.getElementById("regionName").value.trim();
   const vehicleProfile = document.getElementById("regionVehicleProfile").value;
   const color = document.getElementById("regionColorPicker").value;
+  const mergeId = editingRegionId ? "" : document.getElementById("regionMergeTarget").value;
   const checked = Array.from(
     document.querySelectorAll("#regionCitiesChecklist input:checked")
   ).map((el) => el.value);
 
-  if (!name) {
+  if (!mergeId && !name) {
     alert("Dê um nome para a região.");
     return;
   }
@@ -940,13 +1053,21 @@ function saveRegionFromModal() {
     return;
   }
 
-  if (editingRegionId) {
+  if (mergeId) {
+    // Soma as cidades capturadas à região já existente, sem duplicar as que já estavam nela
+    const target = Regions.list.find((r) => r.id === mergeId);
+    if (target) {
+      const merged = Array.from(new Set([...target.cities, ...checked]));
+      Regions.update(mergeId, { cities: merged });
+    }
+  } else if (editingRegionId) {
     Regions.update(editingRegionId, { name, vehicleProfile, cities: checked, color });
   } else {
     Regions.create({ name, vehicleProfile, cities: checked, color });
   }
 
   rebuildClusters();
+  invalidateRegionRadiusCache();
   renderRegionsList();
   closeRegionModal();
 }
@@ -1285,6 +1406,7 @@ function wireEvents() {
   document.getElementById("btnRegionSave").addEventListener("click", saveRegionFromModal);
   document.getElementById("btnRegionDelete").addEventListener("click", deleteRegionFromModal);
   document.getElementById("btnAddCityToRegion").addEventListener("click", addCityToRegionChecklist);
+  document.getElementById("regionMergeTarget").addEventListener("change", updateRegionModalMergeState);
 
   document.getElementById("btnExportRegions").addEventListener("click", () => {
     downloadFile("regions.json", Regions.exportJSON());

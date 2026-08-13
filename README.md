@@ -123,6 +123,25 @@ zero, use o botão "Refazer busca automática" no popup daquela cidade.
 Ao criar ou editar uma região, tem um seletor de cor livre — escolha qualquer cor que
 quiser, não fica preso a uma paleta fixa. Cidades sem região ficam sempre em cinza.
 
+### Janelas arrastáveis, sem tampar o mapa
+Todas as janelas do admin (entrar como admin, criar/editar região, nova cidade,
+detalhes da região) são painéis flutuantes — não tampam mais a tela toda. Segure com
+o mouse no título de qualquer uma delas e arraste pra onde quiser, pra poder ver o
+mapa por trás enquanto preenche o formulário.
+
+### Somando cidades a uma região já existente (sem duplicar)
+Ao desenhar um novo polígono, o formulário que abre agora tem um campo no topo:
+**"Somar essas cidades a uma região já existente?"**. Se você escolher uma região ali:
+- O nome, o perfil de veículo e a cor passam a vir da região escolhida (ficam
+  travados, pois são da região existente).
+- As cidades capturadas pelo novo polígono são **somadas** às que a região já tinha
+  (sem duplicar as que já estavam lá).
+- Ao salvar, não cria uma região nova — as cidades entram direto na região
+  selecionada.
+
+Se deixar em "— Criar uma região nova —" (padrão), funciona como antes: cria uma
+região nova do zero com essas cidades.
+
 ### Desenho de polígono
 O desenho da região já é ponto a ponto: clique no mapa para marcar cada vértice do
 polígono ao redor das cidades desejadas, e dê um duplo clique para fechar a forma. O

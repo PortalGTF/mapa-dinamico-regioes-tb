@@ -484,12 +484,15 @@ main { position: relative; flex: 1; }
   padding: 16px 18px;
   z-index: 900;
 }
+.side-panel-wide { width: 440px; }
 .side-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 4px;
+  cursor: move;
+  user-select: none;
 }
 .side-panel-header h3 { margin: 0; font-size: 15px; }
 .side-panel-header-actions { display: flex; gap: 6px; flex-shrink: 0; }
