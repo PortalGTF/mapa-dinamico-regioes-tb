@@ -180,6 +180,7 @@ function onCityDragEnd(cityLabel, marker) {
   Geocode.saveLocalCache();
   bindWarnTooltip(marker, Geocode.get(cityLabel));
   marker.setIcon(createCityIcon(colorForCity(cityLabel), false));
+  invalidateRegionRadiusCache();
   openCityPopup(cityLabel, marker);
 }
 
@@ -318,6 +319,7 @@ async function resetCityLocation(cityLabel, marker) {
   }
   marker.setIcon(createCityIcon(colorForCity(cityLabel), isSuspect(coord)));
   bindWarnTooltip(marker, coord);
+  invalidateRegionRadiusCache();
   openCityPopup(cityLabel, marker);
 }
 
@@ -455,6 +457,13 @@ function radiusLabel(region) {
   return "calculando raio…";
 }
 
+// Chamado sempre que a localização de alguma cidade muda (arraste, busca manual,
+// reconferência), pois o raio calculado antes pode não valer mais.
+function invalidateRegionRadiusCache() {
+  regionRadiusCache = {};
+  renderRegionsList();
+}
+
 function triggerRadiiComputation() {
   if (radiiComputing) return;
   radiiComputing = true;
@@ -492,6 +501,64 @@ function updateRegionRowRadius(regionId) {
   const row = document.querySelector(`.region-row[data-region-id="${regionId}"] .region-radius`);
   const region = Regions.list.find((r) => r.id === regionId);
   if (row && region) row.textContent = radiusLabel(region);
+}
+
+// ------------------------------------------------------------
+// Reconferência em massa (não mexe nas cidades já corrigidas à mão)
+// ------------------------------------------------------------
+async function reverifyAllCities() {
+  if (!Auth.isAdmin) return;
+
+  const toVerify = CITIES_LIST.filter((c) => {
+    const coord = Geocode.get(c);
+    return !coord || !coord.manual;
+  });
+
+  if (toVerify.length === 0) {
+    alert("Todas as cidades já foram corrigidas manualmente — nada para reconferir.");
+    return;
+  }
+
+  if (
+    !confirm(
+      `Isso vai reconferir a localização de ${toVerify.length} cidade(s) (as corrigidas manualmente não são mexidas). Pode levar alguns minutos. Continuar?`
+    )
+  ) {
+    return;
+  }
+
+  toVerify.forEach((c) => delete Geocode.cache[c]);
+
+  const progressEl = document.getElementById("geocodeProgress");
+  const fillEl = document.getElementById("progressFill");
+  const textEl = document.getElementById("progressText");
+  progressEl.classList.remove("hidden");
+
+  await Geocode.geocodeAll(toVerify, (done, total) => {
+    fillEl.style.width = `${(done / total) * 100}%`;
+    textEl.textContent = `Reconferindo cidades… ${done}/${total}`;
+  });
+
+  toVerify.forEach((cityLabel) => {
+    const coord = Geocode.get(cityLabel);
+    if (!coord || coord.lat === null) return;
+    if (cityMarkers[cityLabel]) {
+      cityMarkers[cityLabel].setLatLng([coord.lat, coord.lng]);
+    } else {
+      plotCity(cityLabel);
+    }
+  });
+
+  rebuildClusters();
+  invalidateRegionRadiusCache();
+  progressEl.classList.add("hidden");
+
+  const stillSuspect = toVerify.filter((c) => isSuspect(Geocode.get(c)));
+  alert(
+    stillSuspect.length > 0
+      ? `Reconferência concluída. ${stillSuspect.length} cidade(s) ainda com aviso de local suspeito — procure o selo vermelho (!) no mapa.`
+      : "Reconferência concluída. Nenhuma cidade com aviso de local suspeito."
+  );
 }
 
 function focusRegion(region) {
@@ -849,6 +916,7 @@ function applySearchResult(cityLabel) {
     plotCity(cityLabel);
   }
   rebuildClusters();
+  invalidateRegionRadiusCache();
   clearSearchPreview();
   document.getElementById("searchResultBox").classList.add("hidden");
 }
@@ -947,6 +1015,8 @@ function wireEvents() {
   document.getElementById("btnExportCities").addEventListener("click", () => {
     downloadFile("cities.json", Geocode.exportJSON());
   });
+
+  document.getElementById("btnReverifyCities").addEventListener("click", reverifyAllCities);
 
   document.getElementById("searchCitySelect").addEventListener("change", (e) => {
     if (e.target.value) {

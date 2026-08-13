@@ -76,12 +76,25 @@ Ninguém nesse modo consegue mover, criar ou apagar nada.
 
 ### Corrigindo uma cidade com localização errada (admin)
 Serviços gratuitos de geocodificação às vezes erram — por exemplo, uma cidade pequena
-pode "cair" em outro estado com nome parecido. O app já detecta isso sozinho: compara
-a UF do nome da cidade (ex: "- PR") com o estado que a busca encontrou, e se não bater,
+pode "cair" em outro estado com nome parecido (ex: "Santa Fé" existe em vários estados
+do Brasil). Para reduzir isso, a busca de cada cidade já é restrita ao estado dela
+(Paraná ou São Paulo, os únicos usados nesta base) — só se não achar nada dentro desse
+estado é que o sistema tenta de novo sem essa restrição, e nesse caso já marca a cidade
+como suspeita automaticamente.
+
+O app detecta isso sozinho: compara a UF do nome da cidade (ex: "- PR") com o estado
+que a busca encontrou, e se não bater (ou se precisou cair fora da busca restrita),
 mostra um **selo de aviso vermelho (!)** em cima do pin no mapa, mesmo sem precisar
 clicar nele.
 
-Há duas formas de corrigir, com o modo admin ativo:
+**Se você notar cidades antigas com localização errada mas sem o selo de aviso** — isso
+acontece com cidades que foram localizadas antes dessa verificação existir. Use o botão
+**"Reconferir todas as cidades"** na barra do admin: ele refaz a localização de todas as
+cidades que não foram corrigidas manualmente (as que já foram, ficam intactas), e
+aplica a verificação de estado a todas elas. Pode levar alguns minutos para 217+
+cidades, com uma barra de progresso mostrando o andamento.
+
+Há duas formas de corrigir uma cidade específica, com o modo admin ativo:
 
 **1. Arrastando o pin direto no mapa**
 1. Clique na cidade errada para abrir o popup.

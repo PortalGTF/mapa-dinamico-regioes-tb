@@ -30,6 +30,24 @@ function extractUF(cityLabel) {
   return m ? m[1].toUpperCase() : null;
 }
 
+// Caixa delimitadora aproximada de cada estado (min-lon, min-lat, max-lon, max-lat),
+// com uma margem de segurança. Usada para restringir a busca do Nominatim ao estado
+// certo, evitando que ele ache uma cidade de nome parecido em outro canto do Brasil.
+const BR_STATE_BBOX = {
+  PR: [-55.2, -27.2, -47.8, -22.3],
+  SP: [-53.6, -25.6, -43.9, -19.6],
+};
+
+function Geocode_buildUrl(query, expectedUF, bounded) {
+  let url = `${CONFIG.NOMINATIM_URL}?format=json&limit=1&countrycodes=br&addressdetails=1&q=${encodeURIComponent(query)}`;
+  const bbox = expectedUF && BR_STATE_BBOX[expectedUF];
+  if (bbox && bounded) {
+    // viewbox = left(minLon),top(maxLat),right(maxLon),bottom(minLat)
+    url += `&viewbox=${bbox[0]},${bbox[3]},${bbox[2]},${bbox[1]}&bounded=1`;
+  }
+  return url;
+}
+
 const Geocode = {
   cache: {}, // { "Cidade - UF": {lat, lng} }
   queue: [],
@@ -86,28 +104,34 @@ const Geocode = {
   },
 
   async _geocodeOne(label) {
+    const query = `${label}, Brasil`;
+    const expectedUF = extractUF(label);
+
     try {
-      const query = `${label}, Brasil`;
-      const url = `${CONFIG.NOMINATIM_URL}?format=json&limit=1&countrycodes=br&addressdetails=1&q=${encodeURIComponent(query)}`;
-      const res = await fetch(url, {
-        headers: { Accept: "application/json" },
-      });
-      const data = await res.json();
+      // 1ª tentativa: restrita ao estado esperado (evita pegar cidade de nome
+      // parecido em outro canto do Brasil, ex: Santa Fé - PR vs Santa Fé no ES)
+      let data = await this._fetchNominatim(Geocode_buildUrl(query, expectedUF, true));
+      let fellBackUnbounded = false;
+
+      // Se não achou nada dentro do estado esperado, tenta de novo sem restrição
+      if ((!data || !data[0]) && expectedUF && BR_STATE_BBOX[expectedUF]) {
+        data = await this._fetchNominatim(Geocode_buildUrl(query, expectedUF, false));
+        fellBackUnbounded = true;
+      }
+
       if (data && data[0]) {
         const entry = {
           lat: parseFloat(data[0].lat),
           lng: parseFloat(data[0].lon),
         };
 
-        // Confere se o estado devolvido pela busca bate com a UF do nome da
-        // cidade (ex: "Moreira Sales - PR" tem que cair no Paraná). Se não
-        // bater, marca como suspeito para avisar visualmente no mapa.
-        const expectedUF = extractUF(label);
         const stateFound = data[0].address && data[0].address.state;
         if (expectedUF && stateFound) {
           const stateUF = BR_STATES[normalizeStr(stateFound)];
           entry.stateFound = stateFound;
-          entry.suspect = stateUF !== expectedUF;
+          // Se caiu fora do estado esperado mesmo tendo tentado restringir a
+          // busca, marca como suspeito para avisar visualmente no mapa.
+          entry.suspect = stateUF !== expectedUF || fellBackUnbounded;
         }
 
         this.cache[label] = entry;
@@ -117,6 +141,11 @@ const Geocode = {
     } catch (e) {
       this.cache[label] = { lat: null, lng: null, error: String(e) };
     }
+  },
+
+  async _fetchNominatim(url) {
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    return res.json();
   },
 
   // Busca livre de endereço (usada no campo de busca manual). Não mexe no
