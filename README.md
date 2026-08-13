@@ -178,6 +178,30 @@ Tem também um botão **"Mostrar anéis de 50 km no mapa"**, que desenha círcul
 concêntricos a partir da origem (a cada 50 km, até o raio da região) diretamente no
 mapa — útil para visualizar de forma gráfica onde a região se encaixa.
 
+### Adicionando uma cidade nova que ainda não existe na base
+Se precisar atender uma cidade que ainda não está cadastrada, clique em **"+ Nova
+cidade"** na barra do admin:
+
+1. Digite o nome da cidade e escolha a UF.
+2. Marque qual(is) vendedor(es) vai(vão) atender essa cidade — a lista já vem com
+   todos os vendedores que já existem no sistema.
+3. Se quiser, escolha uma região pra já incluir essa cidade direto (opcional — dá pra
+   deixar sem região por enquanto e organizar depois).
+4. Clique em **"Adicionar cidade"**.
+
+O app localiza a cidade sozinho no mapa, adiciona ela na lista de cidades do(s)
+vendedor(es) escolhido(s), e, se você escolheu uma região, ela já entra na região na
+hora — a cerca eletrônica e o raio daquela região são recalculados automaticamente pra
+já refletir a cidade nova (se o painel daquela região estiver aberto no momento, ele
+atualiza na tela em tempo real).
+
+**Publicando a cidade nova pra todo mundo ver**: como cidades e vendedores também
+seguem o mesmo modelo de rascunho local das regiões, depois de adicionar uma ou mais
+cidades, clique em **"Exportar diretório (vendedores/cidades)"** — isso baixa três
+arquivos (`sellers.json`, `cities_list.json`, `city_to_sellers.json`). Suba os três
+por cima no GitHub, na pasta `data/`, do mesmo jeito que faz com `regions.json` e
+`cities.json`.
+
 ### Salvando as alterações para todo mundo ver (importante!)
 Como o site é estático (sem banco de dados), as edições do admin ficam guardadas
 **só no navegador dele** até serem publicadas. Para tornar as mudanças visíveis a

@@ -62,6 +62,33 @@ async function loadStaticData() {
   CITY_TO_SELLERS = cityToSellers;
   CITIES_LIST = citiesList;
   VEHICLE_PROFILES = profiles;
+  loadCityDirectoryDraft();
+}
+
+// ------------------------------------------------------------
+// Diretório de cidades/vendedores — rascunho local (mesma lógica das regiões):
+// fica salvo no navegador até ser exportado e commitado no GitHub.
+// ------------------------------------------------------------
+function loadCityDirectoryDraft() {
+  try {
+    const raw = localStorage.getItem("regioes_directory_draft");
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    if (draft.sellers) SELLERS = draft.sellers;
+    if (draft.cityToSellers) CITY_TO_SELLERS = draft.cityToSellers;
+    if (draft.citiesList) CITIES_LIST = draft.citiesList;
+  } catch (e) {}
+}
+
+function saveCityDirectoryDraft() {
+  localStorage.setItem(
+    "regioes_directory_draft",
+    JSON.stringify({ sellers: SELLERS, cityToSellers: CITY_TO_SELLERS, citiesList: CITIES_LIST })
+  );
+}
+
+function hasCityDirectoryDraft() {
+  return !!localStorage.getItem("regioes_directory_draft");
 }
 
 // ------------------------------------------------------------
@@ -1042,6 +1069,138 @@ function clearSearchPreview() {
 }
 
 
+// ------------------------------------------------------------
+// Adicionar nova cidade (admin)
+// ------------------------------------------------------------
+function openNewCityModal() {
+  if (!Auth.isAdmin) return;
+
+  document.getElementById("newCityName").value = "";
+  document.getElementById("newCityError").textContent = "";
+
+  const ufSelect = document.getElementById("newCityUF");
+  ufSelect.innerHTML = "";
+  ["PR", "SP"]
+    .concat(Object.keys(BR_UF_TO_NAME).filter((uf) => uf !== "PR" && uf !== "SP").sort())
+    .forEach((uf) => {
+      const opt = document.createElement("option");
+      opt.value = uf;
+      opt.textContent = `${uf} — ${BR_UF_TO_NAME[uf]}`;
+      ufSelect.appendChild(opt);
+    });
+
+  const sellersBox = document.getElementById("newCitySellersChecklist");
+  sellersBox.innerHTML = "";
+  Object.keys(SELLERS)
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .forEach((name) => {
+      const label = document.createElement("label");
+      label.innerHTML = `<input type="checkbox" value="${name}" /> ${name}`;
+      sellersBox.appendChild(label);
+    });
+
+  const regionSelect = document.getElementById("newCityRegion");
+  regionSelect.innerHTML = `<option value="">— Não incluir em nenhuma região agora —</option>`;
+  Regions.list
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+    .forEach((r) => {
+      const opt = document.createElement("option");
+      opt.value = r.id;
+      opt.textContent = r.name;
+      regionSelect.appendChild(opt);
+    });
+
+  document.getElementById("newCityModal").classList.remove("hidden");
+}
+
+function closeNewCityModal() {
+  document.getElementById("newCityModal").classList.add("hidden");
+}
+
+async function saveNewCity() {
+  if (!Auth.isAdmin) return;
+
+  const nameRaw = document.getElementById("newCityName").value.trim();
+  const uf = document.getElementById("newCityUF").value;
+  const regionId = document.getElementById("newCityRegion").value;
+  const sellersChosen = Array.from(
+    document.querySelectorAll("#newCitySellersChecklist input:checked")
+  ).map((el) => el.value);
+  const errorEl = document.getElementById("newCityError");
+
+  if (!nameRaw) {
+    errorEl.textContent = "Digite o nome da cidade.";
+    return;
+  }
+  if (sellersChosen.length === 0) {
+    errorEl.textContent = "Selecione ao menos um vendedor responsável.";
+    return;
+  }
+
+  const cityLabel = `${nameRaw} - ${uf}`;
+  if (CITIES_LIST.includes(cityLabel)) {
+    errorEl.textContent = `"${cityLabel}" já existe na base de cidades.`;
+    return;
+  }
+
+  errorEl.textContent = "";
+  document.getElementById("btnNewCitySave").disabled = true;
+  errorEl.textContent = "Localizando a cidade no mapa…";
+
+  // Registra no diretório (cidades + vendedores)
+  CITIES_LIST.push(cityLabel);
+  sellersChosen.forEach((v) => {
+    SELLERS[v] = SELLERS[v] || [];
+    if (!SELLERS[v].includes(cityLabel)) SELLERS[v].push(cityLabel);
+  });
+  CITY_TO_SELLERS[cityLabel] = sellersChosen.slice();
+  saveCityDirectoryDraft();
+
+  // Geocodifica a cidade nova (busca restrita ao estado escolhido)
+  await Geocode.geocodeAll([cityLabel]);
+  plotCity(cityLabel);
+
+  // Se uma região foi escolhida, já inclui a cidade nela
+  if (regionId) {
+    const region = Regions.list.find((r) => r.id === regionId);
+    if (region && !region.cities.includes(cityLabel)) {
+      Regions.update(regionId, { cities: [...region.cities, cityLabel] });
+    }
+  }
+
+  rebuildClusters();
+  renderSellerOptions();
+  renderSearchCityOptions();
+  invalidateRegionRadiusCache();
+
+  // Se a região escolhida é a que está aberta no painel, atualiza cerca e detalhes na hora
+  if (regionId && regionId === currentDetailRegionId) {
+    const region = Regions.list.find((r) => r.id === regionId);
+    if (region) {
+      showRegionFence(region);
+      openRegionDetail(region);
+    }
+  }
+
+  document.getElementById("btnNewCitySave").disabled = false;
+  closeNewCityModal();
+
+  const coord = Geocode.get(cityLabel);
+  if (coord && coord.lat !== null) {
+    map.setView([coord.lat, coord.lng], 11);
+  }
+  if (isSuspect(coord)) {
+    alert(`"${cityLabel}" foi adicionada, mas ficou com aviso de localização suspeita — confira o pin no mapa.`);
+  }
+}
+
+function exportDirectory() {
+  downloadFile("sellers.json", JSON.stringify(SELLERS, null, 2));
+  setTimeout(() => downloadFile("cities_list.json", JSON.stringify(CITIES_LIST, null, 2)), 300);
+  setTimeout(() => downloadFile("city_to_sellers.json", JSON.stringify(CITY_TO_SELLERS, null, 2)), 600);
+}
+
 function updateAdminUI() {
   const badge = document.getElementById("modeBadge");
   const btnLogin = document.getElementById("btnLogin");
@@ -1067,9 +1226,13 @@ function updateAdminUI() {
     if (map.hasLayer && drawControl._map) map.removeControl(drawControl);
   }
 
-  document.getElementById("draftHint").textContent = Regions.hasDraft()
-    ? "Há alterações salvas neste navegador ainda não exportadas/commitadas."
-    : "";
+  const pendingDrafts = [];
+  if (Regions.hasDraft()) pendingDrafts.push("regiões (regions.json)");
+  if (hasCityDirectoryDraft()) pendingDrafts.push("cidades/vendedores (diretório)");
+  document.getElementById("draftHint").textContent =
+    pendingDrafts.length > 0
+      ? `Alterações não publicadas: ${pendingDrafts.join(" e ")}.`
+      : "";
 
   setMarkersDraggable(Auth.isAdmin);
   renderRegionsList();
@@ -1130,6 +1293,11 @@ function wireEvents() {
   });
 
   document.getElementById("btnReverifyCities").addEventListener("click", reverifyAllCities);
+
+  document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);
+  document.getElementById("btnNewCityCancel").addEventListener("click", closeNewCityModal);
+  document.getElementById("btnNewCitySave").addEventListener("click", saveNewCity);
+  document.getElementById("btnExportDirectory").addEventListener("click", exportDirectory);
 
   document.getElementById("searchCitySelect").addEventListener("change", (e) => {
     if (e.target.value) {

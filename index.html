@@ -40,6 +40,9 @@
   <button id="btnExportCities" class="btn btn-outline">Exportar cities.json</button>
   <button id="btnReverifyCities" class="btn btn-outline">Reconferir todas as cidades</button>
   <span class="toolbar-sep"></span>
+  <button id="btnNewCity" class="btn btn-primary">+ Nova cidade</button>
+  <button id="btnExportDirectory" class="btn btn-outline">Exportar diretório (vendedores/cidades)</button>
+  <span class="toolbar-sep"></span>
   <div class="toolbar-search">
     <select id="searchCitySelect"></select>
     <input type="text" id="searchAddressInput" placeholder="Buscar endereço/cidade…" />
@@ -121,6 +124,34 @@
       <button id="btnRegionCancel" class="btn btn-outline">Cancelar</button>
       <button id="btnRegionDelete" class="btn btn-danger hidden">Excluir região</button>
       <button id="btnRegionSave" class="btn btn-primary">Salvar região</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: nova cidade -->
+<div id="newCityModal" class="modal hidden">
+  <div class="modal-box modal-box-wide">
+    <h3>Adicionar nova cidade</h3>
+
+    <label>Nome da cidade</label>
+    <input type="text" id="newCityName" placeholder="Ex: Nova Esperança" />
+
+    <label>UF</label>
+    <select id="newCityUF"></select>
+
+    <label>Vendedor(es) responsável(is)</label>
+    <div id="newCitySellersChecklist" class="checklist"></div>
+
+    <label>Incluir já numa região? (opcional)</label>
+    <select id="newCityRegion">
+      <option value="">— Não incluir em nenhuma região agora —</option>
+    </select>
+
+    <p class="hint hint-small" id="newCityError"></p>
+
+    <div class="modal-actions">
+      <button id="btnNewCityCancel" class="btn btn-outline">Cancelar</button>
+      <button id="btnNewCitySave" class="btn btn-primary">Adicionar cidade</button>
     </div>
   </div>
 </div>
