@@ -14,6 +14,7 @@ let drawControl;
 let editingRegionId = null; // se != null, o modal de região está editando (não criando)
 let pendingPolygonCities = []; // cidades capturadas pelo último polígono desenhado
 let searchPreviewMarker = null; // pin temporário do campo de busca de endereço
+let activeSellerFilter = null; // se != null, só mostra cidades desse vendedor no mapa
 
 let SELLERS = {};       // { vendedor: [cidades] }
 let CITY_TO_SELLERS = {}; // { cidade: [vendedores] }
@@ -222,6 +223,9 @@ function rebuildClusters() {
   });
 
   Object.entries(cityMarkers).forEach(([label, marker]) => {
+    if (activeSellerFilter && !(SELLERS[activeSellerFilter] || []).includes(label)) {
+      return; // fora do filtro de vendedor ativo: não entra em nenhum grupo (fica invisível)
+    }
     const coord = Geocode.get(label);
     marker.setIcon(createCityIcon(colorForCity(label), isSuspect(coord)));
     bindWarnTooltip(marker, coord);
@@ -356,18 +360,14 @@ function applySellerFilter(sellerName) {
   const citiesBox = document.getElementById("sellerCities");
   citiesBox.innerHTML = "";
 
+  activeSellerFilter = sellerName || null;
+  rebuildClusters();
+
   if (!sellerName) {
-    Object.values(cityMarkers).forEach((m) => m.setOpacity(1));
     return;
   }
 
   const cities = SELLERS[sellerName] || [];
-  const citySet = new Set(cities);
-
-  Object.entries(cityMarkers).forEach(([label, marker]) => {
-    const dim = !citySet.has(label);
-    marker.setOpacity(dim ? 0.15 : 1);
-  });
 
   cities
     .sort((a, b) => a.localeCompare(b, "pt-BR"))
@@ -450,6 +450,7 @@ function onPolygonCreated(e) {
   const captured = [];
 
   Object.entries(cityMarkers).forEach(([label, marker]) => {
+    if (activeSellerFilter && !(SELLERS[activeSellerFilter] || []).includes(label)) return;
     const pt = turf.point([marker.getLatLng().lng, marker.getLatLng().lat]);
     if (turf.booleanPointInPolygon(pt, polygonGeoJSON)) {
       captured.push(label);
@@ -493,8 +494,38 @@ function openRegionModal({ name, vehicleProfile, cities, color }) {
       checklist.appendChild(label);
     });
 
+  const addSelect = document.getElementById("addCitySelect");
+  addSelect.innerHTML = `<option value="">+ Adicionar cidade à região…</option>`;
+  CITIES_LIST.slice()
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .filter((c) => !cities.includes(c))
+    .forEach((c) => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      addSelect.appendChild(opt);
+    });
+
   document.getElementById("btnRegionDelete").classList.toggle("hidden", !editingRegionId);
   document.getElementById("regionModal").classList.remove("hidden");
+}
+
+function addCityToRegionChecklist() {
+  const select = document.getElementById("addCitySelect");
+  const city = select.value;
+  if (!city) return;
+
+  const checklist = document.getElementById("regionCitiesChecklist");
+  const emptyMsg = checklist.querySelector("p.hint");
+  if (emptyMsg) emptyMsg.remove();
+
+  const label = document.createElement("label");
+  label.innerHTML = `<input type="checkbox" value="${city}" checked /> ${city}`;
+  checklist.appendChild(label);
+
+  const opt = Array.from(select.options).find((o) => o.value === city);
+  if (opt) opt.remove();
+  select.value = "";
 }
 
 function openRegionModalForEdit(regionId) {
@@ -720,6 +751,7 @@ function wireEvents() {
   document.getElementById("btnRegionCancel").addEventListener("click", closeRegionModal);
   document.getElementById("btnRegionSave").addEventListener("click", saveRegionFromModal);
   document.getElementById("btnRegionDelete").addEventListener("click", deleteRegionFromModal);
+  document.getElementById("btnAddCityToRegion").addEventListener("click", addCityToRegionChecklist);
 
   document.getElementById("btnExportRegions").addEventListener("click", () => {
     downloadFile("regions.json", Regions.exportJSON());

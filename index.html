@@ -37,6 +37,7 @@
       <select id="sellerSelect">
         <option value="">— Todos —</option>
       </select>
+      <p class="hint hint-small">Ao escolher um vendedor, os demais pontos somem do mapa — útil para desenhar a região só com as cidades dele.</p>
       <div id="sellerCities" class="mini-list"></div>
     </section>
 
@@ -112,6 +113,11 @@
 
     <label>Cidades capturadas pelo polígono (desmarque as que não devem entrar)</label>
     <div id="regionCitiesChecklist" class="checklist"></div>
+
+    <div class="add-city-row">
+      <select id="addCitySelect"></select>
+      <button id="btnAddCityToRegion" class="btn btn-outline btn-small" type="button">+ Adicionar</button>
+    </div>
 
     <div class="modal-actions">
       <button id="btnRegionCancel" class="btn btn-outline">Cancelar</button>

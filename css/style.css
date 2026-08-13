@@ -379,3 +379,11 @@ main { position: relative; flex: 1; }
   padding: 4px 2px;
 }
 .checklist input { width: auto; margin: 0; }
+
+.add-city-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.add-city-row select { margin-bottom: 0; flex: 1; }
+.btn-small { padding: 8px 10px; font-size: 12px; white-space: nowrap; }

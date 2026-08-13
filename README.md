@@ -106,6 +106,22 @@ O desenho da região já é ponto a ponto: clique no mapa para marcar cada vért
 polígono ao redor das cidades desejadas, e dê um duplo clique para fechar a forma. O
 sistema detecta automaticamente quais cidades caíram dentro do polígono desenhado.
 
+### Desenhando a região de um vendedor específico
+Se você quer montar a região só com as cidades de um vendedor, use o filtro **"Ver por
+vendedor"** no topo da barra lateral antes de desenhar o polígono: ao escolher um
+vendedor, todos os outros pontos somem do mapa (não ficam só apagados, somem mesmo).
+Assim, quando você desenhar o polígono, só as cidades daquele vendedor entram na
+captura — mesmo que o polígono acabe passando perto de cidades de outros vendedores.
+Escolha "— Todos —" no filtro para voltar a ver o mapa completo.
+
+### Adicionando uma cidade "avulsa" numa região
+Nem toda cidade de uma região vai necessariamente cair dentro do polígono desenhado —
+às vezes você quer incluir uma cidade específica manualmente. No formulário de criar
+ou editar região, logo abaixo da lista de cidades capturadas, tem um campo **"+
+Adicionar cidade à região"**: escolha a cidade na lista e clique em "+ Adicionar" — ela
+entra na lista já marcada, junto com as demais. Funciona tanto ao criar uma região nova
+quanto ao editar uma já existente.
+
 ### Salvando as alterações para todo mundo ver (importante!)
 Como o site é estático (sem banco de dados), as edições do admin ficam guardadas
 **só no navegador dele** até serem publicadas. Para tornar as mudanças visíveis a
