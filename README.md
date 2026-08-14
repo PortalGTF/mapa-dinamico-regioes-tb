@@ -210,9 +210,34 @@ Clique em **"📄 Gerar PDF"** na barra do admin. Você escolhe:
   responsável por cada cidade, e o perfil mínimo de veículo de cada região.
 
 Ao clicar em "Gerar PDF", se alguma distância ainda não tiver sido calculada, o app
-calcula na hora (mostra uma barra de progresso) antes de montar o arquivo. O PDF sai
-formatado com cabeçalho, logo, tabelas por região, e baixa direto pro computador —
-pronto pra imprimir ou mandar pro vendedor.
+calcula na hora (mostra uma barra de progresso) antes de montar o arquivo. As regiões
+saem ordenadas da **mais longe pra mais perto** (pela cidade mais distante de cada
+uma), e o PDF sai formatado com cabeçalho, logo, tabelas por região, e baixa direto
+pro computador — pronto pra imprimir ou mandar pro vendedor.
+
+### Trocando o(s) vendedor(es) de uma cidade já existente
+Clique na cidade no mapa (modo admin) e depois em **"Editar vendedor(es)"** — abre uma
+lista com todos os vendedores do sistema, com checkbox pra marcar quem atende aquela
+cidade (pode marcar mais de um). Salvando, atualiza tanto a lista do vendedor quanto a
+da cidade automaticamente. Como qualquer mudança no diretório, exporte e suba o
+`sellers.json`/`cities_list.json`/`city_to_sellers.json` depois pra valer pra todo
+mundo.
+
+### Modo apresentação com filtros e caixa de cidades
+No modo apresentação, o filtro "Ver por vendedor" e a lista de regiões continuam
+visíveis (só o topo e a barra do admin somem). Ao clicar numa região durante a
+apresentação, em vez do painel técnico, aparece uma **caixa grande** na parte de baixo
+da tela com o nome da região e todas as cidades que a compõem, num tamanho fácil de
+ler projetado numa tela — ótimo pra mostrar pro gerente comercial ou pro time sem
+expor os controles de admin.
+
+### Isolando uma região no mapa
+Ao clicar no nome de uma região (o que abre o painel de detalhes), o mapa passa a
+mostrar **só as cidades daquela região** — as outras somem, pra não poluir a tela.
+Dentro do painel tem um checkbox **"Mostrar regiões vizinhas no mapa"** (desmarcado
+por padrão) — marque se quiser ver as demais regiões ao redor também, pra ter noção
+de contexto geográfico. Ao fechar o painel ou trocar de região, o mapa volta ao normal
+(ou isola a nova região escolhida).
 
 ### Detectando regiões com vendedores cruzados
 Clique em **"⚠ Conflitos de vendedor"** na barra do admin. O painel mostra sozinho

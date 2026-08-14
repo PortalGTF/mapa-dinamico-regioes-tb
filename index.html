@@ -35,6 +35,7 @@
 </header>
 
 <button id="btnExitPresent" class="exit-present-btn hidden">✕ Sair da apresentação (Esc)</button>
+<div id="presentationBurst"></div>
 
 <div id="adminToolbar" class="admin-toolbar hidden">
   <button id="btnDrawRegion" class="btn btn-primary">Desenhar nova região</button>
@@ -218,6 +219,22 @@
   </div>
 </div>
 
+<!-- Painel: editar vendedor(es) de uma cidade -->
+<div id="editCitySellersModal" class="side-panel hidden">
+  <div class="side-panel-header" id="editCitySellersHeader">
+    <h3 id="editCitySellersTitle">Editar vendedor(es)</h3>
+    <div class="side-panel-header-actions">
+      <button id="btnCloseEditCitySellers" class="icon-btn" title="Fechar">✕</button>
+    </div>
+  </div>
+  <p class="hint">Marque quem atende essa cidade. Pode marcar mais de um vendedor.</p>
+  <div id="editCitySellersChecklist" class="checklist"></div>
+  <div class="modal-actions">
+    <button id="btnCancelEditCitySellers" class="btn btn-outline">Cancelar</button>
+    <button id="btnSaveEditCitySellers" class="btn btn-primary">Salvar</button>
+  </div>
+</div>
+
 <!-- Painel: conflitos de vendedor (cidades de vendedores diferentes na mesma região) -->
 <div id="conflictModal" class="side-panel side-panel-wide hidden">
   <div class="side-panel-header" id="conflictModalHeader">
@@ -255,6 +272,9 @@
   </div>
   <div id="regionDetailBody">
     <div class="region-detail-summary" id="regionDetailSummary">Calculando distâncias…</div>
+    <label class="rd-toggle-neighbors">
+      <input type="checkbox" id="toggleNeighborRegions" /> Mostrar regiões vizinhas no mapa
+    </label>
     <div class="region-detail-list" id="regionDetailList"></div>
     <div class="modal-actions">
       <button id="btnToggleFence" class="btn btn-outline">Esconder cerca da região</button>

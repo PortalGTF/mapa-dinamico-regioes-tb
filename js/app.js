@@ -15,6 +15,8 @@ let editingRegionId = null; // se != null, o modal de região está editando (n�
 let pendingPolygonCities = []; // cidades capturadas pelo último polígono desenhado
 let searchPreviewMarker = null; // pin temporário do campo de busca de endereço
 let activeSellerFilter = null; // se != null, só mostra cidades desse vendedor no mapa
+let focusedRegionId = null; // se != null (e showNeighborRegions=false), isola só essa região no mapa
+let showNeighborRegions = false; // flag do painel: mostrar as demais regiões junto
 let ringLayerGroup = null; // anéis de 50 em 50 km desenhados a partir da origem
 let lastRegionMaxBracket = null; // último raio calculado (para o toggle de anéis)
 let regionRadiusCache = {}; // { regionId: { citiesKey, bracket } } — usado na lista lateral
@@ -80,6 +82,7 @@ function makePanelsDraggable() {
   attachDrag("newCityModal", document.getElementById("newCityModalHeader"));
   attachDrag("conflictModal", document.getElementById("conflictModalHeader"));
   attachDrag("pdfModal", document.getElementById("pdfModalHeader"));
+  attachDrag("editCitySellersModal", document.getElementById("editCitySellersHeader"));
 }
 
 function attachDrag(panelId, headerEl) {
@@ -348,6 +351,12 @@ function rebuildClusters() {
     if (activeSellerFilter && !(SELLERS[activeSellerFilter] || []).includes(label)) {
       return; // fora do filtro de vendedor ativo: não entra em nenhum grupo (fica invisível)
     }
+    if (focusedRegionId && !showNeighborRegions) {
+      const focusedRegion = Regions.list.find((r) => r.id === focusedRegionId);
+      if (!focusedRegion || !focusedRegion.cities.includes(label)) {
+        return; // fora da região em foco: fica invisível, a não ser que "mostrar vizinhas" esteja marcado
+      }
+    }
     const coord = Geocode.get(label);
     marker.setIcon(createCityIcon(colorForCity(label), isSuspect(coord)));
     bindWarnTooltip(marker, coord);
@@ -388,6 +397,7 @@ function openCityPopup(cityLabel, marker) {
 
   if (Auth.isAdmin) {
     html += `<div class="row admin-hint">Modo admin: arraste o pin no mapa, ou use "Buscar" abaixo para corrigir pelo nome.</div>`;
+    html += `<button class="btn-reset-loc" data-city="${cityLabel}" data-action="editSellers">Editar vendedor(es)</button>`;
     html += `<button class="btn-reset-loc" data-city="${cityLabel}" data-action="search">Buscar novo endereço</button>`;
     if (coord && coord.manual) {
       html += `<button class="btn-reset-loc" data-city="${cityLabel}" data-action="auto">Refazer busca automática</button>`;
@@ -413,6 +423,9 @@ function openCityPopup(cityLabel, marker) {
       btn.addEventListener("click", () => {
         if (btn.dataset.action === "auto") {
           resetCityLocation(cityLabel, marker);
+        } else if (btn.dataset.action === "editSellers") {
+          marker.closePopup();
+          openEditCitySellersModal(cityLabel, marker);
         } else {
           marker.closePopup();
           openSearchPanelFor(cityLabel);
@@ -470,6 +483,8 @@ async function calcDistance(cityLabel, mode, popupEl) {
 // ------------------------------------------------------------
 function renderSellerOptions() {
   const select = document.getElementById("sellerSelect");
+  const currentValue = select.value;
+  select.innerHTML = `<option value="">— Todos —</option>`;
   Object.keys(SELLERS)
     .sort((a, b) => a.localeCompare(b, "pt-BR"))
     .forEach((name) => {
@@ -478,6 +493,7 @@ function renderSellerOptions() {
       opt.textContent = name;
       select.appendChild(opt);
     });
+  select.value = currentValue;
 }
 
 function applySellerFilter(sellerName) {
@@ -485,6 +501,10 @@ function applySellerFilter(sellerName) {
   citiesBox.innerHTML = "";
 
   activeSellerFilter = sellerName || null;
+  if (sellerName) {
+    focusedRegionId = null;
+    showNeighborRegions = false;
+  }
   rebuildClusters();
 
   if (!sellerName) {
@@ -550,9 +570,20 @@ function renderRegionsList() {
       if (e.target.classList.contains("region-edit")) {
         openRegionModalForEdit(region.id);
       } else {
+        activeSellerFilter = null;
+        document.getElementById("sellerSelect").value = "";
+        document.getElementById("sellerCities").innerHTML = "";
+        focusedRegionId = region.id;
+        showNeighborRegions = false;
+        rebuildClusters();
+
         focusRegion(region);
-        openRegionDetail(region);
         showRegionFence(region);
+        if (isPresenting()) {
+          showPresentationBurst(region);
+        } else {
+          openRegionDetail(region);
+        }
       }
     });
     box.appendChild(row);
@@ -769,6 +800,17 @@ function bracketFor(km) {
 
 function openRegionDetail(region) {
   currentDetailRegionId = region.id;
+
+  // Isola essa região no mapa (esconde as demais), e limpa o filtro de vendedor
+  // pra não misturar os dois filtros de forma confusa.
+  activeSellerFilter = null;
+  document.getElementById("sellerSelect").value = "";
+  document.getElementById("sellerCities").innerHTML = "";
+  focusedRegionId = region.id;
+  showNeighborRegions = false;
+  document.getElementById("toggleNeighborRegions").checked = false;
+  rebuildClusters();
+
   document.getElementById("regionDetailTitle").textContent = region.name;
   document.getElementById("regionDetailSummary").textContent = "Calculando distâncias a partir de Terra Boa…";
   document.getElementById("regionDetailList").innerHTML = "";
@@ -779,6 +821,9 @@ function openRegionDetail(region) {
 }
 
 function closeRegionDetail() {
+  focusedRegionId = null;
+  showNeighborRegions = false;
+  rebuildClusters();
   document.getElementById("regionDetailModal").classList.add("hidden");
   document.getElementById("regionDetailModal").classList.remove("collapsed");
   currentDetailRegionId = null;
@@ -1590,41 +1635,61 @@ async function generatePdf() {
     return;
   }
 
-  if (incKm || incRound) {
-    if (!originLatLng || originLatLng.lat === null) {
-      alert("Não foi possível calcular distâncias: coordenadas da origem indisponíveis.");
-      return;
-    }
-    let allCities = [];
-    regionsToInclude.forEach((r) => {
-      r.cities.forEach((c) => {
-        if (sellerFilterName && !(CITY_TO_SELLERS[c] || []).includes(sellerFilterName)) return;
-        allCities.push(c);
-      });
-    });
-    allCities = Array.from(new Set(allCities));
-
-    const pending = allCities.filter((c) => {
-      const dest = Geocode.get(c);
-      if (!dest || dest.lat === null) return false;
-      const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
-      return !Routing.cache[key];
-    });
-
-    let done = 0;
-    for (const c of pending) {
-      const dest = Geocode.get(c);
-      try {
-        await Routing.getRoute(originLatLng, dest);
-      } catch (e) {}
-      done++;
-      statusEl.textContent = `Calculando distâncias… ${done}/${pending.length}`;
-      await new Promise((r) => setTimeout(r, 150));
-    }
+  if (!originLatLng || originLatLng.lat === null) {
+    alert("Não foi possível calcular distâncias: coordenadas da origem indisponíveis.");
+    return;
   }
 
+  // Sempre calcula as distâncias (mesmo que as colunas de km não apareçam no PDF),
+  // porque são necessárias pra ordenar as regiões da mais longe para a mais perto.
+  let allCities = [];
+  regionsToInclude.forEach((r) => {
+    r.cities.forEach((c) => {
+      if (sellerFilterName && !(CITY_TO_SELLERS[c] || []).includes(sellerFilterName)) return;
+      allCities.push(c);
+    });
+  });
+  allCities = Array.from(new Set(allCities));
+
+  const pending = allCities.filter((c) => {
+    const dest = Geocode.get(c);
+    if (!dest || dest.lat === null) return false;
+    const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
+    return !Routing.cache[key];
+  });
+
+  let done = 0;
+  for (const c of pending) {
+    const dest = Geocode.get(c);
+    try {
+      await Routing.getRoute(originLatLng, dest);
+    } catch (e) {}
+    done++;
+    statusEl.textContent = `Calculando distâncias… ${done}/${pending.length}`;
+    await new Promise((r) => setTimeout(r, 150));
+  }
+
+  // Km máximo de cada região no escopo — usado pra ordenar e pra mostrar o raio
+  const regionMaxKm = {};
+  regionsToInclude.forEach((region) => {
+    let maxKm = null;
+    region.cities.forEach((city) => {
+      if (sellerFilterName && !(CITY_TO_SELLERS[city] || []).includes(sellerFilterName)) return;
+      const dest = Geocode.get(city);
+      if (!dest || dest.lat === null) return;
+      const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
+      const route = Routing.cache[key];
+      if (route && (maxKm === null || route.km > maxKm)) maxKm = route.km;
+    });
+    regionMaxKm[region.id] = maxKm;
+  });
+
+  regionsToInclude = regionsToInclude
+    .slice()
+    .sort((a, b) => (regionMaxKm[b.id] ?? -1) - (regionMaxKm[a.id] ?? -1));
+
   statusEl.textContent = "Montando o PDF…";
-  await buildPdfDocument({ regionsToInclude, scopeLabel, sellerFilterName, incKm, incRound, incSeller, incProfile });
+  await buildPdfDocument({ regionsToInclude, scopeLabel, sellerFilterName, incKm, incRound, incSeller, incProfile, regionMaxKm });
   statusEl.textContent = "";
   closePdfModal();
 }
@@ -1640,7 +1705,7 @@ async function imageUrlToDataUrl(url) {
   });
 }
 
-async function buildPdfDocument({ regionsToInclude, scopeLabel, sellerFilterName, incKm, incRound, incSeller, incProfile }) {
+async function buildPdfDocument({ regionsToInclude, scopeLabel, sellerFilterName, incKm, incRound, incSeller, incProfile, regionMaxKm }) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -1692,8 +1757,10 @@ async function buildPdfDocument({ regionsToInclude, scopeLabel, sellerFilterName
 
     const metaBits = [];
     if (incProfile) metaBits.push(`Perfil mínimo: ${region.vehicleProfile}`);
-    const radiusInfo = regionRadiusCache[region.id];
-    if (radiusInfo && radiusInfo.bracket) metaBits.push(`Raio: até ${radiusInfo.bracket} km`);
+    const maxKmForRegion = regionMaxKm ? regionMaxKm[region.id] : null;
+    if (maxKmForRegion !== null && maxKmForRegion !== undefined) {
+      metaBits.push(`Raio: até ${bracketFor(maxKmForRegion)} km`);
+    }
     if (metaBits.length > 0) {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9.5);
@@ -1765,6 +1832,12 @@ function togglePresentationMode(forceState) {
 
   body.classList.toggle("presentation-mode", turningOn);
   document.getElementById("btnExitPresent").classList.toggle("hidden", !turningOn);
+  if (!turningOn) {
+    hidePresentationBurst();
+    focusedRegionId = null;
+    showNeighborRegions = false;
+    rebuildClusters();
+  }
 
   if (turningOn) {
     const el = document.documentElement;
@@ -1784,6 +1857,94 @@ function togglePresentationMode(forceState) {
   }
 
   setTimeout(() => map && map.invalidateSize(), 150);
+}
+
+function isPresenting() {
+  return document.body.classList.contains("presentation-mode");
+}
+
+function showPresentationBurst(region) {
+  const box = document.getElementById("presentationBurst");
+  const cities = region.cities.slice().sort((a, b) => a.localeCompare(b, "pt-BR"));
+  box.innerHTML = `
+    <button class="pb-close" id="btnClosePresentBurst">✕</button>
+    <h2>${region.name}</h2>
+    <div class="pb-meta">${cities.length} cidade(s) · Perfil mínimo: ${region.vehicleProfile}</div>
+    <div class="pb-cities">${cities.map((c) => `<span class="pb-city">${c}</span>`).join("")}</div>
+  `;
+  box.classList.add("active");
+  document.getElementById("btnClosePresentBurst").addEventListener("click", hidePresentationBurst);
+}
+
+function hidePresentationBurst() {
+  document.getElementById("presentationBurst").classList.remove("active");
+}
+
+// ------------------------------------------------------------
+// Editar vendedor(es) de uma cidade já existente
+// ------------------------------------------------------------
+let editingCitySellersLabel = null;
+let editingCitySellersMarker = null;
+
+function openEditCitySellersModal(cityLabel, marker) {
+  if (!Auth.isAdmin) return;
+  editingCitySellersLabel = cityLabel;
+  editingCitySellersMarker = marker;
+
+  document.getElementById("editCitySellersTitle").textContent = `Editar vendedor(es) — ${cityLabel}`;
+
+  const current = new Set(CITY_TO_SELLERS[cityLabel] || []);
+  const checklist = document.getElementById("editCitySellersChecklist");
+  checklist.innerHTML = "";
+  Object.keys(SELLERS)
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .forEach((name) => {
+      const label = document.createElement("label");
+      label.innerHTML = `<input type="checkbox" value="${name}" ${current.has(name) ? "checked" : ""} /> ${name}`;
+      checklist.appendChild(label);
+    });
+
+  document.getElementById("editCitySellersModal").classList.remove("hidden");
+}
+
+function closeEditCitySellersModal() {
+  document.getElementById("editCitySellersModal").classList.add("hidden");
+  editingCitySellersLabel = null;
+  editingCitySellersMarker = null;
+}
+
+function saveEditCitySellers() {
+  if (!Auth.isAdmin || !editingCitySellersLabel) return;
+  const city = editingCitySellersLabel;
+  const checked = Array.from(
+    document.querySelectorAll("#editCitySellersChecklist input:checked")
+  ).map((el) => el.value);
+
+  if (checked.length === 0) {
+    alert("Marque pelo menos um vendedor responsável por essa cidade.");
+    return;
+  }
+
+  // Atualiza o mapeamento nos dois sentidos: vendedor -> cidades, e cidade -> vendedores
+  Object.keys(SELLERS).forEach((seller) => {
+    const shouldHave = checked.includes(seller);
+    const has = SELLERS[seller].includes(city);
+    if (shouldHave && !has) SELLERS[seller].push(city);
+    if (!shouldHave && has) SELLERS[seller] = SELLERS[seller].filter((c) => c !== city);
+  });
+  CITY_TO_SELLERS[city] = checked;
+  saveCityDirectoryDraft();
+
+  renderSellerOptions();
+  const pendingDrafts = [];
+  if (Regions.hasDraft()) pendingDrafts.push("regiões (regions.json)");
+  if (hasCityDirectoryDraft()) pendingDrafts.push("cidades/vendedores (diretório)");
+  document.getElementById("draftHint").textContent =
+    pendingDrafts.length > 0 ? `Alterações não publicadas: ${pendingDrafts.join(" e ")}.` : "";
+
+  const marker = editingCitySellersMarker;
+  closeEditCitySellersModal();
+  if (marker) openCityPopup(city, marker);
 }
 
 function updateAdminUI() {
@@ -1809,6 +1970,7 @@ function updateAdminUI() {
     closeRegionModal();
     closeConflictsPanel();
     closePdfModal();
+    closeEditCitySellersModal();
     clearSearchPreview();
     if (map.hasLayer && drawControl._map) map.removeControl(drawControl);
   }
@@ -1916,6 +2078,9 @@ function wireEvents() {
 
   document.getElementById("btnConflicts").addEventListener("click", openConflictsPanel);
   document.getElementById("btnCloseConflicts").addEventListener("click", closeConflictsPanel);
+  document.getElementById("btnCloseEditCitySellers").addEventListener("click", closeEditCitySellersModal);
+  document.getElementById("btnCancelEditCitySellers").addEventListener("click", closeEditCitySellersModal);
+  document.getElementById("btnSaveEditCitySellers").addEventListener("click", saveEditCitySellers);
   document.getElementById("btnRunCommand").addEventListener("click", runConflictCommand);
 
   document.getElementById("btnOpenPdf").addEventListener("click", openPdfModal);
@@ -1940,6 +2105,10 @@ function wireEvents() {
   document.getElementById("btnMinimizeRegionDetail").addEventListener("click", toggleMinimizeRegionDetail);
   document.getElementById("btnToggleRings").addEventListener("click", toggleRings);
   document.getElementById("btnToggleFence").addEventListener("click", toggleFence);
+  document.getElementById("toggleNeighborRegions").addEventListener("change", (e) => {
+    showNeighborRegions = e.target.checked;
+    rebuildClusters();
+  });
 }
 
 function downloadFile(filename, content) {

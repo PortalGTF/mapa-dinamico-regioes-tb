@@ -128,10 +128,10 @@ button { font-family: inherit; }
 
 /* ---------- Modo apresentação ---------- */
 body.presentation-mode #topbar,
-body.presentation-mode #adminToolbar,
-body.presentation-mode #sidebar {
+body.presentation-mode #adminToolbar {
   display: none !important;
 }
+body.presentation-mode .region-edit { display: none; } /* esconde o link "editar" ao apresentar */
 
 .exit-present-btn {
   position: fixed;
@@ -150,6 +150,45 @@ body.presentation-mode #sidebar {
 }
 body.presentation-mode .exit-present-btn { display: inline-flex; align-items: center; gap: 6px; }
 .exit-present-btn:hover { background: rgba(14, 26, 43, 1); }
+
+#presentationBurst {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  width: min(680px, calc(100% - 40px));
+  max-height: 44vh;
+  overflow-y: auto;
+  background: rgba(14, 26, 43, 0.95);
+  color: white;
+  border-radius: 14px;
+  padding: 22px 28px;
+  z-index: 2100;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+}
+body.presentation-mode #presentationBurst.active { display: block; }
+#presentationBurst h2 { margin: 0 0 4px; font-size: 21px; }
+#presentationBurst .pb-meta { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+#presentationBurst .pb-cities { display: flex; flex-wrap: wrap; gap: 8px 10px; }
+#presentationBurst .pb-city {
+  background: rgba(255,255,255,0.1);
+  padding: 7px 13px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+#presentationBurst .pb-close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 16px;
+  cursor: pointer;
+}
+#presentationBurst .pb-close:hover { color: white; }
 #layout {
   display: flex;
   flex: 1;
@@ -490,6 +529,16 @@ main { position: relative; flex: 1; }
   white-space: nowrap;
 }
 .rd-bracket-max { background: var(--accent-soft); color: var(--accent); }
+.rd-toggle-neighbors {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+  margin: 8px 0 10px;
+}
+.rd-toggle-neighbors input { width: auto; margin: 0; }
 
 /* ---------- Painel flutuante (não bloqueia o mapa) ---------- */
 .side-panel {
