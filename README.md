@@ -264,6 +264,15 @@ Ao tentar criar uma cidade que já existe na base (comparando o nome já padroni
 em maiúsculas), o app não deixa duplicar — em vez disso, fecha o formulário e já
 leva você direto até o pin da cidade existente no mapa, com o popup dela aberto.
 
+**Importante — correção automática ao carregar a página**: a partir de agora,
+`SELLERS` é recalculado a partir de `CITY_TO_SELLERS` **toda vez que a página é
+aberta**, não só quando alguém clica em alguma ação específica. Isso significa que,
+mesmo que já exista alguma dessincronia antiga gravada (seja no navegador de alguém,
+seja no `sellers.json` publicado), ela se corrige sozinha assim que a página carrega
+— não precisa clicar em nada. Não é mais necessário rodar manualmente algo pra
+"consertar" isso; só recarregar a página já resolve, pra qualquer pessoa que abrir o
+link.
+
 ### Correção importante: dessincronia entre vendedor e cidade
 Corrigi um bug onde, em alguns casos (principalmente com nomes de cidade que ainda
 não tinham sido padronizados), trocar o vendedor de uma cidade podia deixá-la

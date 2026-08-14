@@ -153,6 +153,11 @@ async function loadStaticData() {
   CITIES_LIST = citiesList;
   VEHICLE_PROFILES = profiles;
   loadCityDirectoryDraft();
+
+  // Recalcula SELLERS a partir de CITY_TO_SELLERS toda vez que a página carrega —
+  // isso "autocura" qualquer dessincronia antiga que possa ter ficado gravada no
+  // navegador antes dessa correção existir, sem precisar de nenhum clique manual.
+  rebuildSellersFromCityToSellers();
 }
 
 // ------------------------------------------------------------
