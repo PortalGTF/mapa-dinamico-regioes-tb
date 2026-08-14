@@ -51,7 +51,9 @@ Qualquer pessoa que acessar o link vê:
 - Todas as regiões já criadas, coloridas no mapa
 - A lista de regiões, quantas cidades cada uma tem e o perfil mínimo de veículo
 - Um filtro "Ver por vendedor" — escolhe o nome e o mapa mostra só as cidades daquele
-  vendedor, com a região e o perfil de cada uma
+  vendedor, e embaixo aparece uma lista enxuta das **regiões** que têm cidades dele
+  (com a quantidade em cada uma). Clicando numa dessas regiões, abre o mesmo painel
+  completo de sempre (cidades, raio, cerca eletrônica).
 - Clicando em qualquer cidade no mapa: vendedor(es), região, perfil exigido, e botões
   para calcular a distância rodoviária de ida ou de ida e volta a partir da origem
   (Terra Boa - PR)

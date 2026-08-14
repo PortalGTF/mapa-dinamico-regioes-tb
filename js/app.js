@@ -513,26 +513,62 @@ function applySellerFilter(sellerName) {
 
   const cities = SELLERS[sellerName] || [];
 
-  cities
-    .sort((a, b) => a.localeCompare(b, "pt-BR"))
-    .forEach((cityLabel) => {
-      const regions = Regions.findByCity(cityLabel);
+  // Agrupa por região: quantas cidades desse vendedor caem em cada região
+  const regionCounts = {}; // regionId -> { region, count }
+  let unassignedCount = 0;
+  cities.forEach((cityLabel) => {
+    const regions = Regions.findByCity(cityLabel);
+    if (regions.length === 0) {
+      unassignedCount++;
+      return;
+    }
+    regions.forEach((r) => {
+      regionCounts[r.id] = regionCounts[r.id] || { region: r, count: 0 };
+      regionCounts[r.id].count++;
+    });
+  });
+
+  const regionEntries = Object.values(regionCounts).sort((a, b) =>
+    a.region.name.localeCompare(b.region.name, "pt-BR")
+  );
+
+  if (regionEntries.length === 0 && unassignedCount === 0) {
+    citiesBox.innerHTML = `<p class="hint">Esse vendedor ainda não tem cidades cadastradas.</p>`;
+  } else {
+    regionEntries.forEach(({ region, count }) => {
       const row = document.createElement("div");
-      row.className = "city-row";
-      const regionInfo =
-        regions.length > 0
-          ? regions.map((r) => `${r.name} (${r.vehicleProfile})`).join(", ")
-          : `<span class="c-warn">sem região definida</span>`;
-
-      const outrosVendedores = (CITY_TO_SELLERS[cityLabel] || []).filter((v) => v !== sellerName);
-      const coVendedorInfo =
-        outrosVendedores.length > 0
-          ? `<div class="c-co">Também atendida por: ${outrosVendedores.join(", ")}</div>`
-          : "";
-
-      row.innerHTML = `<div class="c-name">${cityLabel}</div><div class="c-meta">${regionInfo}</div>${coVendedorInfo}`;
+      row.className = "region-row";
+      row.innerHTML = `
+        <span class="swatch" style="background:${region.color}"></span>
+        <div class="region-info">
+          <div class="region-name">${region.name}</div>
+          <div class="region-meta">${count} cidade(s) de ${sellerName} · perfil mínimo: ${region.vehicleProfile}</div>
+        </div>
+      `;
+      row.addEventListener("click", () => {
+        activeSellerFilter = null;
+        document.getElementById("sellerSelect").value = "";
+        focusedRegionId = region.id;
+        showNeighborRegions = false;
+        rebuildClusters();
+        focusRegion(region);
+        showRegionFence(region);
+        if (isPresenting()) {
+          showPresentationBurst(region);
+        } else {
+          openRegionDetail(region);
+        }
+      });
       citiesBox.appendChild(row);
     });
+
+    if (unassignedCount > 0) {
+      const warn = document.createElement("p");
+      warn.className = "hint hint-small";
+      warn.innerHTML = `<span class="c-warn">${unassignedCount} cidade(s) desse vendedor ainda sem região definida.</span>`;
+      citiesBox.appendChild(warn);
+    }
+  }
 
   // Ajusta o zoom do mapa às cidades do vendedor, se já geocodificadas
   const coords = cities.map((c) => Geocode.get(c)).filter((c) => c && c.lat !== null);
