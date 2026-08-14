@@ -204,6 +204,23 @@ function hasCityDirectoryDraft() {
   return !!localStorage.getItem("regioes_directory_draft");
 }
 
+// Descarta qualquer edição salva só no navegador (regiões e diretório) e recarrega
+// a página, forçando o uso do que está publicado no GitHub. Não apaga nada que já
+// foi publicado — só limpa o que estava só localmente.
+function discardAllLocalDrafts() {
+  if (!Auth.isAdmin) return;
+  if (
+    !confirm(
+      "Isso descarta qualquer edição salva só neste navegador (regiões e diretório de vendedores/cidades) e recarrega a página, usando só o que está publicado no GitHub. Não afeta o que já foi publicado. Continuar?"
+    )
+  ) {
+    return;
+  }
+  Regions.discardDraft();
+  localStorage.removeItem("regioes_directory_draft");
+  location.reload();
+}
+
 // ------------------------------------------------------------
 // Mapa
 // ------------------------------------------------------------
@@ -733,26 +750,34 @@ function triggerRadiiComputation() {
 async function computeAllRegionRadii() {
   if (!originLatLng || originLatLng.lat === null) return;
 
-  for (const region of Regions.list) {
+  const pendingRegions = Regions.list.filter((region) => {
     const key = regionCitiesKey(region);
-    if (regionRadiusCache[region.id] && regionRadiusCache[region.id].citiesKey === key) continue;
+    return !(regionRadiusCache[region.id] && regionRadiusCache[region.id].citiesKey === key);
+  });
+  if (pendingRegions.length === 0) return;
 
+  // Junta as cidades de todas as regiões pendentes num único lote — bem mais
+  // rápido que calcular uma cidade por vez.
+  const allCityLabels = Array.from(new Set(pendingRegions.flatMap((r) => r.cities)));
+  const destinations = allCityLabels
+    .map((c) => ({ label: c, ...Geocode.get(c) }))
+    .filter((d) => d.lat !== null && d.lat !== undefined);
+
+  await Routing.getRouteMatrix(originLatLng, destinations);
+
+  pendingRegions.forEach((region) => {
+    const key = regionCitiesKey(region);
     let maxKm = null;
-    for (const cityLabel of region.cities) {
+    region.cities.forEach((cityLabel) => {
       const dest = Geocode.get(cityLabel);
-      if (!dest || dest.lat === null) continue;
-      try {
-        const route = await Routing.getRoute(originLatLng, dest);
-        if (maxKm === null || route.km > maxKm) maxKm = route.km;
-      } catch (e) {
-        // ignora e segue tentando as outras cidades da região
-      }
-      await new Promise((r) => setTimeout(r, 150)); // uso respeitoso do OSRM
-    }
-
+      if (!dest || dest.lat === null) return;
+      const cacheKey = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
+      const route = Routing.cache[cacheKey];
+      if (route && (maxKm === null || route.km > maxKm)) maxKm = route.km;
+    });
     regionRadiusCache[region.id] = { citiesKey: key, bracket: maxKm === null ? null : bracketFor(maxKm) };
     updateRegionRowRadius(region.id);
-  }
+  });
 }
 
 function updateRegionRowRadius(regionId) {
@@ -1201,24 +1226,21 @@ async function computeRegionRadius(region) {
     return;
   }
 
-  const results = [];
-  for (const cityLabel of region.cities) {
-    const dest = Geocode.get(cityLabel);
-    if (!dest || dest.lat === null) {
-      results.push({ cityLabel, km: null });
-      renderRegionDetailList(results);
-      continue;
-    }
-    try {
-      const route = await Routing.getRoute(originLatLng, dest);
-      results.push({ cityLabel, km: route.km });
-    } catch (e) {
-      results.push({ cityLabel, km: null, error: true });
-    }
-    renderRegionDetailList(results);
-    await new Promise((r) => setTimeout(r, 250)); // uso respeitoso do OSRM
-  }
+  const destinations = region.cities
+    .map((c) => ({ label: c, ...Geocode.get(c) }))
+    .filter((d) => d.lat !== null && d.lat !== undefined);
 
+  await Routing.getRouteMatrix(originLatLng, destinations, (done, total) => {
+    summaryEl.textContent = `Calculando distâncias a partir de Terra Boa… ${done}/${total}`;
+  });
+
+  const results = region.cities.map((cityLabel) => {
+    const dest = Geocode.get(cityLabel);
+    if (!dest || dest.lat === null) return { cityLabel, km: null };
+    const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
+    const route = Routing.cache[key];
+    return { cityLabel, km: route ? route.km : null };
+  });
   renderRegionDetailList(results, true);
 }
 
@@ -1994,23 +2016,13 @@ async function generatePdf() {
   });
   allCities = Array.from(new Set(allCities));
 
-  const pending = allCities.filter((c) => {
-    const dest = Geocode.get(c);
-    if (!dest || dest.lat === null) return false;
-    const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
-    return !Routing.cache[key];
-  });
+  const destinations = allCities
+    .map((c) => ({ label: c, ...Geocode.get(c) }))
+    .filter((d) => d.lat !== null && d.lat !== undefined);
 
-  let done = 0;
-  for (const c of pending) {
-    const dest = Geocode.get(c);
-    try {
-      await Routing.getRoute(originLatLng, dest);
-    } catch (e) {}
-    done++;
-    statusEl.textContent = `Calculando distâncias… ${done}/${pending.length}`;
-    await new Promise((r) => setTimeout(r, 150));
-  }
+  await Routing.getRouteMatrix(originLatLng, destinations, (done, total) => {
+    statusEl.textContent = `Calculando distâncias… ${done}/${total}`;
+  });
 
   // Km máximo de cada região no escopo — usado pra ordenar e pra mostrar o raio
   const regionMaxKm = {};
@@ -2440,6 +2452,10 @@ function wireEvents() {
   document.getElementById("btnReverifyFromMenu").addEventListener("click", () => {
     document.getElementById("otherActionsDropdown").classList.add("hidden");
     reverifyAllCities();
+  });
+  document.getElementById("btnDiscardDraftsFromMenu").addEventListener("click", () => {
+    document.getElementById("otherActionsDropdown").classList.add("hidden");
+    discardAllLocalDrafts();
   });
 
   document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);
