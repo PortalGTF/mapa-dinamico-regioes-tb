@@ -51,13 +51,19 @@
     </div>
   </div>
 
-  <button id="btnReverifyCities" class="btn btn-outline">Reconferir todas as cidades</button>
-  <button id="btnStandardizeNames" class="btn btn-outline">🔤 Padronizar nomes (MAIÚSCULAS)</button>
+  <div class="export-dropdown-wrap">
+    <button id="btnOtherActionsMenu" class="btn btn-outline">Outras ações ▾</button>
+    <div id="otherActionsDropdown" class="export-dropdown hidden">
+      <button class="dropdown-action-btn" id="btnDedupeFromMenu">🧹 Varredura de duplicados</button>
+      <button class="dropdown-action-btn" id="btnStandardizeFromMenu">🔤 Padronizar nomes (MAIÚSCULAS)</button>
+      <button class="dropdown-action-btn" id="btnReverifyFromMenu">Reconferir todas as cidades</button>
+    </div>
+  </div>
+
   <span class="toolbar-sep"></span>
   <button id="btnNewCity" class="btn btn-primary">+ Nova cidade</button>
   <span class="toolbar-sep"></span>
   <button id="btnConflicts" class="btn btn-outline">⚠ Conflitos de vendedor</button>
-  <button id="btnOpenDedupe" class="btn btn-outline">🧹 Varredura de duplicados</button>
   <button id="btnOpenPdf" class="btn btn-outline">📄 Gerar PDF</button>
   <span class="toolbar-sep"></span>
   <div class="toolbar-search">

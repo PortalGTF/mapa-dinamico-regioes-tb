@@ -658,7 +658,9 @@ function renderRegionsList() {
     return;
   }
 
-  Regions.list.forEach((region) => {
+  const sortedRegions = Regions.list.slice().sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+
+  sortedRegions.forEach((region) => {
     const row = document.createElement("div");
     row.className = "region-row";
     row.dataset.regionId = region.id;
@@ -2377,12 +2379,18 @@ function wireEvents() {
 
   document.getElementById("btnExportMenu").addEventListener("click", (e) => {
     e.stopPropagation();
+    document.getElementById("otherActionsDropdown").classList.add("hidden");
     document.getElementById("exportDropdown").classList.toggle("hidden");
   });
+  document.getElementById("btnOtherActionsMenu").addEventListener("click", (e) => {
+    e.stopPropagation();
+    document.getElementById("exportDropdown").classList.add("hidden");
+    document.getElementById("otherActionsDropdown").classList.toggle("hidden");
+  });
   document.addEventListener("click", (e) => {
-    const dd = document.getElementById("exportDropdown");
-    if (!dd.classList.contains("hidden") && !e.target.closest(".export-dropdown-wrap")) {
-      dd.classList.add("hidden");
+    if (!e.target.closest(".export-dropdown-wrap")) {
+      document.getElementById("exportDropdown").classList.add("hidden");
+      document.getElementById("otherActionsDropdown").classList.add("hidden");
     }
   });
   document.getElementById("btnDoExport").addEventListener("click", () => {
@@ -2408,8 +2416,18 @@ function wireEvents() {
     document.getElementById("exportDropdown").classList.add("hidden");
   });
 
-  document.getElementById("btnReverifyCities").addEventListener("click", reverifyAllCities);
-  document.getElementById("btnStandardizeNames").addEventListener("click", standardizeAllCityNames);
+  document.getElementById("btnDedupeFromMenu").addEventListener("click", () => {
+    document.getElementById("otherActionsDropdown").classList.add("hidden");
+    openDedupeModal();
+  });
+  document.getElementById("btnStandardizeFromMenu").addEventListener("click", () => {
+    document.getElementById("otherActionsDropdown").classList.add("hidden");
+    standardizeAllCityNames();
+  });
+  document.getElementById("btnReverifyFromMenu").addEventListener("click", () => {
+    document.getElementById("otherActionsDropdown").classList.add("hidden");
+    reverifyAllCities();
+  });
 
   document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);
   document.getElementById("btnNewCityCancel").addEventListener("click", closeNewCityModal);
@@ -2420,7 +2438,6 @@ function wireEvents() {
   document.getElementById("btnCloseEditCitySellers").addEventListener("click", closeEditCitySellersModal);
   document.getElementById("btnCancelEditCitySellers").addEventListener("click", closeEditCitySellersModal);
   document.getElementById("btnSaveEditCitySellers").addEventListener("click", saveEditCitySellers);
-  document.getElementById("btnOpenDedupe").addEventListener("click", openDedupeModal);
   document.getElementById("btnCloseDedupe").addEventListener("click", closeDedupeModal);
   document.getElementById("btnRunCommand").addEventListener("click", runConflictCommand);
 

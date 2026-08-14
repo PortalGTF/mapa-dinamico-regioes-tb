@@ -199,6 +199,17 @@ Tem também um botão **"Mostrar anéis de 50 km no mapa"**, que desenha círcul
 concêntricos a partir da origem (a cada 50 km, até o raio da região) diretamente no
 mapa — útil para visualizar de forma gráfica onde a região se encaixa.
 
+### Regiões em ordem alfabética
+A lista de regiões (tanto a geral quanto a que aparece ao filtrar por vendedor) agora
+sempre aparece em ordem alfabética, de A a Z pelo nome da região — não mais na ordem
+em que foram criadas.
+
+### Menu "Outras ações" (consolidado)
+As três ferramentas de manutenção — **Varredura de duplicados**, **Padronizar nomes
+(MAIÚSCULAS)**, e **Reconferir todas as cidades** — agora ficam dentro de um único
+menu **"Outras ações ▾"** na barra do admin, pra deixar o topo mais limpo. Clique
+nele e escolha a ação que quiser.
+
 ### Menu de exportação (consolidado)
 Os botões de exportar viraram um único menu: **"Exportar dados ▾"**. Clique nele,
 marque quais arquivos você quer (Regiões, Cidades/geocodificação, Diretório), e
