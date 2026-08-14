@@ -225,8 +225,10 @@ Clique em **"📄 Gerar PDF"** na barra do admin. Você escolhe:
 Ao clicar em "Gerar PDF", se alguma distância ainda não tiver sido calculada, o app
 calcula na hora (mostra uma barra de progresso) antes de montar o arquivo. As regiões
 saem ordenadas da **mais longe pra mais perto** (pela cidade mais distante de cada
-uma), e o PDF sai formatado com cabeçalho, logo, tabelas por região, e baixa direto
-pro computador — pronto pra imprimir ou mandar pro vendedor.
+uma), e **dentro de cada região, as cidades também saem ordenadas da mais longe pra
+mais perto** (por km de ida) — não mais em ordem alfabética. O PDF sai formatado com
+cabeçalho, logo, tabelas por região, e baixa direto pro computador — pronto pra
+imprimir ou mandar pro vendedor.
 
 ### Vendo por vendedor
 No filtro **"Ver por vendedor"**, ao escolher um nome, aparece embaixo uma lista

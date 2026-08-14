@@ -2117,25 +2117,33 @@ async function buildPdfDocument({ regionsToInclude, scopeLabel, sellerFilterName
     if (incKm) head.push("Ida");
     if (incRound) head.push("Ida e volta");
 
+    // Helper pra pegar a distância (ida, em km) já calculada de uma cidade
+    const kmOf = (city) => {
+      const dest = Geocode.get(city);
+      if (!originLatLng || !dest || dest.lat === null) return null;
+      const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
+      const route = Routing.cache[key];
+      return route ? route.km : null;
+    };
+
     const cities = region.cities
       .filter((c) => !sellerFilterName || (CITY_TO_SELLERS[c] || []).includes(sellerFilterName))
-      .sort((a, b) => a.localeCompare(b, "pt-BR"));
+      .sort((a, b) => {
+        const kmA = kmOf(a);
+        const kmB = kmOf(b);
+        if (kmA === null && kmB === null) return a.localeCompare(b, "pt-BR");
+        if (kmA === null) return 1; // sem distância calculada vai pro fim
+        if (kmB === null) return -1;
+        return kmB - kmA; // do mais longe pro mais perto
+      });
 
     const body = cities.map((city) => {
       const row = [city];
       if (incSeller) row.push((CITY_TO_SELLERS[city] || []).join(", "));
       if (incKm || incRound) {
-        const dest = Geocode.get(city);
-        let kmText = "—";
-        let roundText = "—";
-        if (originLatLng && dest && dest.lat !== null) {
-          const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
-          const route = Routing.cache[key];
-          if (route) {
-            kmText = `${route.km.toFixed(0)} km`;
-            roundText = `${(route.km * 2).toFixed(0)} km`;
-          }
-        }
+        const km = kmOf(city);
+        const kmText = km !== null ? `${km.toFixed(0)} km` : "—";
+        const roundText = km !== null ? `${(km * 2).toFixed(0)} km` : "—";
         if (incKm) row.push(kmText);
         if (incRound) row.push(roundText);
       }
