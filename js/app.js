@@ -54,6 +54,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   geocodeCitiesInBackground();
 });
 
+// Tecla Esc sai do modo apresentação
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && document.body.classList.contains("presentation-mode")) {
+    togglePresentationMode(false);
+  }
+});
+
+// Se o usuário sair da tela cheia nativa do navegador (ex: apertando Esc do próprio
+// navegador), sincroniza o modo apresentação pra sair junto também.
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement && document.body.classList.contains("presentation-mode")) {
+    togglePresentationMode(false);
+  }
+});
+
 // ------------------------------------------------------------
 // Painéis arrastáveis — segura no cabeçalho (título) e arrasta pra
 // qualquer lugar da tela, sem tampar o mapa.
@@ -1740,6 +1755,37 @@ async function buildPdfDocument({ regionsToInclude, scopeLabel, sellerFilterName
   doc.save(`roteiro-${fileScope || "atendimento"}.pdf`);
 }
 
+// ------------------------------------------------------------
+// Modo apresentação — some com topo, barra do admin e barra lateral,
+// deixando só o mapa. Tenta abrir em tela cheia de verdade também.
+// ------------------------------------------------------------
+function togglePresentationMode(forceState) {
+  const body = document.body;
+  const turningOn = forceState !== undefined ? forceState : !body.classList.contains("presentation-mode");
+
+  body.classList.toggle("presentation-mode", turningOn);
+  document.getElementById("btnExitPresent").classList.toggle("hidden", !turningOn);
+
+  if (turningOn) {
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (req) {
+      try {
+        req.call(el).catch(() => {});
+      } catch (e) {}
+    }
+  } else if (document.fullscreenElement) {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if (exit) {
+      try {
+        exit.call(document).catch(() => {});
+      } catch (e) {}
+    }
+  }
+
+  setTimeout(() => map && map.invalidateSize(), 150);
+}
+
 function updateAdminUI() {
   const badge = document.getElementById("modeBadge");
   const btnLogin = document.getElementById("btnLogin");
@@ -1781,6 +1827,9 @@ function updateAdminUI() {
 }
 
 function wireEvents() {
+  document.getElementById("btnPresentMode").addEventListener("click", () => togglePresentationMode());
+  document.getElementById("btnExitPresent").addEventListener("click", () => togglePresentationMode(false));
+
   document.getElementById("btnLogin").addEventListener("click", () => {
     document.getElementById("loginModal").classList.remove("hidden");
     document.getElementById("loginPassword").value = "";

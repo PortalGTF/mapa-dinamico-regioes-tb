@@ -285,7 +285,17 @@ me peça e eu regenero pra você a partir de uma planilha nova.
 
 ---
 
-## 6. Identidade visual (cores, fonte e logo)
+## 6. Modo apresentação
+
+Clique em **"🖥️ Apresentar"** no canto superior direito (funciona tanto no modo
+visualização quanto no modo admin) — esconde o topo, a barra do admin e a barra
+lateral, deixando só o mapa na tela, e tenta abrir em tela cheia de verdade também.
+Ótimo pra projetar numa reunião sem mostrar botões e menus.
+
+Pra sair: clique no botãozinho **"✕ Sair da apresentação"** que aparece no canto, ou
+aperte **Esc**.
+
+## 7. Identidade visual (cores, fonte e logo)
 
 O app já segue a paleta e a tipografia do Portal de Cargas GTF: fundo azul-marinho
 escuro no topo, destaque em verde-azulado (teal), e fonte Inter em vez da fonte
