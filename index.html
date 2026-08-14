@@ -57,6 +57,7 @@
   <button id="btnNewCity" class="btn btn-primary">+ Nova cidade</button>
   <span class="toolbar-sep"></span>
   <button id="btnConflicts" class="btn btn-outline">⚠ Conflitos de vendedor</button>
+  <button id="btnOpenDedupe" class="btn btn-outline">🧹 Varredura de duplicados</button>
   <button id="btnOpenPdf" class="btn btn-outline">📄 Gerar PDF</button>
   <span class="toolbar-sep"></span>
   <div class="toolbar-search">
@@ -218,6 +219,18 @@
   <div class="modal-actions">
     <button id="btnGeneratePdf" class="btn btn-primary">Gerar PDF</button>
   </div>
+</div>
+
+<!-- Painel: varredura de pontos duplicados -->
+<div id="dedupeModal" class="side-panel side-panel-wide hidden">
+  <div class="side-panel-header" id="dedupeModalHeader">
+    <h3>Varredura de duplicados</h3>
+    <div class="side-panel-header-actions">
+      <button id="btnCloseDedupe" class="icon-btn" title="Fechar">✕</button>
+    </div>
+  </div>
+  <p class="hint">Cidades com nome parecido (mesmo depois de padronizado) que podem ser o mesmo ponto duplicado.</p>
+  <div id="dedupeList"></div>
 </div>
 
 <!-- Painel: editar vendedor(es) de uma cidade -->

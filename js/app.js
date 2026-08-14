@@ -83,6 +83,7 @@ function makePanelsDraggable() {
   attachDrag("conflictModal", document.getElementById("conflictModalHeader"));
   attachDrag("pdfModal", document.getElementById("pdfModalHeader"));
   attachDrag("editCitySellersModal", document.getElementById("editCitySellersHeader"));
+  attachDrag("dedupeModal", document.getElementById("dedupeModalHeader"));
 }
 
 function attachDrag(panelId, headerEl) {
@@ -158,6 +159,24 @@ async function loadStaticData() {
 // Diretório de cidades/vendedores — rascunho local (mesma lógica das regiões):
 // fica salvo no navegador até ser exportado e commitado no GitHub.
 // ------------------------------------------------------------
+// Recalcula o "livro do vendedor" (SELLERS) inteiramente a partir do "livro da
+// cidade" (CITY_TO_SELLERS), que passa a ser a única fonte de verdade. Isso evita
+// que os dois fiquem dessincronizados por causa de alguma diferença sutil de string
+// (ex: maiúscula/minúscula) em algum passo anterior.
+function rebuildSellersFromCityToSellers() {
+  const newSellers = {};
+  Object.keys(SELLERS).forEach((s) => {
+    newSellers[s] = []; // mantém todo vendedor já conhecido na lista, mesmo sem cidades
+  });
+  Object.entries(CITY_TO_SELLERS).forEach(([city, sellers]) => {
+    sellers.forEach((s) => {
+      newSellers[s] = newSellers[s] || [];
+      if (!newSellers[s].includes(city)) newSellers[s].push(city);
+    });
+  });
+  SELLERS = newSellers;
+}
+
 function loadCityDirectoryDraft() {
   try {
     const raw = localStorage.getItem("regioes_directory_draft");
@@ -418,6 +437,7 @@ function openCityPopup(cityLabel, marker) {
     if (coord && coord.manual) {
       html += `<button class="btn-reset-loc" data-city="${cityLabel}" data-action="auto">Refazer busca automática</button>`;
     }
+    html += `<button class="btn-reset-loc btn-danger-loc" data-city="${cityLabel}" data-action="delete">🗑 Excluir esta cidade (ponto duplicado)</button>`;
   }
 
   html += `<div class="actions">
@@ -442,6 +462,8 @@ function openCityPopup(cityLabel, marker) {
         } else if (btn.dataset.action === "editSellers") {
           marker.closePopup();
           openEditCitySellersModal(cityLabel, marker);
+        } else if (btn.dataset.action === "delete") {
+          deleteCity(cityLabel);
         } else {
           marker.closePopup();
           openSearchPanelFor(cityLabel);
@@ -738,6 +760,147 @@ function updateRegionRowRadius(regionId) {
 // ------------------------------------------------------------
 // Padronizar nomes de cidade (CAIXA ALTA) em tudo que já existe
 // ------------------------------------------------------------
+// ------------------------------------------------------------
+// Excluir uma cidade (ex: pra resolver um ponto duplicado)
+// ------------------------------------------------------------
+function deleteCity(cityLabel) {
+  if (!Auth.isAdmin) return;
+  if (
+    !confirm(
+      `Excluir "${cityLabel}" da base? Ela sai de todas as regiões e vendedores. Não dá pra desfazer (a não ser reimportando os dados antigos).`
+    )
+  ) {
+    return;
+  }
+
+  CITIES_LIST = CITIES_LIST.filter((c) => c !== cityLabel);
+  delete CITY_TO_SELLERS[cityLabel];
+  rebuildSellersFromCityToSellers();
+  Regions.list.forEach((r) => {
+    r.cities = r.cities.filter((c) => c !== cityLabel);
+  });
+  Regions._saveDraft();
+  delete Geocode.cache[cityLabel];
+  Geocode.saveLocalCache();
+  saveCityDirectoryDraft();
+
+  const marker = cityMarkers[cityLabel];
+  if (marker) {
+    marker.closePopup();
+    delete cityMarkers[cityLabel];
+  }
+
+  rebuildClusters();
+  invalidateRegionRadiusCache();
+  renderSellerOptions();
+  renderSearchCityOptions();
+  if (activeSellerFilter) applySellerFilter(activeSellerFilter);
+}
+
+// ------------------------------------------------------------
+// Varredura de pontos duplicados (mesmo nome de cidade repetido)
+// ------------------------------------------------------------
+function findDuplicateCityGroups() {
+  const groups = {};
+  CITIES_LIST.forEach((c) => {
+    const key = normalizeStr(c.trim().replace(/\s+/g, " "));
+    groups[key] = groups[key] || [];
+    groups[key].push(c);
+  });
+  return Object.values(groups).filter((g) => g.length > 1);
+}
+
+function openDedupeModal() {
+  if (!Auth.isAdmin) return;
+  renderDedupeList();
+  document.getElementById("dedupeModal").classList.remove("hidden");
+}
+
+function closeDedupeModal() {
+  document.getElementById("dedupeModal").classList.add("hidden");
+}
+
+function renderDedupeList() {
+  const box = document.getElementById("dedupeList");
+  const groups = findDuplicateCityGroups();
+
+  if (groups.length === 0) {
+    box.innerHTML = `<p class="conflict-none">Nenhum ponto duplicado encontrado — cada cidade aparece uma vez só.</p>`;
+    return;
+  }
+
+  box.innerHTML = "";
+  groups.forEach((group) => {
+    const card = document.createElement("div");
+    card.className = "conflict-region-card";
+    card.innerHTML =
+      `<h4>${group.length} pontos parecidos</h4>` +
+      group
+        .map((variant) => {
+          const sellers = (CITY_TO_SELLERS[variant] || []).join(", ") || "—";
+          const regionsIn = Regions.findByCity(variant)
+            .map((r) => r.name)
+            .join(", ") || "sem região";
+          return `<div class="dedupe-variant">
+            <div class="dv-name">${variant}</div>
+            <div class="dv-meta">Vendedor(es): ${sellers} · Região: ${regionsIn}</div>
+            <button class="dv-keep-btn" data-keep="${variant}" data-group='${JSON.stringify(group)}'>Manter este e mesclar os outros aqui</button>
+          </div>`;
+        })
+        .join("");
+    box.appendChild(card);
+  });
+
+  box.querySelectorAll(".dv-keep-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const keep = btn.dataset.keep;
+      const group = JSON.parse(btn.dataset.group);
+      if (!confirm(`Manter "${keep}" e mesclar os outros ${group.length - 1} ponto(s) nele?`)) return;
+      mergeDuplicateCities(keep, group);
+      renderDedupeList();
+    });
+  });
+}
+
+function mergeDuplicateCities(keepLabel, group) {
+  const others = group.filter((c) => c !== keepLabel);
+
+  others.forEach((other) => {
+    const sellersOfOther = CITY_TO_SELLERS[other] || [];
+    CITY_TO_SELLERS[keepLabel] = Array.from(
+      new Set([...(CITY_TO_SELLERS[keepLabel] || []), ...sellersOfOther])
+    );
+    delete CITY_TO_SELLERS[other];
+
+    Regions.list.forEach((r) => {
+      if (r.cities.includes(other)) {
+        r.cities = r.cities.filter((c) => c !== other);
+        if (!r.cities.includes(keepLabel)) r.cities.push(keepLabel);
+      }
+    });
+
+    CITIES_LIST = CITIES_LIST.filter((c) => c !== other);
+    delete Geocode.cache[other];
+    const m = cityMarkers[other];
+    if (m) {
+      m.closePopup();
+      delete cityMarkers[other];
+    }
+  });
+
+  rebuildSellersFromCityToSellers();
+
+  Regions._saveDraft();
+  Geocode.saveLocalCache();
+  saveCityDirectoryDraft();
+
+  rebuildClusters();
+  invalidateRegionRadiusCache();
+  renderSellerOptions();
+  renderSearchCityOptions();
+  if (activeSellerFilter) applySellerFilter(activeSellerFilter);
+}
+
 function standardizeAllCityNames() {
   if (!Auth.isAdmin) return;
 
@@ -750,7 +913,15 @@ function standardizeAllCityNames() {
   });
 
   if (changedCount === 0) {
-    alert("Todos os nomes já estão padronizados em caixa alta — nada para mudar.");
+    // Mesmo sem nome pra padronizar, aproveita pra corrigir qualquer dessincronia
+    // entre o "livro do vendedor" e o "livro da cidade" (ex: de edições antigas).
+    rebuildSellersFromCityToSellers();
+    saveCityDirectoryDraft();
+    renderSellerOptions();
+    if (activeSellerFilter) applySellerFilter(activeSellerFilter);
+    alert(
+      "Todos os nomes já estavam em caixa alta. Aproveitei pra conferir e sincronizar o vínculo vendedor ↔ cidade também, por garantia."
+    );
     return;
   }
 
@@ -765,20 +936,15 @@ function standardizeAllCityNames() {
   // Cidades
   CITIES_LIST = Array.from(new Set(CITIES_LIST.map((c) => renameMap[c] || normalizeCityLabel(c))));
 
-  // Vendedores -> cidades
-  Object.keys(SELLERS).forEach((seller) => {
-    SELLERS[seller] = Array.from(
-      new Set(SELLERS[seller].map((c) => renameMap[c] || normalizeCityLabel(c)))
-    );
-  });
-
-  // Cidade -> vendedores (junta se duas grafias caírem no mesmo nome padronizado)
+  // Cidade -> vendedores é a fonte de verdade (junta se duas grafias caírem no
+  // mesmo nome padronizado); vendedor -> cidades é sempre recalculado a partir dela
   const newCityToSellers = {};
   Object.entries(CITY_TO_SELLERS).forEach(([city, sellers]) => {
     const newCity = renameMap[city] || normalizeCityLabel(city);
     newCityToSellers[newCity] = Array.from(new Set([...(newCityToSellers[newCity] || []), ...sellers]));
   });
   CITY_TO_SELLERS = newCityToSellers;
+  rebuildSellersFromCityToSellers();
 
   // Regiões
   Regions.list.forEach((region) => {
@@ -811,6 +977,7 @@ function standardizeAllCityNames() {
   renderSellerOptions();
   renderSearchCityOptions();
   renderRegionsList();
+  if (activeSellerFilter) applySellerFilter(activeSellerFilter);
 
   alert(
     "Nomes padronizados! Agora exporte e suba pro GitHub: regions.json, cities.json, e o diretório (vendedores/cidades) — os cinco arquivos mudaram."
@@ -1504,13 +1671,11 @@ async function saveNewCity() {
   document.getElementById("btnNewCitySave").disabled = true;
   errorEl.textContent = "Localizando a cidade no mapa…";
 
-  // Registra no diretório (cidades + vendedores)
+  // Registra no diretório (cidades + vendedores) — CITY_TO_SELLERS é a fonte de
+  // verdade, SELLERS é sempre recalculado a partir dela
   CITIES_LIST.push(cityLabel);
-  sellersChosen.forEach((v) => {
-    SELLERS[v] = SELLERS[v] || [];
-    if (!SELLERS[v].includes(cityLabel)) SELLERS[v].push(cityLabel);
-  });
   CITY_TO_SELLERS[cityLabel] = sellersChosen.slice();
+  rebuildSellersFromCityToSellers();
   saveCityDirectoryDraft();
 
   // Geocodifica a cidade nova (busca restrita ao estado escolhido)
@@ -2064,14 +2229,14 @@ function openEditCitySellersModal(cityLabel, marker) {
 
   document.getElementById("editCitySellersTitle").textContent = `Editar vendedor(es) — ${cityLabel}`;
 
-  const current = new Set(CITY_TO_SELLERS[cityLabel] || []);
+  const current = CITY_TO_SELLERS[cityLabel] || [];
   const checklist = document.getElementById("editCitySellersChecklist");
-  checklist.innerHTML = "";
+  checklist.innerHTML = `<p class="hint hint-small">Atende hoje: ${current.join(", ") || "ninguém"}. Marque abaixo quem deve atender daqui pra frente (nada vem pré-marcado).</p>`;
   Object.keys(SELLERS)
     .sort((a, b) => a.localeCompare(b, "pt-BR"))
     .forEach((name) => {
       const label = document.createElement("label");
-      label.innerHTML = `<input type="checkbox" value="${name}" ${current.has(name) ? "checked" : ""} /> ${name}`;
+      label.innerHTML = `<input type="checkbox" value="${name}" /> ${name}`;
       checklist.appendChild(label);
     });
 
@@ -2096,14 +2261,9 @@ function saveEditCitySellers() {
     return;
   }
 
-  // Atualiza o mapeamento nos dois sentidos: vendedor -> cidades, e cidade -> vendedores
-  Object.keys(SELLERS).forEach((seller) => {
-    const shouldHave = checked.includes(seller);
-    const has = SELLERS[seller].includes(city);
-    if (shouldHave && !has) SELLERS[seller].push(city);
-    if (!shouldHave && has) SELLERS[seller] = SELLERS[seller].filter((c) => c !== city);
-  });
+  // CITY_TO_SELLERS é a fonte de verdade — SELLERS é sempre recalculado a partir dela
   CITY_TO_SELLERS[city] = checked;
+  rebuildSellersFromCityToSellers();
   saveCityDirectoryDraft();
 
   renderSellerOptions();
@@ -2116,6 +2276,12 @@ function saveEditCitySellers() {
   const marker = editingCitySellersMarker;
   closeEditCitySellersModal();
   if (marker) openCityPopup(city, marker);
+
+  rebuildClusters();
+  invalidateRegionRadiusCache();
+  if (activeSellerFilter) {
+    applySellerFilter(activeSellerFilter); // refaz a lista lateral: a cidade some do aviso se não estiver mais em conflito
+  }
 }
 
 function updateAdminUI() {
@@ -2142,6 +2308,7 @@ function updateAdminUI() {
     closeConflictsPanel();
     closePdfModal();
     closeEditCitySellersModal();
+    closeDedupeModal();
     clearSearchPreview();
     if (map.hasLayer && drawControl._map) map.removeControl(drawControl);
   }
@@ -2253,6 +2420,8 @@ function wireEvents() {
   document.getElementById("btnCloseEditCitySellers").addEventListener("click", closeEditCitySellersModal);
   document.getElementById("btnCancelEditCitySellers").addEventListener("click", closeEditCitySellersModal);
   document.getElementById("btnSaveEditCitySellers").addEventListener("click", saveEditCitySellers);
+  document.getElementById("btnOpenDedupe").addEventListener("click", openDedupeModal);
+  document.getElementById("btnCloseDedupe").addEventListener("click", closeDedupeModal);
   document.getElementById("btnRunCommand").addEventListener("click", runConflictCommand);
 
   document.getElementById("btnOpenPdf").addEventListener("click", openPdfModal);

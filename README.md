@@ -253,6 +253,39 @@ Ao tentar criar uma cidade que já existe na base (comparando o nome já padroni
 em maiúsculas), o app não deixa duplicar — em vez disso, fecha o formulário e já
 leva você direto até o pin da cidade existente no mapa, com o popup dela aberto.
 
+### Correção importante: dessincronia entre vendedor e cidade
+Corrigi um bug onde, em alguns casos (principalmente com nomes de cidade que ainda
+não tinham sido padronizados), trocar o vendedor de uma cidade podia deixá-la
+"presa" no vendedor antigo em paralelo ao novo — fazendo uma região aparecer pra um
+vendedor que já não tinha mais nenhuma cidade nela. A partir de agora, o vínculo
+"cidade → vendedor" é a única fonte de verdade no sistema; a lista "vendedor →
+cidades" é sempre recalculada a partir dela, nunca mais mantida separadamente. Isso
+torna esse tipo de dessincronia estruturalmente impossível de acontecer de novo. Ao
+rodar **"Padronizar nomes"**, o app também aproveita pra conferir e corrigir
+qualquer dessincronia desse tipo que já exista na sua base, mesmo se não houver
+nenhum nome pra padronizar.
+
+### Editando vendedor(es) — checklist sempre em branco
+Ao abrir "Editar vendedor(es)" de uma cidade, o checklist agora vem **sempre em
+branco** (nada pré-marcado) — só mostra, em texto, quem atende hoje, como referência.
+Você marca do zero quem deve ficar responsável. Ao salvar, se a cidade estava
+aparecendo num aviso de "conflito" na lista do vendedor filtrado, ela já some da
+lista na hora, sem precisar recarregar nada.
+
+### Excluindo uma cidade (ponto duplicado)
+Se duas cidades no mapa forem, na prática, o mesmo lugar (ponto duplicado), clique
+numa delas e depois em **"🗑 Excluir esta cidade"** no popup — remove ela de todas as
+regiões, vendedores e do mapa. Pede confirmação antes, e não tem como desfazer (a não
+ser reimportando dados antigos).
+
+### Varredura de duplicados
+Clique em **"🧹 Varredura de duplicados"** na barra do admin. O app varre a base
+sozinho e agrupa cidades com nome parecido (mesmo depois de padronizado em
+maiúsculas) que podem ser o mesmo ponto duplicado. Pra cada grupo encontrado, você
+escolhe qual variante **manter** — o app mescla os vendedores e as regiões dos outros
+pontos automaticamente nesse escolhido, e remove os duplicados. É dinâmico: refaz a
+varredura sozinho toda vez que você resolve um grupo.
+
 ### Trocando o(s) vendedor(es) de uma cidade já existente
 Clique na cidade no mapa (modo admin) e depois em **"Editar vendedor(es)"** — abre uma
 lista com todos os vendedores do sistema, com checkbox pra marcar quem atende aquela

@@ -493,6 +493,25 @@ main { position: relative; flex: 1; }
   cursor: pointer;
 }
 .city-popup .btn-reset-loc:hover { border-color: var(--accent); }
+.city-popup .btn-danger-loc { border-color: #f0c7bd; color: #c0392b; }
+.city-popup .btn-danger-loc:hover { background: #fdf1ee; border-color: #c0392b; }
+
+.dedupe-variant {
+  border-top: 1px dashed var(--line);
+  padding: 8px 0;
+  font-size: 12px;
+}
+.dedupe-variant .dv-name { font-weight: 600; margin-bottom: 2px; }
+.dedupe-variant .dv-meta { color: var(--muted); margin-bottom: 6px; }
+.dedupe-variant .dv-keep-btn {
+  padding: 5px 9px;
+  font-size: 11.5px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: white;
+  cursor: pointer;
+}
+.dedupe-variant .dv-keep-btn:hover { border-color: var(--accent); }
 
 /* ---------- Modals ---------- */
 .modal {
