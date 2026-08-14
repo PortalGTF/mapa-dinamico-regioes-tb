@@ -36,14 +36,23 @@
 <div id="adminToolbar" class="admin-toolbar hidden">
   <button id="btnDrawRegion" class="btn btn-primary">Desenhar nova região</button>
   <span class="toolbar-sep"></span>
-  <button id="btnExportRegions" class="btn btn-outline">Exportar regions.json</button>
-  <button id="btnExportCities" class="btn btn-outline">Exportar cities.json</button>
+
+  <div class="export-dropdown-wrap">
+    <button id="btnExportMenu" class="btn btn-outline">Exportar dados ▾</button>
+    <div id="exportDropdown" class="export-dropdown hidden">
+      <label><input type="checkbox" id="expRegions" checked /> Regiões (regions.json)</label>
+      <label><input type="checkbox" id="expCities" /> Cidades / geocodificação (cities.json)</label>
+      <label><input type="checkbox" id="expDirectory" /> Diretório (vendedores/cidades)</label>
+      <button id="btnDoExport" class="btn btn-primary btn-block-small">Exportar selecionados</button>
+    </div>
+  </div>
+
   <button id="btnReverifyCities" class="btn btn-outline">Reconferir todas as cidades</button>
   <span class="toolbar-sep"></span>
   <button id="btnNewCity" class="btn btn-primary">+ Nova cidade</button>
-  <button id="btnExportDirectory" class="btn btn-outline">Exportar diretório (vendedores/cidades)</button>
   <span class="toolbar-sep"></span>
   <button id="btnConflicts" class="btn btn-outline">⚠ Conflitos de vendedor</button>
+  <button id="btnOpenPdf" class="btn btn-outline">📄 Gerar PDF</button>
   <span class="toolbar-sep"></span>
   <div class="toolbar-search">
     <select id="searchCitySelect"></select>
@@ -165,6 +174,47 @@
   </div>
 </div>
 
+<!-- Painel: gerar PDF do roteiro -->
+<div id="pdfModal" class="side-panel side-panel-wide hidden">
+  <div class="side-panel-header" id="pdfModalHeader">
+    <h3>Gerar PDF do roteiro</h3>
+    <div class="side-panel-header-actions">
+      <button id="btnClosePdf" class="icon-btn" title="Fechar">✕</button>
+    </div>
+  </div>
+
+  <label>O que você quer gerar?</label>
+  <div class="pdf-scope-options">
+    <label><input type="radio" name="pdfScope" value="vendedor" checked /> Roteiro de um vendedor</label>
+    <label><input type="radio" name="pdfScope" value="regiao" /> Roteiro de uma região</label>
+    <label><input type="radio" name="pdfScope" value="todas" /> Todas as regiões (documento completo)</label>
+  </div>
+
+  <div id="pdfVendorBlock">
+    <label>Vendedor</label>
+    <select id="pdfVendorSelect"></select>
+  </div>
+
+  <div id="pdfRegionBlock" class="hidden">
+    <label>Região</label>
+    <select id="pdfRegionSelect"></select>
+  </div>
+
+  <label>O que incluir no PDF</label>
+  <div class="pdf-checks">
+    <label><input type="checkbox" id="pdfIncKm" checked /> Distância (ida) a partir de Terra Boa</label>
+    <label><input type="checkbox" id="pdfIncRoundtrip" /> Distância (ida e volta)</label>
+    <label><input type="checkbox" id="pdfIncSeller" checked /> Vendedor responsável por cidade</label>
+    <label><input type="checkbox" id="pdfIncProfile" checked /> Perfil mínimo de veículo</label>
+  </div>
+
+  <p class="hint hint-small" id="pdfStatus"></p>
+
+  <div class="modal-actions">
+    <button id="btnGeneratePdf" class="btn btn-primary">Gerar PDF</button>
+  </div>
+</div>
+
 <!-- Painel: conflitos de vendedor (cidades de vendedores diferentes na mesma região) -->
 <div id="conflictModal" class="side-panel side-panel-wide hidden">
   <div class="side-panel-header" id="conflictModalHeader">
@@ -214,6 +264,8 @@
 <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 
 <script src="js/config.js"></script>
 <script src="js/auth.js"></script>

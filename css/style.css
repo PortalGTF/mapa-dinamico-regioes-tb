@@ -570,6 +570,46 @@ main { position: relative; flex: 1; }
   cursor: pointer;
 }
 
+/* ---------- Menu suspenso de exportação ---------- */
+.export-dropdown-wrap { position: relative; }
+.export-dropdown {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+  z-index: 950;
+  width: 240px;
+}
+.export-dropdown label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  margin-bottom: 8px;
+  font-weight: 400;
+  color: var(--ink);
+}
+.export-dropdown input[type="checkbox"] { width: auto; margin: 0; }
+.btn-block-small { padding: 7px 10px; font-size: 12px; width: 100%; margin-top: 2px; }
+
+/* ---------- Opções do painel de PDF ---------- */
+.pdf-scope-options label,
+.pdf-checks label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 400;
+  margin-bottom: 7px;
+  color: var(--ink);
+}
+.pdf-scope-options input,
+.pdf-checks input { width: auto; margin: 0; }
+
 .add-city-row {
   display: flex;
   gap: 6px;

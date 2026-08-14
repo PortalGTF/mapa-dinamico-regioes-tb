@@ -64,6 +64,7 @@ function makePanelsDraggable() {
   attachDrag("regionModal", document.getElementById("regionModalHeader"));
   attachDrag("newCityModal", document.getElementById("newCityModalHeader"));
   attachDrag("conflictModal", document.getElementById("conflictModalHeader"));
+  attachDrag("pdfModal", document.getElementById("pdfModalHeader"));
 }
 
 function attachDrag(panelId, headerEl) {
@@ -1494,6 +1495,251 @@ function runConflictCommand() {
   });
 }
 
+// ------------------------------------------------------------
+// Gerar PDF do roteiro (por vendedor, por região, ou tudo)
+// ------------------------------------------------------------
+function openPdfModal() {
+  if (!Auth.isAdmin) return;
+
+  const vendorSelect = document.getElementById("pdfVendorSelect");
+  vendorSelect.innerHTML = "";
+  Object.keys(SELLERS)
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .forEach((name) => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      vendorSelect.appendChild(opt);
+    });
+
+  const regionSelect = document.getElementById("pdfRegionSelect");
+  regionSelect.innerHTML = "";
+  Regions.list
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+    .forEach((r) => {
+      const opt = document.createElement("option");
+      opt.value = r.id;
+      opt.textContent = r.name;
+      regionSelect.appendChild(opt);
+    });
+
+  document.getElementById("pdfStatus").textContent = "";
+  document.getElementById("pdfModal").classList.remove("hidden");
+}
+
+function closePdfModal() {
+  document.getElementById("pdfModal").classList.add("hidden");
+}
+
+async function generatePdf() {
+  if (!Auth.isAdmin) return;
+
+  const scope = document.querySelector('input[name="pdfScope"]:checked').value;
+  const incKm = document.getElementById("pdfIncKm").checked;
+  const incRound = document.getElementById("pdfIncRoundtrip").checked;
+  const incSeller = document.getElementById("pdfIncSeller").checked;
+  const incProfile = document.getElementById("pdfIncProfile").checked;
+  const statusEl = document.getElementById("pdfStatus");
+
+  let regionsToInclude = [];
+  let scopeLabel = "";
+  let sellerFilterName = null;
+
+  if (scope === "vendedor") {
+    sellerFilterName = document.getElementById("pdfVendorSelect").value;
+    if (!sellerFilterName) {
+      alert("Selecione um vendedor.");
+      return;
+    }
+    scopeLabel = sellerFilterName;
+    regionsToInclude = Regions.list.filter((r) =>
+      r.cities.some((c) => (CITY_TO_SELLERS[c] || []).includes(sellerFilterName))
+    );
+  } else if (scope === "regiao") {
+    const rid = document.getElementById("pdfRegionSelect").value;
+    const region = Regions.list.find((r) => r.id === rid);
+    if (!region) {
+      alert("Selecione uma região.");
+      return;
+    }
+    regionsToInclude = [region];
+    scopeLabel = region.name;
+  } else {
+    regionsToInclude = Regions.list.slice();
+    scopeLabel = "Todas as regiões";
+  }
+
+  if (regionsToInclude.length === 0) {
+    alert("Não encontrei nada pra incluir nesse PDF (talvez esse vendedor ainda não tenha cidades numa região).");
+    return;
+  }
+
+  if (incKm || incRound) {
+    if (!originLatLng || originLatLng.lat === null) {
+      alert("Não foi possível calcular distâncias: coordenadas da origem indisponíveis.");
+      return;
+    }
+    let allCities = [];
+    regionsToInclude.forEach((r) => {
+      r.cities.forEach((c) => {
+        if (sellerFilterName && !(CITY_TO_SELLERS[c] || []).includes(sellerFilterName)) return;
+        allCities.push(c);
+      });
+    });
+    allCities = Array.from(new Set(allCities));
+
+    const pending = allCities.filter((c) => {
+      const dest = Geocode.get(c);
+      if (!dest || dest.lat === null) return false;
+      const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
+      return !Routing.cache[key];
+    });
+
+    let done = 0;
+    for (const c of pending) {
+      const dest = Geocode.get(c);
+      try {
+        await Routing.getRoute(originLatLng, dest);
+      } catch (e) {}
+      done++;
+      statusEl.textContent = `Calculando distâncias… ${done}/${pending.length}`;
+      await new Promise((r) => setTimeout(r, 150));
+    }
+  }
+
+  statusEl.textContent = "Montando o PDF…";
+  await buildPdfDocument({ regionsToInclude, scopeLabel, sellerFilterName, incKm, incRound, incSeller, incProfile });
+  statusEl.textContent = "";
+  closePdfModal();
+}
+
+async function imageUrlToDataUrl(url) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function buildPdfDocument({ regionsToInclude, scopeLabel, sellerFilterName, incKm, incRound, incSeller, incProfile }) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  let logoDataUrl = null;
+  try {
+    logoDataUrl = await imageUrlToDataUrl("img/logo.png");
+  } catch (e) {}
+
+  function drawHeader() {
+    if (logoDataUrl) {
+      try {
+        doc.addImage(logoDataUrl, "PNG", 40, 24, 26, 26);
+      } catch (e) {}
+    }
+    const textX = logoDataUrl ? 76 : 40;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(14, 26, 43);
+    doc.text("Regiões de Atendimento — Terra Boa/PR", textX, 38);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(90, 100, 110);
+    doc.text(`Roteiro: ${scopeLabel}`, textX, 52);
+    doc.text(
+      `Origem: GTF - Unidade Terra Boa   ·   Gerado em ${new Date().toLocaleDateString("pt-BR")}`,
+      40,
+      70
+    );
+    doc.setDrawColor(220, 225, 230);
+    doc.line(40, 80, pageWidth - 40, 80);
+  }
+
+  drawHeader();
+  let y = 96;
+
+  regionsToInclude.forEach((region) => {
+    if (y > 700) {
+      doc.addPage();
+      drawHeader();
+      y = 96;
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(13, 158, 148);
+    doc.text(region.name, 40, y);
+    y += 14;
+
+    const metaBits = [];
+    if (incProfile) metaBits.push(`Perfil mínimo: ${region.vehicleProfile}`);
+    const radiusInfo = regionRadiusCache[region.id];
+    if (radiusInfo && radiusInfo.bracket) metaBits.push(`Raio: até ${radiusInfo.bracket} km`);
+    if (metaBits.length > 0) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      doc.setTextColor(90, 100, 110);
+      doc.text(metaBits.join("   ·   "), 40, y);
+      y += 12;
+    }
+
+    const head = ["Cidade"];
+    if (incSeller) head.push("Vendedor(es)");
+    if (incKm) head.push("Ida");
+    if (incRound) head.push("Ida e volta");
+
+    const cities = region.cities
+      .filter((c) => !sellerFilterName || (CITY_TO_SELLERS[c] || []).includes(sellerFilterName))
+      .sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+    const body = cities.map((city) => {
+      const row = [city];
+      if (incSeller) row.push((CITY_TO_SELLERS[city] || []).join(", "));
+      if (incKm || incRound) {
+        const dest = Geocode.get(city);
+        let kmText = "—";
+        let roundText = "—";
+        if (originLatLng && dest && dest.lat !== null) {
+          const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
+          const route = Routing.cache[key];
+          if (route) {
+            kmText = `${route.km.toFixed(0)} km`;
+            roundText = `${(route.km * 2).toFixed(0)} km`;
+          }
+        }
+        if (incKm) row.push(kmText);
+        if (incRound) row.push(roundText);
+      }
+      return row;
+    });
+
+    doc.autoTable({
+      startY: y + 4,
+      head: [head],
+      body,
+      margin: { left: 40, right: 40 },
+      styles: { fontSize: 9, cellPadding: 5 },
+      headStyles: { fillColor: [14, 26, 43], textColor: 255 },
+      alternateRowStyles: { fillColor: [244, 246, 248] },
+    });
+
+    y = doc.lastAutoTable.finalY + 24;
+  });
+
+  const fileScope = scopeLabel
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+  doc.save(`roteiro-${fileScope || "atendimento"}.pdf`);
+}
+
 function updateAdminUI() {
   const badge = document.getElementById("modeBadge");
   const btnLogin = document.getElementById("btnLogin");
@@ -1516,6 +1762,7 @@ function updateAdminUI() {
     document.getElementById("searchResultBox").classList.add("hidden");
     closeRegionModal();
     closeConflictsPanel();
+    closePdfModal();
     clearSearchPreview();
     if (map.hasLayer && drawControl._map) map.removeControl(drawControl);
   }
@@ -1579,12 +1826,37 @@ function wireEvents() {
   document.getElementById("btnAddCityToRegion").addEventListener("click", addCityToRegionChecklist);
   document.getElementById("regionMergeTarget").addEventListener("change", updateRegionModalMergeState);
 
-  document.getElementById("btnExportRegions").addEventListener("click", () => {
-    downloadFile("regions.json", Regions.exportJSON());
+  document.getElementById("btnExportMenu").addEventListener("click", (e) => {
+    e.stopPropagation();
+    document.getElementById("exportDropdown").classList.toggle("hidden");
   });
-
-  document.getElementById("btnExportCities").addEventListener("click", () => {
-    downloadFile("cities.json", Geocode.exportJSON());
+  document.addEventListener("click", (e) => {
+    const dd = document.getElementById("exportDropdown");
+    if (!dd.classList.contains("hidden") && !e.target.closest(".export-dropdown-wrap")) {
+      dd.classList.add("hidden");
+    }
+  });
+  document.getElementById("btnDoExport").addEventListener("click", () => {
+    const wantRegions = document.getElementById("expRegions").checked;
+    const wantCities = document.getElementById("expCities").checked;
+    const wantDirectory = document.getElementById("expDirectory").checked;
+    if (!wantRegions && !wantCities && !wantDirectory) {
+      alert("Selecione ao menos um item para exportar.");
+      return;
+    }
+    let delay = 0;
+    if (wantRegions) {
+      setTimeout(() => downloadFile("regions.json", Regions.exportJSON()), delay);
+      delay += 300;
+    }
+    if (wantCities) {
+      setTimeout(() => downloadFile("cities.json", Geocode.exportJSON()), delay);
+      delay += 300;
+    }
+    if (wantDirectory) {
+      setTimeout(exportDirectory, delay);
+    }
+    document.getElementById("exportDropdown").classList.add("hidden");
   });
 
   document.getElementById("btnReverifyCities").addEventListener("click", reverifyAllCities);
@@ -1592,11 +1864,20 @@ function wireEvents() {
   document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);
   document.getElementById("btnNewCityCancel").addEventListener("click", closeNewCityModal);
   document.getElementById("btnNewCitySave").addEventListener("click", saveNewCity);
-  document.getElementById("btnExportDirectory").addEventListener("click", exportDirectory);
 
   document.getElementById("btnConflicts").addEventListener("click", openConflictsPanel);
   document.getElementById("btnCloseConflicts").addEventListener("click", closeConflictsPanel);
   document.getElementById("btnRunCommand").addEventListener("click", runConflictCommand);
+
+  document.getElementById("btnOpenPdf").addEventListener("click", openPdfModal);
+  document.getElementById("btnClosePdf").addEventListener("click", closePdfModal);
+  document.getElementById("btnGeneratePdf").addEventListener("click", generatePdf);
+  document.querySelectorAll('input[name="pdfScope"]').forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      document.getElementById("pdfVendorBlock").classList.toggle("hidden", e.target.value !== "vendedor");
+      document.getElementById("pdfRegionBlock").classList.toggle("hidden", e.target.value !== "regiao");
+    });
+  });
 
   document.getElementById("searchCitySelect").addEventListener("change", (e) => {
     if (e.target.value) {

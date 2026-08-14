@@ -197,6 +197,23 @@ Tem também um botão **"Mostrar anéis de 50 km no mapa"**, que desenha círcul
 concêntricos a partir da origem (a cada 50 km, até o raio da região) diretamente no
 mapa — útil para visualizar de forma gráfica onde a região se encaixa.
 
+### Menu de exportação (consolidado)
+Os botões de exportar viraram um único menu: **"Exportar dados ▾"**. Clique nele,
+marque quais arquivos você quer (Regiões, Cidades/geocodificação, Diretório), e
+clique em "Exportar selecionados" — baixa só o que você marcou, de uma vez.
+
+### Gerando um PDF do roteiro
+Clique em **"📄 Gerar PDF"** na barra do admin. Você escolhe:
+- **Escopo**: roteiro de um vendedor específico, de uma região específica, ou de
+  todas as regiões num documento só.
+- **O que incluir**: distância de ida, distância de ida e volta, o vendedor
+  responsável por cada cidade, e o perfil mínimo de veículo de cada região.
+
+Ao clicar em "Gerar PDF", se alguma distância ainda não tiver sido calculada, o app
+calcula na hora (mostra uma barra de progresso) antes de montar o arquivo. O PDF sai
+formatado com cabeçalho, logo, tabelas por região, e baixa direto pro computador —
+pronto pra imprimir ou mandar pro vendedor.
+
 ### Detectando regiões com vendedores cruzados
 Clique em **"⚠ Conflitos de vendedor"** na barra do admin. O painel mostra sozinho
 todas as regiões que têm cidades de mais de um vendedor — útil pra garantir que cada
