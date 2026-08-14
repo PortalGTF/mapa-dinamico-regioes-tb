@@ -263,6 +263,34 @@ select, input[type="text"], input[type="password"] {
 .city-row .c-warn { color: #c0392b; }
 .city-row .c-co { color: var(--muted); font-style: italic; margin-top: 2px; }
 
+.seller-conflict-block {
+  background: #fdf3f0;
+  border: 1px solid #f0d9d2;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: -4px 0 10px 0;
+  font-size: 11.5px;
+}
+.seller-conflict-block .scb-title { color: #b5502f; font-weight: 600; margin-bottom: 6px; }
+.seller-conflict-block .scb-city {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+.seller-conflict-block .scb-city-name { font-weight: 600; flex: 1; }
+.seller-conflict-block .scb-city-seller { color: var(--muted); }
+.seller-conflict-block .scb-edit-btn {
+  border: 1px solid #f0d9d2;
+  background: white;
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+.seller-conflict-block .scb-edit-btn:hover { border-color: var(--accent); }
+
 .admin-export { display: none; } /* painel admin agora é a barra horizontal (.admin-toolbar) */
 .search-result { margin-top: 8px; font-size: 12px; background: #f4f2ee; padding: 8px 10px; border-radius: 6px; line-height: 1.4; }
 .search-result .sr-actions { display: flex; gap: 6px; margin-top: 8px; }
@@ -421,6 +449,16 @@ main { position: relative; flex: 1; }
   padding: 4px 8px;
 }
 .leaflet-tooltip.warn-tooltip::before { border-top-color: #c0392b; }
+
+.leaflet-tooltip.city-name-tooltip {
+  background: rgba(14, 26, 43, 0.88);
+  color: white;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+}
+.leaflet-tooltip.city-name-tooltip::before { border-top-color: rgba(14, 26, 43, 0.88); }
 
 /* ---------- Pin de busca (preview) ---------- */
 .search-pin .pin-body { background: #2980b9; }

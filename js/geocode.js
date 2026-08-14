@@ -52,6 +52,14 @@ function buildNominatimQuery(cityLabel) {
   return `${cityName}, ${BR_UF_TO_NAME[uf]}, Brasil`;
 }
 
+// Padroniza o nome da cidade: sempre em CAIXA ALTA, mantendo o formato "CIDADE - UF".
+function normalizeCityLabel(cityLabel) {
+  const uf = extractUF(cityLabel);
+  if (!uf) return cityLabel.toUpperCase().trim();
+  const cityName = cityLabel.replace(/-\s*[A-Za-z]{2}\s*$/, "").trim();
+  return `${cityName.toUpperCase()} - ${uf}`;
+}
+
 // Caixa delimitadora aproximada de cada estado (min-lon, min-lat, max-lon, max-lat),
 // com uma margem de segurança. Usada para restringir a busca do Nominatim ao estado
 // certo, evitando que ele ache uma cidade de nome parecido em outro canto do Brasil.

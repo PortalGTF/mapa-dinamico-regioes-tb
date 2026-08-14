@@ -217,6 +217,42 @@ saem ordenadas da **mais longe pra mais perto** (pela cidade mais distante de ca
 uma), e o PDF sai formatado com cabeçalho, logo, tabelas por região, e baixa direto
 pro computador — pronto pra imprimir ou mandar pro vendedor.
 
+### Vendo por vendedor
+No filtro **"Ver por vendedor"**, ao escolher um nome, aparece embaixo uma lista
+enxuta só com as **regiões** que têm cidades daquele vendedor (com quantas cidades
+dele tem em cada uma) — a lista geral de "Regiões" some da tela enquanto o filtro
+estiver ativo, pra não duplicar informação. Clicando numa dessas regiões, abre o
+mesmo painel completo de sempre (cidades, raio, cerca eletrônica), **sem tirar o
+filtro do vendedor** — ele continua selecionado e a lista das regiões dele continua
+visível ao lado.
+
+Se alguma cidade dentro da região clicada pertencer a outro vendedor (não o
+filtrado), o pin dela aparece no mapa **desfocado** (mais claro), em vez de sumir —
+assim você vê que ela está ali, mas não é do vendedor que você está olhando. Na
+lista, embaixo da região, aparece um aviso listando essas cidades "cruzadas" e quem
+é o vendedor delas — com um botão **"editar"** (modo admin) que abre direto a troca
+de vendedor daquela cidade específica.
+
+### Nome da cidade ao passar o mouse
+Passe o mouse por cima de qualquer pin no mapa (sem precisar clicar) — aparece o nome
+da cidade numa etiqueta. Cidades com aviso de localização suspeita continuam
+mostrando o aviso fixo (⚠️), agora já incluindo o nome junto.
+
+### Nomes de cidade sempre em CAIXA ALTA
+Toda cidade nova (criada pelo "+ Nova cidade") já salva automaticamente em caixa
+alta, não importa como foi digitada. Pras cidades que já existiam antes dessa
+funcionalidade (podem estar com grafias diferentes — maiúscula, minúscula, mista),
+use o botão **"🔤 Padronizar nomes (MAIÚSCULAS)"** na barra do admin — ele converte
+tudo de uma vez (regiões, vendedores, e as coordenadas já localizadas ficam
+preservadas, não perde nada). Depois de rodar, exporte e suba os cinco arquivos de
+dados de novo (`regions.json`, `cities.json`, `sellers.json`, `cities_list.json`,
+`city_to_sellers.json`), porque todos mudam.
+
+### Nunca duas cidades repetidas
+Ao tentar criar uma cidade que já existe na base (comparando o nome já padronizado
+em maiúsculas), o app não deixa duplicar — em vez disso, fecha o formulário e já
+leva você direto até o pin da cidade existente no mapa, com o popup dela aberto.
+
 ### Trocando o(s) vendedor(es) de uma cidade já existente
 Clique na cidade no mapa (modo admin) e depois em **"Editar vendedor(es)"** — abre uma
 lista com todos os vendedores do sistema, com checkbox pra marcar quem atende aquela

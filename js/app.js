@@ -264,7 +264,7 @@ function plotCity(cityLabel) {
   });
   marker.on("click", () => openCityPopup(cityLabel, marker));
   marker.on("dragend", () => onCityDragEnd(cityLabel, marker));
-  bindWarnTooltip(marker, coord);
+  bindWarnTooltip(marker, coord, cityLabel);
   cityMarkers[cityLabel] = marker;
 }
 
@@ -272,14 +272,22 @@ function isSuspect(coord) {
   return !!(coord && coord.suspect && !coord.manual);
 }
 
-function bindWarnTooltip(marker, coord) {
+function bindWarnTooltip(marker, coord, cityLabel) {
   marker.unbindTooltip();
   if (isSuspect(coord)) {
-    marker.bindTooltip("⚠️ Verificar localização", {
+    marker.bindTooltip(`⚠️ ${cityLabel} — verificar localização`, {
       permanent: true,
       direction: "top",
       offset: [0, -36],
       className: "warn-tooltip",
+    });
+  } else {
+    // Passa o mouse por cima do pin (sem clicar) pra ver o nome da cidade
+    marker.bindTooltip(cityLabel, {
+      permanent: false,
+      direction: "top",
+      offset: [0, -36],
+      className: "city-name-tooltip",
     });
   }
 }
@@ -296,7 +304,7 @@ function onCityDragEnd(cityLabel, marker) {
   const ll = marker.getLatLng();
   Geocode.cache[cityLabel] = { lat: ll.lat, lng: ll.lng, manual: true };
   Geocode.saveLocalCache();
-  bindWarnTooltip(marker, Geocode.get(cityLabel));
+  bindWarnTooltip(marker, Geocode.get(cityLabel), cityLabel);
   marker.setIcon(createCityIcon(colorForCity(cityLabel), false));
   invalidateRegionRadiusCache();
   openCityPopup(cityLabel, marker);
@@ -348,18 +356,26 @@ function rebuildClusters() {
   });
 
   Object.entries(cityMarkers).forEach(([label, marker]) => {
-    if (activeSellerFilter && !(SELLERS[activeSellerFilter] || []).includes(label)) {
-      return; // fora do filtro de vendedor ativo: não entra em nenhum grupo (fica invisível)
-    }
-    if (focusedRegionId && !showNeighborRegions) {
+    let dim = false;
+
+    if (focusedRegionId) {
       const focusedRegion = Regions.list.find((r) => r.id === focusedRegionId);
-      if (!focusedRegion || !focusedRegion.cities.includes(label)) {
+      const inFocusedRegion = focusedRegion && focusedRegion.cities.includes(label);
+
+      if (!showNeighborRegions && !inFocusedRegion) {
         return; // fora da região em foco: fica invisível, a não ser que "mostrar vizinhas" esteja marcado
       }
+      if (activeSellerFilter && inFocusedRegion && !(CITY_TO_SELLERS[label] || []).includes(activeSellerFilter)) {
+        dim = true; // dentro da região em foco, mas de outro vendedor: aparece desfocada, não escondida
+      }
+    } else if (activeSellerFilter && !(SELLERS[activeSellerFilter] || []).includes(label)) {
+      return; // sem região em foco: filtro de vendedor tradicional, esconde quem não é dele
     }
+
     const coord = Geocode.get(label);
     marker.setIcon(createCityIcon(colorForCity(label), isSuspect(coord)));
-    bindWarnTooltip(marker, coord);
+    marker.setOpacity(dim ? 0.35 : 1);
+    bindWarnTooltip(marker, coord, label);
     const regions = Regions.findByCity(label);
     const targetGroup = regions.length > 0 ? regionClusterGroups[regions[0].id] : unassignedClusterGroup;
     if (targetGroup) targetGroup.addLayer(marker);
@@ -446,7 +462,7 @@ async function resetCityLocation(cityLabel, marker) {
     marker.setLatLng([coord.lat, coord.lng]);
   }
   marker.setIcon(createCityIcon(colorForCity(cityLabel), isSuspect(coord)));
-  bindWarnTooltip(marker, coord);
+  bindWarnTooltip(marker, coord, cityLabel);
   invalidateRegionRadiusCache();
   openCityPopup(cityLabel, marker);
 }
@@ -507,6 +523,11 @@ function applySellerFilter(sellerName) {
   }
   rebuildClusters();
 
+  // Esconde a lista geral de "Regiões" quando um vendedor está filtrado — a lista
+  // enxuta abaixo do filtro já cobre isso, sem duplicar informação na tela.
+  const regionsPanel = document.getElementById("regionsListPanel");
+  if (regionsPanel) regionsPanel.classList.toggle("hidden", !!sellerName);
+
   if (!sellerName) {
     return;
   }
@@ -546,8 +567,7 @@ function applySellerFilter(sellerName) {
         </div>
       `;
       row.addEventListener("click", () => {
-        activeSellerFilter = null;
-        document.getElementById("sellerSelect").value = "";
+        // Mantém o filtro de vendedor ativo — só foca na região, não reseta o filtro
         focusedRegionId = region.id;
         showNeighborRegions = false;
         rebuildClusters();
@@ -560,6 +580,32 @@ function applySellerFilter(sellerName) {
         }
       });
       citiesBox.appendChild(row);
+
+      // Cidades dessa região que pertencem a outro vendedor (não o filtrado)
+      const foreignCities = region.cities.filter((c) => !(CITY_TO_SELLERS[c] || []).includes(sellerName));
+      if (foreignCities.length > 0) {
+        const block = document.createElement("div");
+        block.className = "seller-conflict-block";
+        block.innerHTML =
+          `<div class="scb-title">⚠️ ${foreignCities.length} cidade(s) dessa região está(ão) no nome de outro vendedor:</div>` +
+          foreignCities
+            .map(
+              (c) => `
+            <div class="scb-city">
+              <span class="scb-city-name">${c}</span>
+              <span class="scb-city-seller">${(CITY_TO_SELLERS[c] || []).join(", ") || "—"}</span>
+              ${Auth.isAdmin ? `<button class="scb-edit-btn" data-city="${c}">editar</button>` : ""}
+            </div>`
+            )
+            .join("");
+        citiesBox.appendChild(block);
+
+        block.querySelectorAll(".scb-edit-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            openEditCitySellersModal(btn.dataset.city, cityMarkers[btn.dataset.city] || null);
+          });
+        });
+      }
     });
 
     if (unassignedCount > 0) {
@@ -689,6 +735,88 @@ function updateRegionRowRadius(regionId) {
 // ------------------------------------------------------------
 // Reconferência em massa (não mexe nas cidades já corrigidas à mão)
 // ------------------------------------------------------------
+// ------------------------------------------------------------
+// Padronizar nomes de cidade (CAIXA ALTA) em tudo que já existe
+// ------------------------------------------------------------
+function standardizeAllCityNames() {
+  if (!Auth.isAdmin) return;
+
+  const renameMap = {};
+  let changedCount = 0;
+  CITIES_LIST.forEach((c) => {
+    const normalized = normalizeCityLabel(c);
+    renameMap[c] = normalized;
+    if (normalized !== c) changedCount++;
+  });
+
+  if (changedCount === 0) {
+    alert("Todos os nomes já estão padronizados em caixa alta — nada para mudar.");
+    return;
+  }
+
+  if (
+    !confirm(
+      `Isso vai padronizar ${changedCount} nome(s) de cidade para CAIXA ALTA em toda a base — regiões, vendedores e coordenadas já localizadas ficam preservadas. Continuar?`
+    )
+  ) {
+    return;
+  }
+
+  // Cidades
+  CITIES_LIST = Array.from(new Set(CITIES_LIST.map((c) => renameMap[c] || normalizeCityLabel(c))));
+
+  // Vendedores -> cidades
+  Object.keys(SELLERS).forEach((seller) => {
+    SELLERS[seller] = Array.from(
+      new Set(SELLERS[seller].map((c) => renameMap[c] || normalizeCityLabel(c)))
+    );
+  });
+
+  // Cidade -> vendedores (junta se duas grafias caírem no mesmo nome padronizado)
+  const newCityToSellers = {};
+  Object.entries(CITY_TO_SELLERS).forEach(([city, sellers]) => {
+    const newCity = renameMap[city] || normalizeCityLabel(city);
+    newCityToSellers[newCity] = Array.from(new Set([...(newCityToSellers[newCity] || []), ...sellers]));
+  });
+  CITY_TO_SELLERS = newCityToSellers;
+
+  // Regiões
+  Regions.list.forEach((region) => {
+    region.cities = Array.from(
+      new Set(region.cities.map((c) => renameMap[c] || normalizeCityLabel(c)))
+    );
+  });
+  Regions._saveDraft();
+
+  // Cache de geocodificação (preserva as coordenadas já buscadas)
+  const newGeoCache = {};
+  Object.entries(Geocode.cache).forEach(([city, data]) => {
+    if (city === "__ORIGIN__") {
+      newGeoCache[city] = data;
+      return;
+    }
+    const newCity = renameMap[city] || normalizeCityLabel(city);
+    newGeoCache[newCity] = data;
+  });
+  Geocode.cache = newGeoCache;
+  Geocode.saveLocalCache();
+
+  saveCityDirectoryDraft();
+
+  // Reconstrói os marcadores do zero (evita referências antigas presas em closures)
+  cityMarkers = {};
+  CITIES_LIST.forEach((c) => plotCity(c));
+  rebuildClusters();
+  invalidateRegionRadiusCache();
+  renderSellerOptions();
+  renderSearchCityOptions();
+  renderRegionsList();
+
+  alert(
+    "Nomes padronizados! Agora exporte e suba pro GitHub: regions.json, cities.json, e o diretório (vendedores/cidades) — os cinco arquivos mudaram."
+  );
+}
+
 async function reverifyAllCities() {
   if (!Auth.isAdmin) return;
 
@@ -837,11 +965,9 @@ function bracketFor(km) {
 function openRegionDetail(region) {
   currentDetailRegionId = region.id;
 
-  // Isola essa região no mapa (esconde as demais), e limpa o filtro de vendedor
-  // pra não misturar os dois filtros de forma confusa.
-  activeSellerFilter = null;
-  document.getElementById("sellerSelect").value = "";
-  document.getElementById("sellerCities").innerHTML = "";
+  // Isola essa região no mapa (esconde as demais regiões). O filtro de vendedor,
+  // se estiver ativo, é mantido — cidades de outros vendedores dentro da região
+  // aparecem desfocadas em vez de escondidas (ver rebuildClusters).
   focusedRegionId = region.id;
   showNeighborRegions = false;
   document.getElementById("toggleNeighborRegions").checked = false;
@@ -1359,9 +1485,18 @@ async function saveNewCity() {
     return;
   }
 
-  const cityLabel = `${nameRaw} - ${uf}`;
+  const cityLabel = normalizeCityLabel(`${nameRaw} - ${uf}`);
   if (CITIES_LIST.includes(cityLabel)) {
-    errorEl.textContent = `"${cityLabel}" já existe na base de cidades.`;
+    errorEl.textContent = `"${cityLabel}" já existe na base — abrindo ela no mapa…`;
+    closeNewCityModal();
+    const existingMarker = cityMarkers[cityLabel];
+    const existingCoord = Geocode.get(cityLabel);
+    if (existingCoord && existingCoord.lat !== null) {
+      map.setView([existingCoord.lat, existingCoord.lng], 13);
+    }
+    if (existingMarker) {
+      setTimeout(() => openCityPopup(cityLabel, existingMarker), 300);
+    }
     return;
   }
 
@@ -2107,6 +2242,7 @@ function wireEvents() {
   });
 
   document.getElementById("btnReverifyCities").addEventListener("click", reverifyAllCities);
+  document.getElementById("btnStandardizeNames").addEventListener("click", standardizeAllCityNames);
 
   document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);
   document.getElementById("btnNewCityCancel").addEventListener("click", closeNewCityModal);
