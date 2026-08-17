@@ -71,7 +71,10 @@
     <input type="text" id="searchAddressInput" placeholder="Buscar endereço/cidade…" autocomplete="off" />
     <button id="btnSearchAddress" class="btn btn-outline">Buscar no mapa</button>
   </div>
-  <span class="hint hint-small" id="draftHint"></span>
+  <span id="draftHint" class="draft-hint hidden">
+    <span id="draftHintText"></span>
+    <button id="btnDraftHintExport" class="draft-hint-btn">Exportar tudo agora</button>
+  </span>
 </div>
 <div id="searchResultBox" class="search-result hidden"></div>
 

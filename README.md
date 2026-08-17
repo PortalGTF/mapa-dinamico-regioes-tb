@@ -409,7 +409,7 @@ me peça e eu regenero pra você a partir de uma planilha nova.
 
 ---
 
-## 6. Modo apresentação
+## 5. Modo apresentação
 
 Clique em **"🖥️ Apresentar"** no canto superior direito (funciona tanto no modo
 visualização quanto no modo admin) — esconde o topo, a barra do admin e a barra
@@ -419,7 +419,7 @@ lateral, deixando só o mapa na tela, e tenta abrir em tela cheia de verdade tam
 Pra sair: clique no botãozinho **"✕ Sair da apresentação"** que aparece no canto, ou
 aperte **Esc**.
 
-## 7. Identidade visual (cores, fonte e logo)
+## 6. Identidade visual (cores, fonte e logo)
 
 O app já segue a paleta e a tipografia do Portal de Cargas GTF: fundo azul-marinho
 escuro no topo, destaque em verde-azulado (teal), e fonte Inter em vez da fonte
@@ -435,7 +435,7 @@ marca oficial use tons ligeiramente diferentes), os valores ficam centralizados 
 topo do arquivo `css/style.css`, dentro do bloco `:root` — é só trocar o valor
 hexadecimal de `--accent` (verde-azulado) ou `--navy` (azul-marinho escuro).
 
-## 5. Limites a saber
+## 7. Limites a saber
 
 - **Nominatim** (geocodificação) e **OSRM** (rotas) são serviços públicos e gratuitos,
   mas têm limite de uso razoável — o app já respeita isso (não faz mais de 1 busca de
@@ -461,3 +461,22 @@ hexadecimal de `--accent` (verde-azulado) ou `--navy` (azul-marinho escuro).
   a diagnosticar rápido caso aconteça de novo.
 - Cidade **"Brasiléia - AC"** (vendedor "A & D") ficou fora do eixo PR/SP das demais —
   verifique se não é erro de digitação da planilha original.
+
+## 8. Evitando esquecer de publicar alterações
+
+Pra nunca mais acontecer de fazer várias mudanças e esquecer de exportar/subir pro
+GitHub, o app tem três redes de segurança:
+
+1. **Banner visível** — sempre que existir alguma alteração não publicada (regiões
+   e/ou cidades/vendedores), aparece um aviso amarelo destacado no topo, com um
+   botão **"Exportar tudo agora"** que já baixa todos os arquivos de uma vez (não
+   precisa abrir o menu "Exportar dados" e marcar um por um).
+2. **Aviso ao sair do modo admin** — se você clicar em "Sair do admin" com algo não
+   publicado, o app pergunta se quer exportar tudo antes de sair.
+3. **Aviso do próprio navegador ao fechar a aba** — se você tentar fechar a aba ou
+   sair do site com alterações não publicadas, o navegador mostra o alerta nativo
+   dele perguntando se você tem certeza (o mesmo tipo de aviso que aparece em
+   formulários não salvos).
+
+Mesmo com essas redes de segurança, o hábito mais seguro continua sendo: sempre que
+terminar uma sessão de edições, exporte e suba os arquivos antes de fechar a aba.

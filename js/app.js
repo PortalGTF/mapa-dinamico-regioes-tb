@@ -71,6 +71,15 @@ document.addEventListener("fullscreenchange", () => {
   }
 });
 
+// Avisa o navegador (com o alerta nativo dele) se tentar fechar a aba ou sair do
+// site com alterações não publicadas — última rede de segurança.
+window.addEventListener("beforeunload", (e) => {
+  if (Auth.isAdmin && (Regions.hasDraft() || hasCityDirectoryDraft())) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
+
 // ------------------------------------------------------------
 // Painéis arrastáveis — segura no cabeçalho (título) e arrasta pra
 // qualquer lugar da tela, sem tampar o mapa.
@@ -2277,11 +2286,7 @@ function saveEditCitySellers() {
   saveCityDirectoryDraft();
 
   renderSellerOptions();
-  const pendingDrafts = [];
-  if (Regions.hasDraft()) pendingDrafts.push("regiões (regions.json)");
-  if (hasCityDirectoryDraft()) pendingDrafts.push("cidades/vendedores (diretório)");
-  document.getElementById("draftHint").textContent =
-    pendingDrafts.length > 0 ? `Alterações não publicadas: ${pendingDrafts.join(" e ")}.` : "";
+  updateDraftHint();
 
   const marker = editingCitySellersMarker;
   closeEditCitySellersModal();
@@ -2292,6 +2297,32 @@ function saveEditCitySellers() {
   if (activeSellerFilter) {
     applySellerFilter(activeSellerFilter); // refaz a lista lateral: a cidade some do aviso se não estiver mais em conflito
   }
+}
+
+// Mostra (ou esconde) o banner de alterações não publicadas, com um botão que
+// exporta tudo de uma vez — pensado pra nunca mais esquecer de publicar algo.
+function updateDraftHint() {
+  const pendingDrafts = [];
+  if (Regions.hasDraft()) pendingDrafts.push("regiões");
+  if (hasCityDirectoryDraft()) pendingDrafts.push("cidades/vendedores");
+
+  const hintEl = document.getElementById("draftHint");
+  const textEl = document.getElementById("draftHintText");
+
+  if (pendingDrafts.length === 0) {
+    hintEl.classList.add("hidden");
+    return;
+  }
+  textEl.textContent = `⚠️ Alterações não publicadas: ${pendingDrafts.join(" e ")}`;
+  hintEl.classList.remove("hidden");
+}
+
+// Baixa de uma vez só TODOS os arquivos de dados (regiões, cidades e diretório) —
+// um único clique de "backup completo", pra usar sempre que for parar de mexer.
+function exportEverythingNow() {
+  downloadFile("regions.json", Regions.exportJSON());
+  setTimeout(() => downloadFile("cities.json", Geocode.exportJSON()), 300);
+  setTimeout(() => exportDirectory(), 600);
 }
 
 function updateAdminUI() {
@@ -2323,13 +2354,7 @@ function updateAdminUI() {
     if (map.hasLayer && drawControl._map) map.removeControl(drawControl);
   }
 
-  const pendingDrafts = [];
-  if (Regions.hasDraft()) pendingDrafts.push("regiões (regions.json)");
-  if (hasCityDirectoryDraft()) pendingDrafts.push("cidades/vendedores (diretório)");
-  document.getElementById("draftHint").textContent =
-    pendingDrafts.length > 0
-      ? `Alterações não publicadas: ${pendingDrafts.join(" e ")}.`
-      : "";
+  updateDraftHint();
 
   setMarkersDraggable(Auth.isAdmin);
   renderRegionsList();
@@ -2366,9 +2391,19 @@ function wireEvents() {
   });
 
   document.getElementById("btnLogout").addEventListener("click", () => {
+    if (Regions.hasDraft() || hasCityDirectoryDraft()) {
+      const wantsExport = confirm(
+        "Você tem alterações não publicadas (regiões e/ou cidades/vendedores). Clique em OK pra exportar tudo agora antes de sair, ou Cancelar pra sair sem exportar (não recomendado)."
+      );
+      if (wantsExport) {
+        exportEverythingNow();
+      }
+    }
     Auth.logout();
     updateAdminUI();
   });
+
+  document.getElementById("btnDraftHintExport").addEventListener("click", exportEverythingNow);
 
   document.getElementById("sellerSelect").addEventListener("change", (e) => {
     applySellerFilter(e.target.value);
