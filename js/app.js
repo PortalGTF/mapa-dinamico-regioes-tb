@@ -204,23 +204,6 @@ function hasCityDirectoryDraft() {
   return !!localStorage.getItem("regioes_directory_draft");
 }
 
-// Descarta qualquer edição salva só no navegador (regiões e diretório) e recarrega
-// a página, forçando o uso do que está publicado no GitHub. Não apaga nada que já
-// foi publicado — só limpa o que estava só localmente.
-function discardAllLocalDrafts() {
-  if (!Auth.isAdmin) return;
-  if (
-    !confirm(
-      "Isso descarta qualquer edição salva só neste navegador (regiões e diretório de vendedores/cidades) e recarrega a página, usando só o que está publicado no GitHub. Não afeta o que já foi publicado. Continuar?"
-    )
-  ) {
-    return;
-  }
-  Regions.discardDraft();
-  localStorage.removeItem("regioes_directory_draft");
-  location.reload();
-}
-
 // ------------------------------------------------------------
 // Mapa
 // ------------------------------------------------------------
@@ -2452,10 +2435,6 @@ function wireEvents() {
   document.getElementById("btnReverifyFromMenu").addEventListener("click", () => {
     document.getElementById("otherActionsDropdown").classList.add("hidden");
     reverifyAllCities();
-  });
-  document.getElementById("btnDiscardDraftsFromMenu").addEventListener("click", () => {
-    document.getElementById("otherActionsDropdown").classList.add("hidden");
-    discardAllLocalDrafts();
   });
 
   document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);

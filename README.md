@@ -210,16 +210,6 @@ cidades de uma vez só** em cada requisição ao serviço de rotas, em vez de um
 por vez — isso deixa tanto o "Gerar PDF" quanto o cálculo de raio bem mais rápidos,
 principalmente em documentos com muitas regiões/cidades.
 
-### Descartando rascunhos locais (se o publicado não estiver refletindo)
-Lembre-se: toda edição fica salva primeiro só no seu navegador (rascunho local), que
-tem prioridade sobre o que está publicado no GitHub, até você exportar e subir os
-arquivos. Se você já publicou uma correção mas ela não aparece — mesmo depois de dar
-Ctrl+F5 — pode ser que ainda exista um rascunho antigo preso no seu navegador
-"vencendo" o que foi publicado. Use **"Outras ações ▾" → "🗑️ Descartar rascunhos
-locais (usar só o publicado)"** pra limpar isso e recarregar a página usando só o que
-está no GitHub — não apaga nada que já foi publicado, só o que estava só no seu
-navegador.
-
 ### Menu "Outras ações" (consolidado)
 As três ferramentas de manutenção — **Varredura de duplicados**, **Padronizar nomes
 (MAIÚSCULAS)**, e **Reconferir todas as cidades** — agora ficam dentro de um único
