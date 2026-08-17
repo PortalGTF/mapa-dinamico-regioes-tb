@@ -7,12 +7,7 @@
       "Cambé - PR",
       "Ibiporã - PR",
       "Jataizinho - PR",
-      "Londrina - PR",
-      "WARTA - PR",
-      "Guaravera - PR",
-      "Irerê - PR",
-      "Paiquerê - PR",
-      "Tamarana - PR"
+      "Londrina - PR"
     ],
     "color": "#e08a3c"
   },
@@ -47,8 +42,7 @@
       "Santa Cruz de Monte Castelo - PR",
       "Santa Isabel do Ivaí - PR",
       "São Pedro do Paraná - PR",
-      "Terra Rica - PR",
-      "Santa Mônica - PR"
+      "Terra Rica - PR"
     ],
     "color": "#3ce0a8"
   },
@@ -57,8 +51,7 @@
     "name": "S. J DO CAIUÁ",
     "vehicleProfile": "3/4 Leve",
     "cities": [
-      "CRUZEIRO DO SUL - PR",
-      "Inajá - PR",
+      "Esperança Nova - PR",
       "Nova Esperança - PR",
       "Paranacity - PR",
       "Santo Antônio do Caiuá - PR",
@@ -75,8 +68,7 @@
       "Alto Paraná - PR",
       "Nova Aliança do Ivaí - PR",
       "Paranavaí - PR",
-      "Tamboara - PR",
-      "GRACIOSA - PR"
+      "Tamboara - PR"
     ],
     "color": "#e0c93c"
   },
@@ -106,9 +98,7 @@
       "Ourizona - PR",
       "Paraíso do Norte - PR",
       "Rondon - PR",
-      "São Jorge do Ivaí - PR",
-      "São Carlos do Ivaí - PR",
-      "NOVA BILAC - PR"
+      "São Jorge do Ivaí - PR"
     ],
     "color": "#e13d76"
   },
@@ -172,7 +162,7 @@
       "Nova Olímpia - PR",
       "Tapira - PR"
     ],
-    "color": "#0fadcc"
+    "color": "#c0392b"
   },
   {
     "id": "r_1786636080834",
@@ -212,8 +202,7 @@
       "Pérola - PR",
       "São Jorge do Patrocínio - PR",
       "Terra Roxa - PR",
-      "Xambrê - PR",
-      "Esperança Nova - PR"
+      "Xambrê - PR"
     ],
     "color": "#34a216"
   },
@@ -256,7 +245,6 @@
     "cities": [
       "Araruna - PR",
       "Campo Mourão - PR",
-      "Engenheiro Beltrão - PR",
       "Farol - PR",
       "Formosa do Oeste - PR",
       "Goioerê - PR",
@@ -265,9 +253,10 @@
       "Moreira Sales - PR",
       "Peabiru - PR",
       "Presidente Castelo Branco - PR",
-      "Quarto Centenário - PR"
+      "Quarto Centenário - PR",
+      "Engenheiro Beltrão - PR"
     ],
-    "color": "#d88a03"
+    "color": "#27ae60"
   },
   {
     "id": "r_1786637737611",
@@ -320,77 +309,5 @@
       "Arapuã - PR"
     ],
     "color": "#7e7401"
-  },
-  {
-    "id": "r_1786646416994",
-    "name": "COLORADO 1",
-    "vehicleProfile": "3/4 Leve",
-    "cities": [
-      "Ângulo - PR",
-      "Astorga - PR",
-      "Atalaia - PR",
-      "Flórida - PR",
-      "Iguaraçu - PR",
-      "Lobato - PR",
-      "Munhoz de Melo - PR"
-    ],
-    "color": "#220066"
-  },
-  {
-    "id": "r_1786646646287",
-    "name": "PORECATU",
-    "vehicleProfile": "3/4 Leve",
-    "cities": [
-      "Centenário do Sul - PR",
-      "Florestópolis - PR",
-      "Guaraci - PR",
-      "Jaguapitã - PR",
-      "Miraselva - PR",
-      "Porecatu - PR",
-      "Prado Ferreira - PR"
-    ],
-    "color": "#b77638"
-  },
-  {
-    "id": "r_1786646761635",
-    "name": "COLORADO 2",
-    "vehicleProfile": "3/4 Adaptado",
-    "cities": [
-      "Cafeara - PR",
-      "Colorado - PR",
-      "Itaguajé - PR",
-      "Jardim Olinda - PR",
-      "Lupionópolis - PR",
-      "Nossa Senhora das Graças - PR",
-      "Paranapoema - PR",
-      "Santa Fé - PR",
-      "Santa Inês - PR",
-      "Santo Inácio - PR"
-    ],
-    "color": "#ea9090"
-  },
-  {
-    "id": "r_1786646994693",
-    "name": "FOZ DO IGUACU",
-    "vehicleProfile": "Toco",
-    "cities": [
-      "Foz do Iguaçu - PR"
-    ],
-    "color": "#9b59b6"
-  },
-  {
-    "id": "r_1786710545709",
-    "name": "BELA VISTA",
-    "vehicleProfile": "3/4 Leve",
-    "cities": [
-      "Alvorada do Sul - PR",
-      "Bela Vista do Paraíso - PR",
-      "Leópolis - PR",
-      "Primeiro de Maio - PR",
-      "Rancho Alegre - PR",
-      "Sertaneja - PR",
-      "Sertanópolis - PR"
-    ],
-    "color": "#d4ac0c"
   }
 ]
