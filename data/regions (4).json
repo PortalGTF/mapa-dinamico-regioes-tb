@@ -1,0 +1,410 @@
+[
+  {
+    "id": "r_1786631703669",
+    "name": "LONDRINA/REGIÃO",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "CAMBÉ - PR",
+      "IBIPORÃ - PR",
+      "JATAIZINHO - PR",
+      "LONDRINA - PR",
+      "WARTA - PR",
+      "GUARAVERA - PR",
+      "IRERÊ - PR",
+      "PAIQUERÊ - PR",
+      "TAMARANA - PR"
+    ],
+    "color": "#e08a3c"
+  },
+  {
+    "id": "r_1786631763235",
+    "name": "ARAPONGAS",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "APUCARANA - PR",
+      "ARAPONGAS - PR",
+      "PITANGUEIRAS - PR",
+      "ROLÂNDIA - PR",
+      "SABÁUDIA - PR"
+    ],
+    "color": "#3c7ce0"
+  },
+  {
+    "id": "r_1786632628141",
+    "name": "LOANDA",
+    "vehicleProfile": "Truck",
+    "cities": [
+      "AMAPORÃ - PR",
+      "DIAMANTE DO NORTE - PR",
+      "GUAIRAÇÁ - PR",
+      "ITAÚNA DO SUL - PR",
+      "LOANDA - PR",
+      "MARILENA - PR",
+      "NOVA LONDRINA - PR",
+      "PLANALTINA DO PARANÁ - PR",
+      "PORTO RICO - PR",
+      "QUERÊNCIA DO NORTE - PR",
+      "SANTA CRUZ DE MONTE CASTELO - PR",
+      "SANTA ISABEL DO IVAÍ - PR",
+      "SÃO PEDRO DO PARANÁ - PR",
+      "TERRA RICA - PR",
+      "SANTA MÔNICA - PR"
+    ],
+    "color": "#3ce0a8"
+  },
+  {
+    "id": "r_1786632665964",
+    "name": "S. J DO CAIUÁ",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "CRUZEIRO DO SUL - PR",
+      "INAJÁ - PR",
+      "NOVA ESPERANÇA - PR",
+      "PARANACITY - PR",
+      "SANTO ANTÔNIO DO CAIUÁ - PR",
+      "SÃO JOÃO DO CAIUÁ - PR",
+      "UNIFLOR - PR",
+      "PRESIDENTE CASTELO BRANCO - PR"
+    ],
+    "color": "#c53de1"
+  },
+  {
+    "id": "r_1786632723044",
+    "name": "PARANAVAI",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "ALTO PARANÁ - PR",
+      "NOVA ALIANÇA DO IVAÍ - PR",
+      "PARANAVAÍ - PR",
+      "TAMBOARA - PR",
+      "GRACIOSA - PR"
+    ],
+    "color": "#e0c93c"
+  },
+  {
+    "id": "r_1786632776606",
+    "name": "CIANORTE",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "CIANORTE - PR",
+      "INDIANÓPOLIS - PR",
+      "JAPURÁ - PR",
+      "JUSSARA - PR",
+      "SÃO MANOEL DO PARANÁ - PR",
+      "SÃO TOMÉ - PR"
+    ],
+    "color": "#181616"
+  },
+  {
+    "id": "r_1786632825243",
+    "name": "PARAISO DO NORTE",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "FLORAÍ - PR",
+      "GUAPOREMA - PR",
+      "MIRADOR - PR",
+      "OURIZONA - PR",
+      "PARAÍSO DO NORTE - PR",
+      "RONDON - PR",
+      "SÃO JORGE DO IVAÍ - PR",
+      "SÃO CARLOS DO IVAÍ - PR",
+      "NOVA BILAC - PR"
+    ],
+    "color": "#e13d76"
+  },
+  {
+    "id": "r_1786634533628",
+    "name": "BANDEIRANTES",
+    "vehicleProfile": "3/4 Adaptado",
+    "cities": [
+      "ANDIRÁ - PR",
+      "BANDEIRANTES - PR",
+      "BARRA DO JACARÉ - PR",
+      "CAMBARÁ - PR",
+      "CORNÉLIO PROCÓPIO - PR",
+      "ITAMBARACÁ - PR",
+      "SANTA MARIANA - PR",
+      "URAÍ - PR"
+    ],
+    "color": "#3dc5e1"
+  },
+  {
+    "id": "r_1786634613800",
+    "name": "RIB. DO PINHAL",
+    "vehicleProfile": "Toco",
+    "cities": [
+      "ABATIÁ - PR",
+      "ASSAÍ - PR",
+      "CONGONHINHAS - PR",
+      "JACAREZINHO - PR",
+      "NOVA AMÉRICA DA COLINA - PR",
+      "NOVA FÁTIMA - PR",
+      "NOVA SANTA BÁRBARA - PR",
+      "RIBEIRÃO DO PINHAL - PR",
+      "SANTA AMÉLIA - PR",
+      "SANTA CECÍLIA DO PAVÃO - PR",
+      "SANTO ANTÔNIO DA PLATINA - PR",
+      "SANTO ANTÔNIO DO PARAÍSO - PR",
+      "SÃO SEBASTIÃO DA AMOREIRA - PR"
+    ],
+    "color": "#6ee03c"
+  },
+  {
+    "id": "r_1786634666508",
+    "name": "TELEM.BORBA / TIBAGI",
+    "vehicleProfile": "Toco",
+    "cities": [
+      "TELÊMACO BORBA - PR",
+      "TIBAGI - PR"
+    ],
+    "color": "#c5e13d"
+  },
+  {
+    "id": "r_1786634720502",
+    "name": "DOURADINA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "ALTO PARAÍSO - PR",
+      "CIDADE GAÚCHA - PR",
+      "DOURADINA - PR",
+      "ICARAÍMA - PR",
+      "IVATÉ - PR",
+      "NOVA OLÍMPIA - PR",
+      "TAPIRA - PR"
+    ],
+    "color": "#0fadcc"
+  },
+  {
+    "id": "r_1786636080834",
+    "name": "PRESID.PRUDENTE / VENCESLAU",
+    "vehicleProfile": "Toco",
+    "cities": [
+      "ÁLVARES MACHADO - SP",
+      "ANHUMAS - SP",
+      "INDIANA - SP",
+      "MARTINÓPOLIS - SP",
+      "PIRAPOZINHO - SP",
+      "PRESIDENTE BERNARDES - SP",
+      "PRESIDENTE EPITÁCIO - SP",
+      "PRESIDENTE PRUDENTE - SP",
+      "PRESIDENTE VENCESLAU - SP",
+      "RANCHARIA - SP",
+      "REGENTE FEIJÓ - SP",
+      "SANTO ANASTÁCIO - SP",
+      "TARABAI - SP"
+    ],
+    "color": "#8e44ad"
+  },
+  {
+    "id": "r_1786636558633",
+    "name": "ALTONIA",
+    "vehicleProfile": "Toco",
+    "cities": [
+      "ALTÔNIA - PR",
+      "ESPERANÇA NOVA - PR",
+      "PÉROLA - PR",
+      "SÃO JORGE DO PATROCÍNIO - PR",
+      "XAMBRÊ - PR"
+    ],
+    "color": "#34a216"
+  },
+  {
+    "id": "r_1786636604418",
+    "name": "FOOD MARINGA",
+    "vehicleProfile": "Vuc",
+    "cities": [
+      "DOUTOR CAMARGO - PR",
+      "FLORESTA - PR",
+      "ITAMBÉ - PR",
+      "IVATUBA - PR",
+      "MANDAGUAÇU - PR",
+      "MANDAGUARI - PR",
+      "MARIALVA - PR",
+      "MARINGÁ - PR",
+      "PAIÇANDU - PR",
+      "SARANDI - PR"
+    ],
+    "color": "#d35400"
+  },
+  {
+    "id": "r_1786637220909",
+    "name": "UMUARAMA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "CRUZEIRO DO OESTE - PR",
+      "MARIA HELENA - PR",
+      "TAPEJARA - PR",
+      "TUNEIRAS DO OESTE - PR",
+      "UMUARAMA - PR"
+    ],
+    "color": "#f50000"
+  },
+  {
+    "id": "r_1786637331507",
+    "name": "GOIOERE",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "CAMPO MOURÃO - PR",
+      "FAROL - PR",
+      "FORMOSA DO OESTE - PR",
+      "GOIOERÊ - PR",
+      "JANIÓPOLIS - PR",
+      "MARILUZ - PR",
+      "MOREIRA SALES - PR",
+      "QUARTO CENTENÁRIO - PR"
+    ],
+    "color": "#d88a03"
+  },
+  {
+    "id": "r_1786637737611",
+    "name": "BARBOSA / CAMP. DA LAGOA",
+    "vehicleProfile": "Vuc",
+    "cities": [
+      "BARBOSA FERRAZ - PR",
+      "CORUMBATAÍ DO SUL - PR",
+      "FÊNIX - PR",
+      "IRETAMA - PR",
+      "LUIZIANA - PR",
+      "MATO RICO - PR",
+      "NOVA TEBAS - PR",
+      "QUINTA DO SOL - PR",
+      "RONCADOR - PR"
+    ],
+    "color": "#265f51"
+  },
+  {
+    "id": "r_1786638085252",
+    "name": "UBIRATA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "BOA ESPERANÇA - PR",
+      "JURANDA - PR",
+      "MAMBORÊ - PR",
+      "RANCHO ALEGRE D'OESTE - PR",
+      "UBIRATÃ - PR",
+      "CAMPINA DA LAGOA - PR",
+      "NOVA CANTU - PR"
+    ],
+    "color": "#6d65d7"
+  },
+  {
+    "id": "r_1786638163077",
+    "name": "PITANGA",
+    "vehicleProfile": "3/4 Adaptado",
+    "cities": [
+      "ARIRANHA DO IVAÍ - PR",
+      "BOA VENTURA DE SÃO ROQUE - PR",
+      "IVAIPORÃ - PR",
+      "JARDIM ALEGRE - PR",
+      "LUNARDELLI - PR",
+      "MANOEL RIBAS - PR",
+      "PITANGA - PR",
+      "SANTA MARIA DO OESTE - PR",
+      "SÃO JOÃO DO IVAÍ - PR",
+      "TURVO - PR",
+      "ARAPUÃ - PR"
+    ],
+    "color": "#7e7401"
+  },
+  {
+    "id": "r_1786646416994",
+    "name": "COLORADO 1",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "ÂNGULO - PR",
+      "ASTORGA - PR",
+      "ATALAIA - PR",
+      "FLÓRIDA - PR",
+      "IGUARAÇU - PR",
+      "LOBATO - PR",
+      "MUNHOZ DE MELO - PR"
+    ],
+    "color": "#220066"
+  },
+  {
+    "id": "r_1786646646287",
+    "name": "PORECATU",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "CENTENÁRIO DO SUL - PR",
+      "FLORESTÓPOLIS - PR",
+      "GUARACI - PR",
+      "JAGUAPITÃ - PR",
+      "MIRASELVA - PR",
+      "PORECATU - PR",
+      "PRADO FERREIRA - PR"
+    ],
+    "color": "#b77638"
+  },
+  {
+    "id": "r_1786646761635",
+    "name": "COLORADO 2",
+    "vehicleProfile": "3/4 Adaptado",
+    "cities": [
+      "CAFEARA - PR",
+      "COLORADO - PR",
+      "ITAGUAJÉ - PR",
+      "JARDIM OLINDA - PR",
+      "LUPIONÓPOLIS - PR",
+      "NOSSA SENHORA DAS GRAÇAS - PR",
+      "PARANAPOEMA - PR",
+      "SANTA FÉ - PR",
+      "SANTA INÊS - PR",
+      "SANTO INÁCIO - PR"
+    ],
+    "color": "#ea9090"
+  },
+  {
+    "id": "r_1786646994693",
+    "name": "FOZ DO IGUACU",
+    "vehicleProfile": "Toco",
+    "cities": [
+      "FOZ DO IGUAÇU - PR"
+    ],
+    "color": "#9b59b6"
+  },
+  {
+    "id": "r_1786710545709",
+    "name": "BELA VISTA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "ALVORADA DO SUL - PR",
+      "BELA VISTA DO PARAÍSO - PR",
+      "LEÓPOLIS - PR",
+      "PRIMEIRO DE MAIO - PR",
+      "RANCHO ALEGRE - PR",
+      "SERTANEJA - PR",
+      "SERTANÓPOLIS - PR"
+    ],
+    "color": "#d4ac0c"
+  },
+  {
+    "id": "r_1786997082140",
+    "name": "PALOTINA",
+    "vehicleProfile": "3/4 Adaptado",
+    "cities": [
+      "ALTO PIQUIRI - PR",
+      "BRASILÂNDIA DO SUL - PR",
+      "CAFEZAL DO SUL - PR",
+      "FRANCISCO ALVES - PR",
+      "GUAÍRA - PR",
+      "IPORÃ - PR",
+      "PALOTINA - PR",
+      "PEROBAL - PR",
+      "TERRA ROXA - PR"
+    ],
+    "color": "#00ff02"
+  },
+  {
+    "id": "r_1786997588898",
+    "name": "ARARUNA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "ARARUNA - PR",
+      "ENGENHEIRO BELTRÃO - PR",
+      "PEABIRU - PR",
+      "TERRA BOA - PR"
+    ],
+    "color": "#ff003c"
+  }
+]
