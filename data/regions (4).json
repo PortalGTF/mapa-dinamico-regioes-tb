@@ -187,7 +187,6 @@
       "PRESIDENTE EPITÁCIO - SP",
       "PRESIDENTE PRUDENTE - SP",
       "PRESIDENTE VENCESLAU - SP",
-      "RANCHARIA - SP",
       "REGENTE FEIJÓ - SP",
       "SANTO ANASTÁCIO - SP",
       "TARABAI - SP"
@@ -203,7 +202,9 @@
       "ESPERANÇA NOVA - PR",
       "PÉROLA - PR",
       "SÃO JORGE DO PATROCÍNIO - PR",
-      "XAMBRÊ - PR"
+      "XAMBRÊ - PR",
+      "CAFEZAL DO SUL - PR",
+      "PEROBAL - PR"
     ],
     "color": "#34a216"
   },
@@ -233,7 +234,8 @@
       "MARIA HELENA - PR",
       "TAPEJARA - PR",
       "TUNEIRAS DO OESTE - PR",
-      "UMUARAMA - PR"
+      "UMUARAMA - PR",
+      "SERRA DOS DOURADOS - PR"
     ],
     "color": "#f50000"
   },

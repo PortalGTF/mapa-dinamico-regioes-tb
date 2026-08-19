@@ -19,7 +19,8 @@
     "XAMBRÊ - PR",
     "CAFEZAL DO SUL - PR",
     "BRASILÂNDIA DO SUL - PR",
-    "ESPERANÇA NOVA - PR"
+    "ESPERANÇA NOVA - PR",
+    "SERRA DOS DOURADOS - PR"
   ],
   "Octavio Augusto Longo": [
     "LONDRINA - PR",
@@ -30,7 +31,6 @@
     "PRESIDENTE PRUDENTE - SP",
     "PRESIDENTE EPITÁCIO - SP",
     "PRESIDENTE VENCESLAU - SP",
-    "RANCHARIA - SP",
     "ÁLVARES MACHADO - SP",
     "PIRAPOZINHO - SP",
     "MARTINÓPOLIS - SP",
@@ -39,8 +39,7 @@
     "PRESIDENTE BERNARDES - SP",
     "TARABAI - SP",
     "INDIANA - SP",
-    "ANHUMAS - SP",
-    "ROSANA - SP"
+    "ANHUMAS - SP"
   ],
   "João Vitor Arenas Marcato": [
     "MARINGÁ - PR"
@@ -79,7 +78,10 @@
     "CALIFÓRNIA - PR",
     "MARILÂNDIA DO SUL - PR",
     "RIO BOM - PR",
-    "CRUZMALTINA - PR"
+    "CRUZMALTINA - PR",
+    "GRANDES RIOS - PR",
+    "ROSÁRIO DO IVAÍ - PR",
+    "RIO BRANCO DO IVAÍ - PR"
   ],
   "Rodrigo Glauber Correia": [
     "LONDRINA - PR",
@@ -100,7 +102,8 @@
     "BORRAZÓPOLIS - PR",
     "MARUMBI - PR",
     "KALORÉ - PR",
-    "NOVO ITACOLOMI - PR"
+    "NOVO ITACOLOMI - PR",
+    "BOM SUCESSO - PR"
   ],
   "Maicon Douglas Karpovicz": [
     "PITANGA - PR",
@@ -117,13 +120,10 @@
     "NOVA TEBAS - PR",
     "LUIZIANA - PR",
     "BOA VENTURA DE SÃO ROQUE - PR",
-    "GRANDES RIOS - PR",
-    "ROSÁRIO DO IVAÍ - PR",
     "QUINTA DO SOL - PR",
     "LUNARDELLI - PR",
     "FÊNIX - PR",
     "LIDIANÓPOLIS - PR",
-    "RIO BRANCO DO IVAÍ - PR",
     "CORUMBATAÍ DO SUL - PR",
     "ARAPUÃ - PR",
     "MATO RICO - PR",
@@ -194,7 +194,8 @@
     "SANTA MÔNICA - PR",
     "SÃO PEDRO DO PARANÁ - PR",
     "NOVA ALIANÇA DO IVAÍ - PR",
-    "GRACIOSA - PR"
+    "GRACIOSA - PR",
+    "ROSANA - SP"
   ],
   "Tiago Fernando Radin": [
     "PAIÇANDU - PR",
@@ -202,7 +203,6 @@
     "NOVA ESPERANÇA - PR",
     "FLORESTA - PR",
     "PARANACITY - PR",
-    "BOM SUCESSO - PR",
     "DOUTOR CAMARGO - PR",
     "ITAMBÉ - PR",
     "SÃO JOÃO DO CAIUÁ - PR",
