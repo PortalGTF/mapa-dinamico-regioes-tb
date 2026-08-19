@@ -267,6 +267,22 @@
   <div id="dedupeList"></div>
 </div>
 
+<!-- Painel: cidade-chave (escolher quais regiões ela compõe) -->
+<div id="keyCityModal" class="side-panel hidden">
+  <div class="side-panel-header" id="keyCityHeader">
+    <h3 id="keyCityTitle">Cidade-chave</h3>
+    <div class="side-panel-header-actions">
+      <button id="btnCloseKeyCity" class="icon-btn" title="Fechar">✕</button>
+    </div>
+  </div>
+  <p class="hint">Marque todas as regiões que essa cidade pode compor no roteiro. Marcando mais de uma, ela vira uma "cidade-chave" — aparece com um selo 🔑 no mapa, e linhas tracejadas ligando ela às outras regiões quando você focar numa delas.</p>
+  <div id="keyCityChecklist" class="checklist"></div>
+  <div class="modal-actions">
+    <button id="btnCancelKeyCity" class="btn btn-outline">Cancelar</button>
+    <button id="btnSaveKeyCity" class="btn btn-primary">Salvar</button>
+  </div>
+</div>
+
 <!-- Painel: editar vendedor(es) de uma cidade -->
 <div id="editCitySellersModal" class="side-panel hidden">
   <div class="side-panel-header" id="editCitySellersHeader">

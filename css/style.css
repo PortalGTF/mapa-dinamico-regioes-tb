@@ -472,6 +472,22 @@ main { position: relative; flex: 1; }
 }
 .leaflet-tooltip.warn-tooltip::before { border-top-color: #c0392b; }
 
+.pin-key-badge {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 15px;
+  height: 15px;
+  background: #8e44ad;
+  border: 2px solid white;
+  border-radius: 50%;
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
 .leaflet-tooltip.city-name-tooltip {
   background: rgba(14, 26, 43, 0.88);
   color: white;
@@ -502,6 +518,7 @@ main { position: relative; flex: 1; }
 .city-popup button:hover { border-color: var(--accent); }
 .city-popup .result { margin-top: 8px; font-size: 12px; background: #f4f2ee; padding: 6px 8px; border-radius: 5px; }
 .city-popup .c-warn-inline { color: #c0392b; }
+.city-popup .key-city-tag { color: #8e44ad; font-weight: 700; font-size: 12px; }
 .city-popup .loc-manual { color: var(--ok); font-size: 11.5px; }
 .city-popup .admin-hint { color: var(--accent); font-size: 11px; font-style: italic; }
 .city-popup .btn-reset-loc {

@@ -338,6 +338,34 @@ por padrão) — marque se quiser ver as demais regiões ao redor também, pra t
 de contexto geográfico. Ao fechar o painel ou trocar de região, o mapa volta ao normal
 (ou isola a nova região escolhida).
 
+### Cidade capturada que já tinha região (some da antiga automaticamente)
+Se você desenhar uma região nova, somar cidades a uma já existente, ou adicionar uma
+cidade avulsa, e alguma delas já pertencia a outra região — ela **sai da região
+antiga sozinha** e entra só na nova, por padrão. Não precisa mais ir na região
+antiga tirar a cidade manualmente. Se você quiser, de propósito, que uma cidade
+fique em mais de uma região ao mesmo tempo, use a função **"Cidade-chave"** (descrita
+abaixo) depois de criar as regiões — essa é a única forma de manter uma cidade em
+mais de um lugar ao mesmo tempo.
+
+### Cidade-chave (uma cidade compondo mais de uma região)
+Algumas cidades servem de "ponte" entre regiões — o mesmo caminhão que vai pra uma
+região pode passar por ela a caminho de outra (o exemplo que motivou isso: Campo
+Mourão compondo tanto Goioerê quanto Ubiratã). Pra marcar isso:
+
+1. Clique na cidade no mapa (modo admin) e depois em **"🔑 Cidade-chave (compor mais
+   regiões)"**.
+2. Marque todas as regiões que essa cidade deve compor (pode marcar quantas quiser).
+3. Salve.
+
+A partir daí:
+- A cidade ganha um **selo roxo (🔑)** no pin, visível de longe, em qualquer região
+  que você focar.
+- Ao clicar numa região que tenha uma cidade-chave, o mapa desenha **linhas
+  tracejadas roxas** ligando aquela cidade ao centro de cada outra região que ela
+  também compõe — passe o mouse na linha pra ver o nome da região do outro lado.
+- No popup da cidade, aparece "🔑 Cidade-chave — compõe N regiões" e a lista de
+  todas elas com o perfil mínimo de cada uma.
+
 ### Filtro de vendedor com lista compacta
 A lista que aparece ao filtrar por vendedor agora mostra o nome das cidades dele
 direto (não só a quantidade), e as cidades de outros vendedores dentro da mesma

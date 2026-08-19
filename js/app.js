@@ -92,6 +92,7 @@ function makePanelsDraggable() {
   attachDrag("conflictModal", document.getElementById("conflictModalHeader"));
   attachDrag("pdfModal", document.getElementById("pdfModalHeader"));
   attachDrag("editCitySellersModal", document.getElementById("editCitySellersHeader"));
+  attachDrag("keyCityModal", document.getElementById("keyCityHeader"));
   attachDrag("changePasswordModal", document.getElementById("changePasswordHeader"));
   attachDrag("dedupeModal", document.getElementById("dedupeModalHeader"));
 }
@@ -293,7 +294,7 @@ function plotCity(cityLabel) {
   if (cityMarkers[cityLabel]) return;
 
   const marker = L.marker([coord.lat, coord.lng], {
-    icon: createCityIcon(colorForCity(cityLabel), isSuspect(coord)),
+    icon: createCityIcon(colorForCity(cityLabel), isSuspect(coord), isKeyCity(cityLabel)),
     draggable: Auth.isAdmin,
   });
   marker.on("click", () => openCityPopup(cityLabel, marker));
@@ -339,20 +340,25 @@ function onCityDragEnd(cityLabel, marker) {
   Geocode.cache[cityLabel] = { lat: ll.lat, lng: ll.lng, manual: true };
   Geocode.saveLocalCache();
   bindWarnTooltip(marker, Geocode.get(cityLabel), cityLabel);
-  marker.setIcon(createCityIcon(colorForCity(cityLabel), false));
+  marker.setIcon(createCityIcon(colorForCity(cityLabel), false, isKeyCity(cityLabel)));
   invalidateRegionRadiusCache();
   openCityPopup(cityLabel, marker);
 }
 
-function createCityIcon(color, suspect) {
-  const badge = suspect ? `<div class="pin-warn-badge">!</div>` : "";
+function createCityIcon(color, suspect, isKey) {
+  const warnBadge = suspect ? `<div class="pin-warn-badge">!</div>` : "";
+  const keyBadge = isKey ? `<div class="pin-key-badge">🔑</div>` : "";
   return L.divIcon({
     className: "",
-    html: `<div class="city-pin" style="--pin-color:${color}"><div class="pin-body"></div><div class="pin-icon">🚚</div>${badge}</div>`,
+    html: `<div class="city-pin" style="--pin-color:${color}"><div class="pin-body"></div><div class="pin-icon">🚚</div>${warnBadge}${keyBadge}</div>`,
     iconSize: [30, 40],
     iconAnchor: [15, 40],
     popupAnchor: [0, -36],
   });
+}
+
+function isKeyCity(cityLabel) {
+  return Regions.findByCity(cityLabel).length > 1;
 }
 
 function colorForCity(cityLabel) {
@@ -407,7 +413,7 @@ function rebuildClusters() {
     }
 
     const coord = Geocode.get(label);
-    marker.setIcon(createCityIcon(colorForCity(label), isSuspect(coord)));
+    marker.setIcon(createCityIcon(colorForCity(label), isSuspect(coord), isKeyCity(label)));
     marker.setOpacity(dim ? 0.35 : 1);
     bindWarnTooltip(marker, coord, label);
     const regions = Regions.findByCity(label);
@@ -431,6 +437,9 @@ function openCityPopup(cityLabel, marker) {
   html += `<div class="row"><strong>Vendedor(es):</strong> ${vendedores.join(", ") || "—"}</div>`;
 
   if (regions.length > 0) {
+    if (regions.length > 1) {
+      html += `<div class="row key-city-tag">🔑 Cidade-chave — compõe ${regions.length} regiões</div>`;
+    }
     regions.forEach((r) => {
       html += `<div class="row"><strong>Região:</strong> ${r.name}<br><strong>Perfil mínimo:</strong> ${r.vehicleProfile}</div>`;
     });
@@ -448,6 +457,7 @@ function openCityPopup(cityLabel, marker) {
   if (Auth.isAdmin) {
     html += `<div class="row admin-hint">Modo admin: arraste o pin no mapa, ou use "Buscar" abaixo para corrigir pelo nome.</div>`;
     html += `<button class="btn-reset-loc" data-city="${cityLabel}" data-action="editSellers">Editar vendedor(es)</button>`;
+    html += `<button class="btn-reset-loc" data-city="${cityLabel}" data-action="keyCity">🔑 Cidade-chave (compor mais regiões)</button>`;
     html += `<button class="btn-reset-loc" data-city="${cityLabel}" data-action="search">Buscar novo endereço</button>`;
     if (coord && coord.manual) {
       html += `<button class="btn-reset-loc" data-city="${cityLabel}" data-action="auto">Refazer busca automática</button>`;
@@ -477,6 +487,9 @@ function openCityPopup(cityLabel, marker) {
         } else if (btn.dataset.action === "editSellers") {
           marker.closePopup();
           openEditCitySellersModal(cityLabel, marker);
+        } else if (btn.dataset.action === "keyCity") {
+          marker.closePopup();
+          openKeyCityModal(cityLabel, marker);
         } else if (btn.dataset.action === "delete") {
           deleteCity(cityLabel);
         } else {
@@ -498,7 +511,7 @@ async function resetCityLocation(cityLabel, marker) {
   if (coord && coord.lat !== null) {
     marker.setLatLng([coord.lat, coord.lng]);
   }
-  marker.setIcon(createCityIcon(colorForCity(cityLabel), isSuspect(coord)));
+  marker.setIcon(createCityIcon(colorForCity(cityLabel), isSuspect(coord), isKeyCity(cityLabel)));
   bindWarnTooltip(marker, coord, cityLabel);
   invalidateRegionRadiusCache();
   openCityPopup(cityLabel, marker);
@@ -612,6 +625,7 @@ function applySellerFilter(sellerName) {
         rebuildClusters();
         focusRegion(region);
         showRegionFence(region);
+        showKeyCityLinks(region);
         if (isPresenting()) {
           showPresentationBurst(region);
         } else {
@@ -718,6 +732,7 @@ function renderRegionsList() {
 
         focusRegion(region);
         showRegionFence(region);
+        showKeyCityLinks(region);
         if (isPresenting()) {
           showPresentationBurst(region);
         } else {
@@ -1200,6 +1215,7 @@ function closeRegionDetail() {
   document.getElementById("regionDetailModal").classList.remove("collapsed");
   currentDetailRegionId = null;
   hideRegionFence();
+  hideKeyCityLinks();
   if (ringLayerGroup) {
     map.removeLayer(ringLayerGroup);
     ringLayerGroup = null;
@@ -1465,6 +1481,18 @@ function closeRegionModal() {
   pendingPolygonCities = [];
 }
 
+// Remove a cidade de qualquer região que não seja excludeRegionId — usada pra
+// evitar que uma cidade fique duplicada em duas regiões sem querer, sempre que
+// ela for adicionada em outro lugar. Passe null se a região de destino ainda nem
+// existe (caso de criar região nova).
+function removeCityFromOtherRegions(cityLabel, excludeRegionId) {
+  Regions.list.forEach((r) => {
+    if (r.id !== excludeRegionId && r.cities.includes(cityLabel)) {
+      Regions.update(r.id, { cities: r.cities.filter((c) => c !== cityLabel) });
+    }
+  });
+}
+
 function saveRegionFromModal() {
   if (!Auth.isAdmin) return;
   const name = document.getElementById("regionName").value.trim();
@@ -1485,15 +1513,27 @@ function saveRegionFromModal() {
   }
 
   if (mergeId) {
-    // Soma as cidades capturadas à região já existente, sem duplicar as que já estavam nela
+    // Soma as cidades capturadas à região já existente. As que forem novas ali
+    // (não estavam nessa região antes) saem de qualquer outra região onde já
+    // estivessem — evita duplicar sem querer. Pra manter uma cidade em mais de uma
+    // região de propósito, use "Cidade-chave" depois.
     const target = Regions.list.find((r) => r.id === mergeId);
     if (target) {
+      const newCities = checked.filter((c) => !target.cities.includes(c));
+      newCities.forEach((c) => removeCityFromOtherRegions(c, mergeId));
       const merged = Array.from(new Set([...target.cities, ...checked]));
       Regions.update(mergeId, { cities: merged });
     }
   } else if (editingRegionId) {
+    const original = Regions.list.find((r) => r.id === editingRegionId);
+    const originalCities = original ? original.cities : [];
+    const newCities = checked.filter((c) => !originalCities.includes(c));
+    newCities.forEach((c) => removeCityFromOtherRegions(c, editingRegionId));
     Regions.update(editingRegionId, { name, vehicleProfile, cities: checked, color });
   } else {
+    // Região nova: qualquer cidade capturada que já pertencia a outra região sai
+    // de lá automaticamente, pra não ficar duplicada sem querer.
+    checked.forEach((c) => removeCityFromOtherRegions(c, null));
     Regions.create({ name, vehicleProfile, cities: checked, color });
   }
 
@@ -2208,6 +2248,7 @@ function togglePresentationMode(forceState) {
   document.getElementById("btnExitPresent").classList.toggle("hidden", !turningOn);
   if (!turningOn) {
     hidePresentationBurst();
+    hideKeyCityLinks();
     focusedRegionId = null;
     showNeighborRegions = false;
     rebuildClusters();
@@ -2259,6 +2300,125 @@ function hidePresentationBurst() {
 // ------------------------------------------------------------
 let editingCitySellersLabel = null;
 let editingCitySellersMarker = null;
+
+// ------------------------------------------------------------
+// Cidade-chave — uma cidade pode compor mais de uma região ao
+// mesmo tempo (ex: Campo Mourão compondo Goioerê e Ubiratã).
+// ------------------------------------------------------------
+let editingKeyCityLabel = null;
+
+function openKeyCityModal(cityLabel) {
+  if (!Auth.isAdmin) return;
+  editingKeyCityLabel = cityLabel;
+  document.getElementById("keyCityTitle").textContent = `Regiões que "${cityLabel}" compõe`;
+
+  const checklist = document.getElementById("keyCityChecklist");
+  checklist.innerHTML = "";
+  Regions.list
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+    .forEach((r) => {
+      const checked = r.cities.includes(cityLabel);
+      const label = document.createElement("label");
+      label.innerHTML = `<input type="checkbox" value="${r.id}" ${checked ? "checked" : ""} /> ${r.name}`;
+      checklist.appendChild(label);
+    });
+
+  if (Regions.list.length === 0) {
+    checklist.innerHTML = `<p class="hint">Nenhuma região criada ainda.</p>`;
+  }
+
+  document.getElementById("keyCityModal").classList.remove("hidden");
+}
+
+function closeKeyCityModal() {
+  document.getElementById("keyCityModal").classList.add("hidden");
+  editingKeyCityLabel = null;
+}
+
+function saveKeyCityRegions() {
+  if (!Auth.isAdmin || !editingKeyCityLabel) return;
+  const city = editingKeyCityLabel;
+  const checkedIds = Array.from(document.querySelectorAll("#keyCityChecklist input:checked")).map(
+    (el) => el.value
+  );
+
+  if (checkedIds.length === 0) {
+    alert("Marque ao menos uma região.");
+    return;
+  }
+
+  Regions.list.forEach((r) => {
+    const shouldHave = checkedIds.includes(r.id);
+    const has = r.cities.includes(city);
+    if (shouldHave && !has) Regions.update(r.id, { cities: [...r.cities, city] });
+    if (!shouldHave && has) Regions.update(r.id, { cities: r.cities.filter((c) => c !== city) });
+  });
+
+  rebuildClusters();
+  invalidateRegionRadiusCache();
+  closeKeyCityModal();
+
+  if (checkedIds.length > 1) {
+    alert(`"${city}" agora é uma cidade-chave, compondo ${checkedIds.length} regiões.`);
+  }
+}
+
+// Calcula o centro aproximado de uma região (média das coordenadas das cidades dela)
+function regionCentroid(region) {
+  const coords = region.cities.map((c) => Geocode.get(c)).filter((c) => c && c.lat !== null);
+  if (coords.length === 0) return null;
+  const lat = coords.reduce((sum, c) => sum + c.lat, 0) / coords.length;
+  const lng = coords.reduce((sum, c) => sum + c.lng, 0) / coords.length;
+  return { lat, lng };
+}
+
+let keyCityLinksLayer = null;
+
+// Desenha linhas tracejadas das cidades-chave da região em foco até o centro das
+// outras regiões que elas também compõem.
+function showKeyCityLinks(region) {
+  hideKeyCityLinks();
+  const lines = [];
+
+  region.cities.forEach((cityLabel) => {
+    const allRegions = Regions.findByCity(cityLabel);
+    if (allRegions.length <= 1) return; // não é cidade-chave
+
+    const cityCoord = Geocode.get(cityLabel);
+    if (!cityCoord || cityCoord.lat === null) return;
+
+    allRegions.forEach((otherRegion) => {
+      if (otherRegion.id === region.id) return;
+      const centroid = regionCentroid(otherRegion);
+      if (!centroid) return;
+
+      const line = L.polyline(
+        [
+          [cityCoord.lat, cityCoord.lng],
+          [centroid.lat, centroid.lng],
+        ],
+        { color: "#8e44ad", weight: 2.5, dashArray: "6 8", opacity: 0.75 }
+      );
+      line.bindTooltip(`🔑 ${cityLabel} também compõe: ${otherRegion.name}`, {
+        sticky: true,
+        className: "city-name-tooltip",
+      });
+      lines.push(line);
+    });
+  });
+
+  if (lines.length > 0) {
+    keyCityLinksLayer = L.layerGroup(lines).addTo(map);
+  }
+}
+
+function hideKeyCityLinks() {
+  if (keyCityLinksLayer) {
+    map.removeLayer(keyCityLinksLayer);
+    keyCityLinksLayer = null;
+  }
+}
 
 function openEditCitySellersModal(cityLabel, marker) {
   if (!Auth.isAdmin) return;
@@ -2447,6 +2607,7 @@ function updateAdminUI() {
     closeConflictsPanel();
     closePdfModal();
     closeEditCitySellersModal();
+    closeKeyCityModal();
     closeDedupeModal();
     closeChangePasswordModal();
     clearSearchPreview();
@@ -2587,6 +2748,9 @@ function wireEvents() {
   document.getElementById("btnCloseEditCitySellers").addEventListener("click", closeEditCitySellersModal);
   document.getElementById("btnCancelEditCitySellers").addEventListener("click", closeEditCitySellersModal);
   document.getElementById("btnSaveEditCitySellers").addEventListener("click", saveEditCitySellers);
+  document.getElementById("btnCloseKeyCity").addEventListener("click", closeKeyCityModal);
+  document.getElementById("btnCancelKeyCity").addEventListener("click", closeKeyCityModal);
+  document.getElementById("btnSaveKeyCity").addEventListener("click", saveKeyCityRegions);
   document.getElementById("btnCloseDedupe").addEventListener("click", closeDedupeModal);
   document.getElementById("btnRunCommand").addEventListener("click", runConflictCommand);
 
