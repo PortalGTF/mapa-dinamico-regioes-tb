@@ -338,6 +338,21 @@ por padrão) — marque se quiser ver as demais regiões ao redor também, pra t
 de contexto geográfico. Ao fechar o painel ou trocar de região, o mapa volta ao normal
 (ou isola a nova região escolhida).
 
+### Filtro de vendedor com lista compacta
+A lista que aparece ao filtrar por vendedor agora mostra o nome das cidades dele
+direto (não só a quantidade), e as cidades de outros vendedores dentro da mesma
+região ficam agrupadas por vendedor numa linha só (ex: "Tiago Radin: Cidade X,
+Cidade Y, Cidade Z"), em vez de uma linha por cidade — bem mais compacto quando tem
+muitas. Clique em qualquer nome de cidade dentro desse aviso (modo admin) pra abrir
+direto a troca de vendedor daquela cidade.
+
+### Trocando a senha do admin pelo próprio app
+Em **"Outras ações ▾" → "🔑 Trocar senha do admin"**, digite a senha nova duas vezes
+e clique em "Gerar novo config.js" — o app calcula o hash da senha nova e já baixa um
+arquivo `config.js` pronto. Suba esse arquivo no GitHub, na pasta `js/`, substituindo
+o antigo — a senha nova passa a valer assim que publicar. Não precisa mais abrir o
+`gerar-senha.html` separado e copiar/colar manualmente.
+
 ### Detectando regiões com vendedores cruzados
 Clique em **"⚠ Conflitos de vendedor"** na barra do admin. O painel mostra sozinho
 todas as regiões que têm cidades de mais de um vendedor — útil pra garantir que cada

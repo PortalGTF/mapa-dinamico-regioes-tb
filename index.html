@@ -57,6 +57,7 @@
       <button class="dropdown-action-btn" id="btnDedupeFromMenu">🧹 Varredura de duplicados</button>
       <button class="dropdown-action-btn" id="btnStandardizeFromMenu">🔤 Padronizar nomes (MAIÚSCULAS)</button>
       <button class="dropdown-action-btn" id="btnReverifyFromMenu">Reconferir todas as cidades</button>
+      <button class="dropdown-action-btn" id="btnChangePasswordFromMenu">🔑 Trocar senha do admin</button>
     </div>
   </div>
 
@@ -158,6 +159,30 @@
     <button id="btnRegionCancel" class="btn btn-outline">Cancelar</button>
     <button id="btnRegionDelete" class="btn btn-danger hidden">Excluir região</button>
     <button id="btnRegionSave" class="btn btn-primary">Salvar região</button>
+  </div>
+</div>
+
+<!-- Painel: trocar senha do admin -->
+<div id="changePasswordModal" class="side-panel hidden">
+  <div class="side-panel-header" id="changePasswordHeader">
+    <h3>Trocar senha do admin</h3>
+    <div class="side-panel-header-actions">
+      <button id="btnCloseChangePassword" class="icon-btn" title="Fechar">✕</button>
+    </div>
+  </div>
+  <p class="hint">
+    Como o site é estático, a senha não fica guardada num servidor — ela vive dentro
+    do arquivo <code>js/config.js</code>. Isso gera um arquivo novo já com a senha
+    nova (em hash); depois é só subir ele no GitHub, substituindo o antigo.
+  </p>
+  <label>Nova senha</label>
+  <input type="password" id="newAdminPassword" placeholder="Digite a nova senha" />
+  <label>Confirmar nova senha</label>
+  <input type="password" id="newAdminPasswordConfirm" placeholder="Digite de novo" />
+  <p class="hint hint-small" id="changePasswordError"></p>
+  <div class="modal-actions">
+    <button id="btnCancelChangePassword" class="btn btn-outline">Cancelar</button>
+    <button id="btnGenerateNewConfig" class="btn btn-primary">Gerar novo config.js</button>
   </div>
 </div>
 

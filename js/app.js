@@ -92,6 +92,7 @@ function makePanelsDraggable() {
   attachDrag("conflictModal", document.getElementById("conflictModalHeader"));
   attachDrag("pdfModal", document.getElementById("pdfModalHeader"));
   attachDrag("editCitySellersModal", document.getElementById("editCitySellersHeader"));
+  attachDrag("changePasswordModal", document.getElementById("changePasswordHeader"));
   attachDrag("dedupeModal", document.getElementById("dedupeModalHeader"));
 }
 
@@ -593,13 +594,15 @@ function applySellerFilter(sellerName) {
     citiesBox.innerHTML = `<p class="hint">Esse vendedor ainda não tem cidades cadastradas.</p>`;
   } else {
     regionEntries.forEach(({ region, count }) => {
+      const ownCities = region.cities.filter((c) => (CITY_TO_SELLERS[c] || []).includes(sellerName));
+
       const row = document.createElement("div");
       row.className = "region-row";
       row.innerHTML = `
         <span class="swatch" style="background:${region.color}"></span>
         <div class="region-info">
           <div class="region-name">${region.name}</div>
-          <div class="region-meta">${count} cidade(s) de ${sellerName} · perfil mínimo: ${region.vehicleProfile}</div>
+          <div class="region-meta">Cidade(s): ${ownCities.join(", ")} · perfil mínimo: ${region.vehicleProfile}</div>
         </div>
       `;
       row.addEventListener("click", () => {
@@ -617,26 +620,42 @@ function applySellerFilter(sellerName) {
       });
       citiesBox.appendChild(row);
 
-      // Cidades dessa região que pertencem a outro vendedor (não o filtrado)
-      const foreignCities = region.cities.filter((c) => !(CITY_TO_SELLERS[c] || []).includes(sellerName));
-      if (foreignCities.length > 0) {
+      // Cidades dessa região que pertencem a outro vendedor — agrupadas por
+      // vendedor numa linha compacta, cada cidade clicável pra editar na hora
+      const foreignBySeller = {};
+      region.cities.forEach((c) => {
+        if (ownCities.includes(c)) return;
+        (CITY_TO_SELLERS[c] || []).forEach((s) => {
+          if (s === sellerName) return;
+          foreignBySeller[s] = foreignBySeller[s] || [];
+          foreignBySeller[s].push(c);
+        });
+      });
+
+      const otherSellers = Object.keys(foreignBySeller);
+      if (otherSellers.length > 0) {
         const block = document.createElement("div");
         block.className = "seller-conflict-block";
         block.innerHTML =
-          `<div class="scb-title">⚠️ ${foreignCities.length} cidade(s) dessa região está(ão) no nome de outro vendedor:</div>` +
-          foreignCities
+          `<div class="scb-title">⚠️ Também atendida(s) por outro(s) vendedor(es):</div>` +
+          otherSellers
             .map(
-              (c) => `
-            <div class="scb-city">
-              <span class="scb-city-name">${c}</span>
-              <span class="scb-city-seller">${(CITY_TO_SELLERS[c] || []).join(", ") || "—"}</span>
-              ${Auth.isAdmin ? `<button class="scb-edit-btn" data-city="${c}">editar</button>` : ""}
-            </div>`
+              (seller) => `
+              <div class="scb-seller-line">
+                <strong>${seller}:</strong>
+                ${foreignBySeller[seller]
+                  .map((c) =>
+                    Auth.isAdmin
+                      ? `<button class="scb-city-link" data-city="${c}">${c}</button>`
+                      : `<span>${c}</span>`
+                  )
+                  .join(", ")}
+              </div>`
             )
             .join("");
         citiesBox.appendChild(block);
 
-        block.querySelectorAll(".scb-edit-btn").forEach((btn) => {
+        block.querySelectorAll(".scb-city-link").forEach((btn) => {
           btn.addEventListener("click", () => {
             openEditCitySellersModal(btn.dataset.city, cityMarkers[btn.dataset.city] || null);
           });
@@ -2325,6 +2344,85 @@ function exportEverythingNow() {
   setTimeout(() => exportDirectory(), 600);
 }
 
+// ------------------------------------------------------------
+// Trocar senha do admin — gera um novo js/config.js já com o
+// hash da senha nova, pronto pra subir no GitHub.
+// ------------------------------------------------------------
+function openChangePasswordModal() {
+  if (!Auth.isAdmin) return;
+  document.getElementById("newAdminPassword").value = "";
+  document.getElementById("newAdminPasswordConfirm").value = "";
+  document.getElementById("changePasswordError").textContent = "";
+  document.getElementById("changePasswordModal").classList.remove("hidden");
+}
+
+function closeChangePasswordModal() {
+  document.getElementById("changePasswordModal").classList.add("hidden");
+}
+
+async function generateNewConfigFile() {
+  if (!Auth.isAdmin) return;
+  const pwd = document.getElementById("newAdminPassword").value;
+  const pwd2 = document.getElementById("newAdminPasswordConfirm").value;
+  const errorEl = document.getElementById("changePasswordError");
+
+  if (!pwd || pwd.length < 4) {
+    errorEl.textContent = "Digite uma senha com pelo menos 4 caracteres.";
+    return;
+  }
+  if (pwd !== pwd2) {
+    errorEl.textContent = "As senhas digitadas não coincidem.";
+    return;
+  }
+
+  const enc = new TextEncoder().encode(pwd);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  const hash = Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  const colorsFormatted = CONFIG.REGION_COLORS.map((c) => `"${c}"`).join(", ");
+
+  const configContent = `// ============================================================
+// CONFIGURAÇÃO DO APP — edite os valores abaixo conforme precisar
+// ============================================================
+
+const CONFIG = {
+  // Endereço de origem (todas as distâncias são calculadas a partir daqui)
+  ORIGIN_LABEL: "${CONFIG.ORIGIN_LABEL}",
+  ORIGIN_ADDRESS: "${CONFIG.ORIGIN_ADDRESS}",
+
+  // Coordenadas fixas da origem
+  ORIGIN_LAT: ${CONFIG.ORIGIN_LAT},
+  ORIGIN_LNG: ${CONFIG.ORIGIN_LNG},
+
+  // Hash SHA-256 da senha de administrador (gerado pelo app em ${new Date().toLocaleDateString("pt-BR")})
+  ADMIN_PASSWORD_HASH:
+    "${hash}",
+
+  // Centro inicial do mapa
+  MAP_CENTER: [${CONFIG.MAP_CENTER[0]}, ${CONFIG.MAP_CENTER[1]}],
+  MAP_ZOOM: ${CONFIG.MAP_ZOOM},
+
+  // Serviços gratuitos usados (OpenStreetMap)
+  NOMINATIM_URL: "${CONFIG.NOMINATIM_URL}",
+  OSRM_URL: "${CONFIG.OSRM_URL}",
+
+  // Paleta de cores sugeridas para novas regiões (cicla automaticamente).
+  // O admin ainda pode escolher qualquer cor livremente no seletor de cores.
+  REGION_COLORS: [
+    ${colorsFormatted}
+  ],
+};
+`;
+
+  downloadFile("config.js", configContent);
+  closeChangePasswordModal();
+  alert(
+    "Novo config.js baixado! Suba esse arquivo no GitHub, dentro da pasta js/, substituindo o antigo. A senha nova passa a valer assim que publicar."
+  );
+}
+
 function updateAdminUI() {
   const badge = document.getElementById("modeBadge");
   const btnLogin = document.getElementById("btnLogin");
@@ -2350,6 +2448,7 @@ function updateAdminUI() {
     closePdfModal();
     closeEditCitySellersModal();
     closeDedupeModal();
+    closeChangePasswordModal();
     clearSearchPreview();
     if (map.hasLayer && drawControl._map) map.removeControl(drawControl);
   }
@@ -2471,6 +2570,13 @@ function wireEvents() {
     document.getElementById("otherActionsDropdown").classList.add("hidden");
     reverifyAllCities();
   });
+  document.getElementById("btnChangePasswordFromMenu").addEventListener("click", () => {
+    document.getElementById("otherActionsDropdown").classList.add("hidden");
+    openChangePasswordModal();
+  });
+  document.getElementById("btnCloseChangePassword").addEventListener("click", closeChangePasswordModal);
+  document.getElementById("btnCancelChangePassword").addEventListener("click", closeChangePasswordModal);
+  document.getElementById("btnGenerateNewConfig").addEventListener("click", generateNewConfigFile);
 
   document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);
   document.getElementById("btnNewCityCancel").addEventListener("click", closeNewCityModal);
