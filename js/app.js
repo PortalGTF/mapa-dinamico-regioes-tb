@@ -350,7 +350,7 @@ function createCityIcon(color, suspect, isKey) {
   const keyBadge = isKey ? `<div class="pin-key-badge">🔑</div>` : "";
   return L.divIcon({
     className: "",
-    html: `<div class="city-pin" style="--pin-color:${color}"><div class="pin-body"></div><div class="pin-icon">🚚</div>${warnBadge}${keyBadge}</div>`,
+    html: `<div class="city-pin${isKey ? " key-pin" : ""}" style="--pin-color:${color}"><div class="pin-body"></div><div class="pin-icon">🚚</div>${warnBadge}${keyBadge}</div>`,
     iconSize: [30, 40],
     iconAnchor: [15, 40],
     popupAnchor: [0, -36],
@@ -362,6 +362,7 @@ function isKeyCity(cityLabel) {
 }
 
 function colorForCity(cityLabel) {
+  if (isKeyCity(cityLabel)) return "#d4af37"; // dourado, reservado só pras cidades-chave
   const regions = Regions.findByCity(cityLabel);
   if (regions.length > 0) return regions[0].color;
   return "#9a978f"; // sem região
@@ -395,18 +396,41 @@ function rebuildClusters() {
     maxClusterRadius: 50,
   });
 
+  // Se uma região está em foco, calcula quais outras regiões estão "ligadas" a ela
+  // por causa de alguma cidade-chave — essas aparecem desfocadas automaticamente,
+  // mesmo sem o usuário clicar nelas.
+  let linkedRegionIds = new Set();
+  if (focusedRegionId) {
+    const focusedRegion = Regions.list.find((r) => r.id === focusedRegionId);
+    if (focusedRegion) {
+      focusedRegion.cities.forEach((cityLabel) => {
+        const allRegions = Regions.findByCity(cityLabel);
+        if (allRegions.length > 1) {
+          allRegions.forEach((r) => {
+            if (r.id !== focusedRegionId) linkedRegionIds.add(r.id);
+          });
+        }
+      });
+    }
+  }
+
   Object.entries(cityMarkers).forEach(([label, marker]) => {
     let dim = false;
 
     if (focusedRegionId) {
       const focusedRegion = Regions.list.find((r) => r.id === focusedRegionId);
       const inFocusedRegion = focusedRegion && focusedRegion.cities.includes(label);
+      const cityRegionIds = Regions.findByCity(label).map((r) => r.id);
+      const inLinkedRegion = cityRegionIds.some((id) => linkedRegionIds.has(id));
 
-      if (!showNeighborRegions && !inFocusedRegion) {
-        return; // fora da região em foco: fica invisível, a não ser que "mostrar vizinhas" esteja marcado
+      if (!showNeighborRegions && !inFocusedRegion && !inLinkedRegion) {
+        return; // fora da região em foco (e sem ligação por cidade-chave): fica invisível
       }
       if (activeSellerFilter && inFocusedRegion && !(CITY_TO_SELLERS[label] || []).includes(activeSellerFilter)) {
         dim = true; // dentro da região em foco, mas de outro vendedor: aparece desfocada, não escondida
+      }
+      if (!inFocusedRegion && inLinkedRegion) {
+        dim = true; // região vizinha ligada por cidade-chave: aparece desfocada
       }
     } else if (activeSellerFilter && !(SELLERS[activeSellerFilter] || []).includes(label)) {
       return; // sem região em foco: filtro de vendedor tradicional, esconde quem não é dele

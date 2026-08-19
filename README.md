@@ -357,12 +357,18 @@ Mourão compondo tanto Goioerê quanto Ubiratã). Pra marcar isso:
 2. Marque todas as regiões que essa cidade deve compor (pode marcar quantas quiser).
 3. Salve.
 
-A partir daí:
-- A cidade ganha um **selo roxo (🔑)** no pin, visível de longe, em qualquer região
-  que você focar.
-- Ao clicar numa região que tenha uma cidade-chave, o mapa desenha **linhas
-  tracejadas roxas** ligando aquela cidade ao centro de cada outra região que ela
-  também compõe — passe o mouse na linha pra ver o nome da região do outro lado.
+A partir daí, a cidade-chave se destaca bastante das demais:
+- O **pin inteiro fica dourado** — uma cor reservada só pra cidades-chave, que não é
+  usada por nenhuma região, então ela nunca se confunde com o resto do mapa.
+- O selo **🔑 fica maior e brilhante** (com um leve efeito de pulsar), além de um halo
+  dourado ao redor do próprio pin.
+- Ao focar numa região que tem uma cidade-chave, a(s) **outra(s) região(ões) ligada(s)
+  a ela aparecem automaticamente no mapa, desfocadas** — sem precisar clicar nelas —
+  além das linhas tracejadas roxas ligando a cidade ao centro de cada uma. Passe o
+  mouse na linha pra ver o nome da região do outro lado.
+- A **cerca eletrônica** da região em foco já leva a cidade-chave em conta
+  naturalmente (ela é uma cidade normal dentro da lista de cidades daquela região,
+  então o contorno já se estende até ela).
 - No popup da cidade, aparece "🔑 Cidade-chave — compõe N regiões" e a lista de
   todas elas com o perfil mínimo de cada uma.
 
