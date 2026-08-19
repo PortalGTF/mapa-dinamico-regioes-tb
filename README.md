@@ -11,7 +11,46 @@ e consultar a distância rodoviária (ida / ida e volta) da origem até qualquer
 
 ---
 
-## 1. Publicar no GitHub Pages
+## 1. Aba Grade — quadro semanal de roteiros (arrastar e soltar)
+
+Clique na aba **"📅 Grade"** no topo (ao lado de "🗺️ Mapa"). É um quadro semanal
+independente da sua planilha — feito do zero dentro do app, usando as regiões e
+perfis de veículo que você já cadastrou.
+
+### Como montar a grade (modo admin)
+1. **Configure a frota do dia**: em qualquer coluna (SEG a SAB), clique em **"+
+   veículo"**, escolha o perfil (Vuc, Toco, Truck, etc.) e clique em "Adicionar". Uma
+   vaga aparece naquele dia, mostrando o perfil e a capacidade em kg.
+2. **Arraste uma região pra dentro da vaga**: na barra lateral esquerda tem todas as
+   regiões cadastradas, como cartões arrastáveis. Segure e arraste a região até a
+   vaga do dia certo.
+3. **Preenchimento automático**: ao soltar, o cartão já mostra sozinho o nome da
+   região, o perfil de veículo exigido por ela (o que já está travado na região) e a
+   capacidade, quantas cidades ela tem, e um aviso vermelho se o veículo daquela vaga
+   for mais fraco do que a região exige.
+4. **Tirar uma região da grade**: clique no "✕" no canto do cartão preenchido.
+5. **Se a região precisar de mais de um veículo naquele dia**: não precisa criar uma
+   vaga pra cada caminhão — dentro do cartão da região tem um seletor "Qtd. veículos"
+   com os botões **−** e **+**. Aumentando a quantidade, o app recalcula sozinho a
+   **capacidade total** (quantidade × capacidade do perfil daquela vaga) e avisa em
+   vermelho se, mesmo somando todos os veículos, ainda ficar abaixo do perfil mínimo
+   exigido pela região.
+6. Uma região pode ser arrastada pra **mais de um dia/vaga** — útil se o roteiro
+   roda mais de uma vez por semana.
+
+### Relatório "Grade Cidades-Roteiros"
+Clique em **"📋 Grade Cidades-Roteiros"** no topo da tela da Grade — abre uma lista
+com todas as cidades cadastradas, a(s) região(ões)/roteiro(s) que cada uma compõe, e
+um selo 🔑 do lado das cidades-chave (que compõem mais de uma região). Tem um campo
+de busca pra achar uma cidade específica rapidinho.
+
+### Publicando a grade
+Segue o mesmo esquema de rascunho local das outras abas: toda edição na grade fica
+salva só no seu navegador até você exportar. Marque **"Grade (grade.json)"** no menu
+"Exportar dados ▾" (ou use o "Exportar tudo agora" do banner amarelo), e suba o
+arquivo `grade.json` na pasta `data/` do GitHub, junto com os demais.
+
+## 2. Publicar no GitHub Pages
 
 1. Crie um repositório novo no GitHub (pode ser público ou privado, desde que você tenha
    GitHub Pages disponível no seu plano).
@@ -27,7 +66,7 @@ Nenhuma etapa de build é necessária — é HTML/CSS/JS puro.
 
 ---
 
-## 2. Trocar a senha de administrador (faça isso antes de publicar)
+## 3. Trocar a senha de administrador (faça isso antes de publicar)
 
 A senha padrão de fábrica é **`trocaresta123`** — troque antes de publicar.
 
@@ -44,7 +83,7 @@ acidentais ou por pessoas sem a senha.
 
 ---
 
-## 3. Como funciona o dia a dia
+## 4. Como funciona o dia a dia
 
 ### Modo visualização (padrão, sem senha)
 Qualquer pessoa que acessar o link vê:
@@ -445,7 +484,7 @@ buscar tudo de novo (mais rápido) toda vez que alguém abre pela primeira vez.
 
 ---
 
-## 4. Editar a lista de vendedores/cidades ou os perfis de veículo
+## 5. Editar a lista de vendedores/cidades ou os perfis de veículo
 
 - `data/sellers.json` — vendedor → lista de cidades que ele atende
 - `data/city_to_sellers.json` — o inverso (gerado a partir do sellers.json)
@@ -458,7 +497,7 @@ me peça e eu regenero pra você a partir de uma planilha nova.
 
 ---
 
-## 5. Modo apresentação
+## 6. Modo apresentação
 
 Clique em **"🖥️ Apresentar"** no canto superior direito (funciona tanto no modo
 visualização quanto no modo admin) — esconde o topo, a barra do admin e a barra
@@ -468,7 +507,7 @@ lateral, deixando só o mapa na tela, e tenta abrir em tela cheia de verdade tam
 Pra sair: clique no botãozinho **"✕ Sair da apresentação"** que aparece no canto, ou
 aperte **Esc**.
 
-## 6. Identidade visual (cores, fonte e logo)
+## 7. Identidade visual (cores, fonte e logo)
 
 O app já segue a paleta e a tipografia do Portal de Cargas GTF: fundo azul-marinho
 escuro no topo, destaque em verde-azulado (teal), e fonte Inter em vez da fonte
@@ -484,7 +523,7 @@ marca oficial use tons ligeiramente diferentes), os valores ficam centralizados 
 topo do arquivo `css/style.css`, dentro do bloco `:root` — é só trocar o valor
 hexadecimal de `--accent` (verde-azulado) ou `--navy` (azul-marinho escuro).
 
-## 7. Limites a saber
+## 8. Limites a saber
 
 - **Nominatim** (geocodificação) e **OSRM** (rotas) são serviços públicos e gratuitos,
   mas têm limite de uso razoável — o app já respeita isso (não faz mais de 1 busca de
@@ -511,7 +550,7 @@ hexadecimal de `--accent` (verde-azulado) ou `--navy` (azul-marinho escuro).
 - Cidade **"Brasiléia - AC"** (vendedor "A & D") ficou fora do eixo PR/SP das demais —
   verifique se não é erro de digitação da planilha original.
 
-## 8. Evitando esquecer de publicar alterações
+## 9. Evitando esquecer de publicar alterações
 
 Pra nunca mais acontecer de fazer várias mudanças e esquecer de exportar/subir pro
 GitHub, o app tem três redes de segurança:

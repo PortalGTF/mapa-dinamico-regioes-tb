@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadStaticData();
   await Regions.load();
+  await Grade.load();
   await Geocode.loadCommittedCache();
 
   initMap();
@@ -94,6 +95,7 @@ function makePanelsDraggable() {
   attachDrag("editCitySellersModal", document.getElementById("editCitySellersHeader"));
   attachDrag("keyCityModal", document.getElementById("keyCityHeader"));
   attachDrag("changePasswordModal", document.getElementById("changePasswordHeader"));
+  attachDrag("gradeCitiesModal", document.getElementById("gradeCitiesHeader"));
   attachDrag("dedupeModal", document.getElementById("dedupeModalHeader"));
 }
 
@@ -2508,6 +2510,7 @@ function updateDraftHint() {
   const pendingDrafts = [];
   if (Regions.hasDraft()) pendingDrafts.push("regiões");
   if (hasCityDirectoryDraft()) pendingDrafts.push("cidades/vendedores");
+  if (Grade.hasDraft()) pendingDrafts.push("grade");
 
   const hintEl = document.getElementById("draftHint");
   const textEl = document.getElementById("draftHintText");
@@ -2526,6 +2529,7 @@ function exportEverythingNow() {
   downloadFile("regions.json", Regions.exportJSON());
   setTimeout(() => downloadFile("cities.json", Geocode.exportJSON()), 300);
   setTimeout(() => exportDirectory(), 600);
+  setTimeout(() => downloadFile("grade.json", Grade.exportJSON()), 1200);
 }
 
 // ------------------------------------------------------------
@@ -2607,6 +2611,280 @@ const CONFIG = {
   );
 }
 
+// ------------------------------------------------------------
+// ABA GRADE — quadro semanal com arrastar-e-soltar
+// ------------------------------------------------------------
+let currentTab = "map";
+let draggedRegionId = null;
+let openSlotPicker = null; // { day } — qual dia está com o seletor de "+ veículo" aberto
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById("layout").classList.toggle("hidden", tab !== "map");
+  document.getElementById("adminToolbar").classList.toggle("hidden", tab !== "map" || !Auth.isAdmin);
+  document.getElementById("gradeView").classList.toggle("hidden", tab !== "grade");
+
+  document.getElementById("tabMapBtn").classList.toggle("active", tab === "map");
+  document.getElementById("tabGradeBtn").classList.toggle("active", tab === "grade");
+
+  if (tab === "map") {
+    setTimeout(() => map && map.invalidateSize(), 60);
+  } else {
+    renderGradeBoard();
+    renderGradeRegionList();
+  }
+}
+
+function renderGradeRegionList() {
+  const box = document.getElementById("gradeRegionList");
+  box.innerHTML = "";
+
+  Regions.list
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+    .forEach((region) => {
+      const scheduled = Grade.slotsForRegion(region.id);
+      const card = document.createElement("div");
+      card.className = "grade-region-card";
+      card.draggable = Auth.isAdmin;
+      card.dataset.regionId = region.id;
+      card.innerHTML = `
+        <div class="grc-name"><span class="grc-swatch" style="background:${region.color}"></span>${region.name}</div>
+        <div class="grc-meta">${region.cities.length} cidade(s) · perfil: ${region.vehicleProfile}</div>
+        ${scheduled.length > 0 ? `<div class="grc-scheduled">Agendada: ${scheduled.map((s) => s.day).join(", ")}</div>` : ""}
+      `;
+      if (Auth.isAdmin) {
+        card.addEventListener("dragstart", (e) => {
+          draggedRegionId = region.id;
+          card.classList.add("dragging");
+          e.dataTransfer.setData("text/plain", region.id);
+        });
+        card.addEventListener("dragend", () => {
+          card.classList.remove("dragging");
+          draggedRegionId = null;
+        });
+      }
+      box.appendChild(card);
+    });
+}
+
+function renderGradeBoard() {
+  const board = document.getElementById("gradeBoard");
+  document.getElementById("gradeAdminHint").classList.toggle("hidden", !Auth.isAdmin);
+  board.innerHTML = "";
+
+  GRADE_DAYS.forEach((day) => {
+    const col = document.createElement("div");
+    col.className = "grade-day-col";
+    col.dataset.day = day;
+
+    const header = document.createElement("div");
+    header.className = "grade-day-header";
+    header.innerHTML = `<h3>${day}</h3>`;
+    if (Auth.isAdmin) {
+      const addBtn = document.createElement("button");
+      addBtn.className = "grade-add-slot-btn";
+      addBtn.textContent = "+ veículo";
+      addBtn.addEventListener("click", () => {
+        openSlotPicker = openSlotPicker && openSlotPicker.day === day ? null : { day };
+        renderGradeBoard();
+      });
+      header.appendChild(addBtn);
+    }
+    col.appendChild(header);
+
+    if (Auth.isAdmin && openSlotPicker && openSlotPicker.day === day) {
+      const picker = document.createElement("div");
+      picker.className = "grade-add-slot-picker";
+      const select = document.createElement("select");
+      VEHICLE_PROFILES.forEach((p) => {
+        const opt = document.createElement("option");
+        opt.value = p.name;
+        opt.textContent = p.name;
+        select.appendChild(opt);
+      });
+      const btn = document.createElement("button");
+      btn.className = "btn btn-outline";
+      btn.textContent = "Adicionar";
+      btn.addEventListener("click", () => {
+        Grade.addSlot(day, select.value);
+        openSlotPicker = null;
+        updateDraftHint();
+        renderGradeBoard();
+      });
+      picker.appendChild(select);
+      picker.appendChild(btn);
+      col.appendChild(picker);
+    }
+
+    Grade.days[day].forEach((slot) => {
+      col.appendChild(buildGradeSlotEl(day, slot));
+    });
+
+    if (Grade.days[day].length === 0) {
+      const emptyMsg = document.createElement("p");
+      emptyMsg.className = "hint hint-small";
+      emptyMsg.textContent = Auth.isAdmin ? 'Nenhum veículo configurado — clique em "+ veículo".' : "Nenhum veículo configurado.";
+      col.appendChild(emptyMsg);
+    }
+
+    // Dropzone no próprio dia: solta na primeira vaga vazia com perfil compatível, senão na primeira vazia
+    col.addEventListener("dragover", (e) => {
+      if (!Auth.isAdmin) return;
+      e.preventDefault();
+      col.classList.add("drag-over");
+    });
+    col.addEventListener("dragleave", () => col.classList.remove("drag-over"));
+    col.addEventListener("drop", (e) => {
+      e.preventDefault();
+      col.classList.remove("drag-over");
+      if (!Auth.isAdmin) return;
+      const regionId = e.dataTransfer.getData("text/plain") || draggedRegionId;
+      if (!regionId) return;
+      // Se soltou fora de uma vaga específica, usa a primeira vaga vazia do dia
+      const emptySlot = Grade.days[day].find((s) => !s.regionId);
+      if (emptySlot) {
+        Grade.assignRegion(day, emptySlot.id, regionId);
+        updateDraftHint();
+        renderGradeBoard();
+        renderGradeRegionList();
+      }
+    });
+
+    board.appendChild(col);
+  });
+}
+
+function buildGradeSlotEl(day, slot) {
+  const profileInfo = VEHICLE_PROFILES.find((p) => p.name === slot.profile);
+  const el = document.createElement("div");
+  el.className = "grade-slot";
+  el.dataset.slotId = slot.id;
+
+  if (!slot.regionId) {
+    el.innerHTML = `
+      <div class="grade-slot-empty">
+        <span class="grade-slot-profile-badge">${slot.profile}${profileInfo ? ` · ${profileInfo.capacity_kg.toLocaleString("pt-BR")} kg` : ""}</span>
+        ${Auth.isAdmin ? `<button class="grade-slot-remove" title="Remover vaga">✕</button>` : ""}
+      </div>
+      <p class="hint hint-small" style="margin:6px 0 0;">Arraste uma região aqui</p>
+    `;
+    if (Auth.isAdmin) {
+      el.querySelector(".grade-slot-remove").addEventListener("click", () => {
+        Grade.removeSlot(day, slot.id);
+        updateDraftHint();
+        renderGradeBoard();
+      });
+    }
+  } else {
+    const region = Regions.list.find((r) => r.id === slot.regionId);
+    el.classList.add("grade-slot-filled");
+    if (!region) {
+      el.innerHTML = `<p class="hint hint-small">Região removida.</p>`;
+    } else {
+      const quantity = slot.quantity || 1;
+      const regionProfileInfo = VEHICLE_PROFILES.find((p) => p.name === region.vehicleProfile);
+      const totalCapacity = profileInfo ? profileInfo.capacity_kg * quantity : null;
+      const overCapacity =
+        regionProfileInfo && totalCapacity !== null && totalCapacity < regionProfileInfo.capacity_kg;
+      el.style.borderLeft = `4px solid ${region.color}`;
+      el.innerHTML = `
+        ${Auth.isAdmin ? `<button class="grade-slot-unassign" title="Tirar da grade">✕</button>` : ""}
+        <div class="grade-slot-region-name">${region.name}</div>
+        <div class="grade-slot-meta">
+          Perfil exigido: ${region.vehicleProfile}${regionProfileInfo ? ` (${regionProfileInfo.capacity_kg.toLocaleString("pt-BR")} kg)` : ""}<br>
+          ${region.cities.length} cidade(s)
+        </div>
+        <div class="grade-slot-qty">
+          <span class="qty-label">Qtd. veículos ${slot.profile}:</span>
+          <div class="qty-stepper">
+            <button class="qty-btn" data-op="dec" ${!Auth.isAdmin ? "disabled" : ""}>−</button>
+            <span class="qty-value">${quantity}</span>
+            <button class="qty-btn" data-op="inc" ${!Auth.isAdmin ? "disabled" : ""}>+</button>
+          </div>
+        </div>
+        <div class="grade-slot-total">
+          Capacidade total: ${totalCapacity !== null ? `${totalCapacity.toLocaleString("pt-BR")} kg` : "—"}
+          ${overCapacity ? `<br><span class="grade-slot-warn">⚠️ Capacidade total abaixo do exigido pela região</span>` : ""}
+        </div>
+      `;
+      if (Auth.isAdmin) {
+        el.querySelector(".grade-slot-unassign").addEventListener("click", () => {
+          Grade.unassignSlot(day, slot.id);
+          updateDraftHint();
+          renderGradeBoard();
+          renderGradeRegionList();
+        });
+        el.querySelectorAll(".qty-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const delta = btn.dataset.op === "inc" ? 1 : -1;
+            Grade.setQuantity(day, slot.id, quantity + delta);
+            updateDraftHint();
+            renderGradeBoard();
+          });
+        });
+      }
+    }
+  }
+
+  if (Auth.isAdmin) {
+    el.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      el.classList.add("drag-over");
+    });
+    el.addEventListener("dragleave", (e) => {
+      e.stopPropagation();
+      el.classList.remove("drag-over");
+    });
+    el.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      el.classList.remove("drag-over");
+      const regionId = e.dataTransfer.getData("text/plain") || draggedRegionId;
+      if (!regionId) return;
+      Grade.assignRegion(day, slot.id, regionId);
+      updateDraftHint();
+      renderGradeBoard();
+      renderGradeRegionList();
+    });
+  }
+
+  return el;
+}
+
+// ------------------------------------------------------------
+// Relatório: Grade Cidades-Roteiros
+// ------------------------------------------------------------
+function openGradeCitiesModal() {
+  document.getElementById("gradeCitiesSearch").value = "";
+  renderGradeCitiesList("");
+  document.getElementById("gradeCitiesModal").classList.remove("hidden");
+}
+
+function closeGradeCitiesModal() {
+  document.getElementById("gradeCitiesModal").classList.add("hidden");
+}
+
+function renderGradeCitiesList(filterText) {
+  const box = document.getElementById("gradeCitiesList");
+  const filter = normalizeStr(filterText || "");
+  box.innerHTML = "";
+
+  CITIES_LIST.slice()
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .filter((c) => !filter || normalizeStr(c).includes(filter))
+    .forEach((city) => {
+      const regions = Regions.findByCity(city);
+      const row = document.createElement("div");
+      row.className = "gcl-row";
+      const key = isKeyCity(city) ? `<span class="gcl-key">🔑</span>` : `<span style="width:16px;display:inline-block;"></span>`;
+      const regionNames = regions.length > 0 ? regions.map((r) => r.name).join(", ") : "sem região definida";
+      row.innerHTML = `${key}<span class="gcl-name">${city}</span><span class="gcl-regions">${regionNames}</span>`;
+      box.appendChild(row);
+    });
+}
+
 function updateAdminUI() {
   const badge = document.getElementById("modeBadge");
   const btnLogin = document.getElementById("btnLogin");
@@ -2618,7 +2896,7 @@ function updateAdminUI() {
     badge.className = "badge badge-admin";
     btnLogin.classList.add("hidden");
     btnLogout.classList.remove("hidden");
-    adminToolbar.classList.remove("hidden");
+    adminToolbar.classList.toggle("hidden", currentTab !== "map");
     map.addControl(drawControl);
   } else {
     badge.textContent = "Modo visualização";
@@ -2634,11 +2912,16 @@ function updateAdminUI() {
     closeKeyCityModal();
     closeDedupeModal();
     closeChangePasswordModal();
+    closeGradeCitiesModal();
     clearSearchPreview();
     if (map.hasLayer && drawControl._map) map.removeControl(drawControl);
   }
 
   updateDraftHint();
+  if (currentTab === "grade") {
+    renderGradeBoard();
+    renderGradeRegionList();
+  }
 
   setMarkersDraggable(Auth.isAdmin);
   renderRegionsList();
@@ -2647,6 +2930,15 @@ function updateAdminUI() {
 
 function wireEvents() {
   document.getElementById("btnPresentMode").addEventListener("click", () => togglePresentationMode());
+
+  document.getElementById("tabMapBtn").addEventListener("click", () => switchTab("map"));
+  document.getElementById("tabGradeBtn").addEventListener("click", () => switchTab("grade"));
+
+  document.getElementById("btnGradeCitiesReport").addEventListener("click", openGradeCitiesModal);
+  document.getElementById("btnCloseGradeCities").addEventListener("click", closeGradeCitiesModal);
+  document.getElementById("gradeCitiesSearch").addEventListener("input", (e) => {
+    renderGradeCitiesList(e.target.value);
+  });
   document.getElementById("btnExitPresent").addEventListener("click", () => togglePresentationMode(false));
 
   document.getElementById("btnLogin").addEventListener("click", () => {
@@ -2724,7 +3016,8 @@ function wireEvents() {
     const wantRegions = document.getElementById("expRegions").checked;
     const wantCities = document.getElementById("expCities").checked;
     const wantDirectory = document.getElementById("expDirectory").checked;
-    if (!wantRegions && !wantCities && !wantDirectory) {
+    const wantGrade = document.getElementById("expGrade").checked;
+    if (!wantRegions && !wantCities && !wantDirectory && !wantGrade) {
       alert("Selecione ao menos um item para exportar.");
       return;
     }
@@ -2739,6 +3032,10 @@ function wireEvents() {
     }
     if (wantDirectory) {
       setTimeout(exportDirectory, delay);
+      delay += 900;
+    }
+    if (wantGrade) {
+      setTimeout(() => downloadFile("grade.json", Grade.exportJSON()), delay);
     }
     document.getElementById("exportDropdown").classList.add("hidden");
   });
