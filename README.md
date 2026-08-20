@@ -74,6 +74,23 @@ com todas as cidades cadastradas, a(s) região(ões)/roteiro(s) que cada uma com
 um selo 🔑 do lado das cidades-chave (que compõem mais de uma região). Tem um campo
 de busca pra achar uma cidade específica rapidinho.
 
+### Ver as cidades de uma região (qualquer pessoa, com ou sem senha)
+Clique no **nome de qualquer região** — seja no cartão da lista de cima ou na coluna
+"Rota" dentro da tabela — e abre um painel mostrando todas as cidades que ela
+compõe. Se alguma cidade for **cidade-chave** (compõe mais de uma região), aparece
+com o selo 🔑 e uma notinha dizendo quais outras regiões ela também atende. Isso
+funciona tanto no modo admin quanto no modo visualização, sem precisar de senha.
+
+### Resumo de veículos por dia
+Embaixo da tabela principal da Grade, tem uma segunda tabelinha mostrando, pra cada
+dia da semana, **quantos veículos de cada perfil** são necessários (somando a
+quantidade de todos os carregamentos daquele perfil naquele dia). Ajuda a ver de
+relance se vai faltar caminhão de algum tipo específico num dia.
+
+### Regiões em 7 colunas
+A faixa de regiões pra arrastar no topo da tela agora está organizada em 7 colunas
+(era 6), pra caber mais regiões por linha e ocupar menos altura da tela.
+
 ### Publicando a grade
 Segue o mesmo esquema de rascunho local das outras abas: toda edição na grade fica
 salva só no seu navegador até você exportar. Marque **"Grade (grade.json)"** no menu

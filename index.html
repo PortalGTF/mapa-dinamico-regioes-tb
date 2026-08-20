@@ -135,6 +135,18 @@
   </main>
 </div>
 
+<!-- Painel: detalhes de uma região (cidades + cidades-chave), aberto ao clicar em qualquer região na Grade -->
+<div id="gradeRegionInfoModal" class="side-panel hidden">
+  <div class="side-panel-header" id="gradeRegionInfoHeader">
+    <h3 id="gradeRegionInfoTitle">Região</h3>
+    <div class="side-panel-header-actions">
+      <button id="btnCloseGradeRegionInfo" class="icon-btn" title="Fechar">✕</button>
+    </div>
+  </div>
+  <p id="gradeRegionInfoMeta" class="hint hint-small"></p>
+  <div id="gradeRegionInfoCities"></div>
+</div>
+
 <!-- Painel: relatório Grade Cidades-Roteiros -->
 <div id="gradeCitiesModal" class="side-panel side-panel-wide hidden">
   <div class="side-panel-header" id="gradeCitiesHeader">

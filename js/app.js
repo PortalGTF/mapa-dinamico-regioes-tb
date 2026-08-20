@@ -97,6 +97,7 @@ function makePanelsDraggable() {
   attachDrag("keyCityModal", document.getElementById("keyCityHeader"));
   attachDrag("changePasswordModal", document.getElementById("changePasswordHeader"));
   attachDrag("gradeCitiesModal", document.getElementById("gradeCitiesHeader"));
+  attachDrag("gradeRegionInfoModal", document.getElementById("gradeRegionInfoHeader"));
   attachDrag("dedupeModal", document.getElementById("dedupeModalHeader"));
 }
 
@@ -2711,10 +2712,14 @@ function renderGradeRegionList() {
         <div class="grc-name">
           <span class="grc-swatch" style="background:${region.color}"></span>
           ${uniqueDays.map((d) => `<span class="grc-day-badge">${d}</span>`).join("")}
-          ${region.name}
+          <span class="gri-region-clickable" data-region-id="${region.id}">${region.name}</span>
         </div>
         <div class="grc-meta">${region.cities.length} cidade(s) · perfil: ${region.vehicleProfile}</div>
       `;
+      card.querySelector(".gri-region-clickable").addEventListener("click", (e) => {
+        e.stopPropagation();
+        openGradeRegionInfo(region.id);
+      });
       if (Auth.isAdmin) {
         card.addEventListener("dragstart", (e) => {
           draggedRegionId = region.id;
@@ -2853,6 +2858,46 @@ function renderGradeBoard() {
 
   table.appendChild(tbody);
   board.appendChild(table);
+
+  board.appendChild(buildGradeFleetSummary());
+}
+
+// Tabela resumo: quantos veículos de cada perfil são necessários em cada dia,
+// somando a quantidade de todas as rotas daquele perfil naquele dia.
+function buildGradeFleetSummary() {
+  const summary = document.createElement("table");
+  summary.className = "grade-fleet-summary";
+  summary.innerHTML = `<caption>Resumo de veículos por dia (quantidade por perfil)</caption>`;
+
+  const thead = document.createElement("thead");
+  const headRow = document.createElement("tr");
+  headRow.innerHTML = `<th class="gfs-profile-col">Perfil</th>`;
+  GRADE_DAYS.forEach((day) => {
+    const th = document.createElement("th");
+    th.textContent = `${GRADE_DAY_NAMES[day].toUpperCase()}`;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  summary.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  VEHICLE_PROFILES.forEach((profile) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td class="gfs-profile-col">${profile.name}</td>`;
+    GRADE_DAYS.forEach((day) => {
+      const count = Grade.days[day]
+        .filter((r) => r.profile === profile.name)
+        .reduce((sum, r) => sum + (r.quantity || 1), 0);
+      const td = document.createElement("td");
+      td.className = count > 0 ? "gfs-nonzero" : "gfs-zero";
+      td.textContent = count > 0 ? count : "—";
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  });
+  summary.appendChild(tbody);
+
+  return summary;
 }
 
 // Monta as 4 células (Veic | Rota | Peso | Perfil) de uma rota, e insere na linha
@@ -2880,9 +2925,12 @@ function buildGradeRouteCells(row, day, route, region) {
   rotaTd.className = "gt-cell gt-cell-rota";
   rotaTd.dataset.day = day;
   rotaTd.innerHTML = `
-    <span class="grc-swatch" style="background:${region.color}"></span>${region.name}
+    <span class="grc-swatch" style="background:${region.color}"></span><span class="gri-region-clickable">${region.name}</span>
     ${Auth.isAdmin ? `<button class="gt-remove" title="Remover">✕</button>` : ""}
   `;
+  rotaTd.querySelector(".gri-region-clickable").addEventListener("click", () => {
+    openGradeRegionInfo(region.id);
+  });
 
   // Peso
   const pesoTd = document.createElement("td");
@@ -2931,6 +2979,46 @@ function buildGradeRouteCells(row, day, route, region) {
       renderGradeBoard();
     });
   }
+}
+
+// Detalhes de uma região (cidades + cidades-chave) — disponível pra qualquer
+// pessoa que clicar numa região dentro da Grade, admin ou não.
+// ------------------------------------------------------------
+function openGradeRegionInfo(regionId) {
+  const region = Regions.list.find((r) => r.id === regionId);
+  if (!region) return;
+
+  document.getElementById("gradeRegionInfoTitle").textContent = region.name;
+  document.getElementById("gradeRegionInfoMeta").textContent =
+    `${region.cities.length} cidade(s) · perfil mínimo: ${region.vehicleProfile}`;
+
+  const box = document.getElementById("gradeRegionInfoCities");
+  box.innerHTML = "";
+  region.cities
+    .slice()
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .forEach((city) => {
+      const allRegions = Regions.findByCity(city);
+      const key = allRegions.length > 1;
+      const row = document.createElement("div");
+      row.className = "gri-city-row" + (key ? " gri-key" : "");
+      let html = `${key ? '<span class="gri-key-badge">🔑</span>' : ""}<span class="gri-city-name">${city}</span>`;
+      if (key) {
+        const others = allRegions
+          .filter((r) => r.id !== region.id)
+          .map((r) => r.name)
+          .join(", ");
+        html += `<div class="gri-key-note">Cidade-chave — também compõe: ${others}</div>`;
+      }
+      row.innerHTML = html;
+      box.appendChild(row);
+    });
+
+  document.getElementById("gradeRegionInfoModal").classList.remove("hidden");
+}
+
+function closeGradeRegionInfo() {
+  document.getElementById("gradeRegionInfoModal").classList.add("hidden");
 }
 
 // Relatório: Grade Cidades-Roteiros
@@ -3015,6 +3103,7 @@ function wireEvents() {
 
   document.getElementById("btnGradeCitiesReport").addEventListener("click", openGradeCitiesModal);
   document.getElementById("btnCloseGradeCities").addEventListener("click", closeGradeCitiesModal);
+  document.getElementById("btnCloseGradeRegionInfo").addEventListener("click", closeGradeRegionInfo);
   document.getElementById("gradeCitiesSearch").addEventListener("input", (e) => {
     renderGradeCitiesList(e.target.value);
   });
