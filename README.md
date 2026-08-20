@@ -27,6 +27,14 @@ ATENDIMENTO". O nome da região fica **dentro da coluna do dia dela** (na sub-co
 "Rota"), não separado — então olhando a coluna de segunda, por exemplo, você já vê
 ali dentro qual região está sendo carregada.
 
+**Layout**: as regiões pra arrastar ficam numa faixa no **topo**, organizadas numa
+grade de 5 colunas (crescendo pra baixo conforme mais regiões existem, com rolagem
+vertical própria se passar de um certo tamanho). A tabela dos dias fica **embaixo**,
+ocupando toda a largura disponível — as colunas se ajustam sozinhas pra caber os 5
+dias (Domingo a Quinta de carregamento) **sem precisar de rolagem lateral**, em
+qualquer tamanho de tela. Como consequência de caber tudo sem rolar, as colunas ficam
+compactas; nomes mais longos quebram em duas linhas em vez de cortar.
+
 ### Como montar a grade (modo admin)
 1. **Arraste a região direto pra coluna do dia**: na barra lateral esquerda tem
    todas as regiões cadastradas, como cartões arrastáveis. Solte em qualquer parte

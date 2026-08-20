@@ -2775,6 +2775,21 @@ function renderGradeBoard() {
   const table = document.createElement("table");
   table.className = "grade-table";
 
+  // Larguras em porcentagem (soma 100%) — garante que a semana inteira caiba na
+  // tela, sem precisar de rolagem lateral, não importa o tamanho da janela.
+  const colgroup = document.createElement("colgroup");
+  const vendorCol = document.createElement("col");
+  vendorCol.style.width = "15%";
+  colgroup.appendChild(vendorCol);
+  GRADE_DAYS.forEach(() => {
+    [3, 7, 4, 3].forEach((pct) => {
+      const col = document.createElement("col");
+      col.style.width = `${(85 / GRADE_DAYS.length) * (pct / 17)}%`;
+      colgroup.appendChild(col);
+    });
+  });
+  table.appendChild(colgroup);
+
   // Cabeçalho: linha 1 = dia (carreg/entrega + capacidade), linha 2 = Veic/Rota/Peso/Perfil
   const thead = document.createElement("thead");
   const dayRow = document.createElement("tr");
