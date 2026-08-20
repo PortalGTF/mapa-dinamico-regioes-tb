@@ -20,27 +20,34 @@ entrega amanhã" (5 colunas: **Carreg. Domingo → Entrega Segunda**, **Carreg. 
 → Entrega Terça**, e assim até **Carreg. Quinta → Entrega Sexta** — sem sábado, já
 que não tem rota nesse dia).
 
+A tela é uma **tabela de verdade**, no mesmo espírito da sua planilha: uma coluna de
+**Vendedor** e uma de **Região** à esquerda (uma linha só por região), e depois uma
+coluna por dia — cada uma com o perfil, a quantidade de veículos e o peso daquele
+carregamento.
+
 ### Como montar a grade (modo admin)
 1. **Arraste a região direto pra coluna do dia**: na barra lateral esquerda tem
-   todas as regiões cadastradas, como cartões arrastáveis. Solte na coluna de
-   carregamento certa — **não precisa configurar frota antes**.
-2. **Preenchimento automático**: ao soltar, o cartão já vem pronto sozinho com: nome
-   da região, os vendedores que atendem ela, o **perfil de veículo já travado na
-   região** (o mesmo que você define lá no mapa), e o peso (capacidade do perfil).
-3. **Mudar o perfil daquela viagem específica, se precisar**: tem um seletor de
-   perfil dentro do cartão — normalmente não precisa mexer, já que o perfil vem
+   todas as regiões cadastradas, como cartões arrastáveis. Solte em qualquer parte
+   da coluna do dia certo (cabeçalho ou célula) — **não precisa configurar frota
+   antes**. A região só aparece na tabela depois de ser arrastada pra algum dia pelo
+   menos uma vez.
+2. **Preenchimento automático**: assim que a região aparece na tabela, a linha já
+   vem com o **vendedor** (coluna própria, ao lado, não dentro de uma caixa), o
+   **perfil de veículo já travado na região**, e o peso (capacidade do perfil).
+3. **Mudar o perfil daquele carregamento específico, se precisar**: tem um campo de
+   perfil bem compacto na célula do dia — normalmente não precisa mexer, já que vem
    certo da região, mas fica disponível caso aquele carregamento específico use um
    veículo diferente do padrão.
-4. **Mais de um veículo naquele dia**: o cartão tem um seletor "Qtd. veículos" (**−**
-   / **+**) — aumentando, o app recalcula sozinho o peso total (quantidade × peso do
-   perfil) e avisa em vermelho se, mesmo somando tudo, ainda ficar abaixo do que a
-   região exige.
-5. **Tirar uma região da grade**: clique no "✕" no canto do cartão.
-6. A mesma região pode ser arrastada **mais de uma vez no mesmo dia** (duas viagens
-   separadas) ou **em dias diferentes**, se o roteiro roda mais de uma vez por
-   semana.
+4. **Mais de um veículo naquele dia**: ao lado do perfil tem um campo **"−ǀ+"** pra
+   mudar a quantidade — o peso daquela linha recalcula sozinho (quantidade × peso do
+   perfil), e mostra um ⚠️ (passe o mouse pra ver o motivo) se ainda ficar abaixo do
+   que a região exige.
+5. **Tirar um carregamento da grade**: clique no "✕" na célula daquele dia.
+6. A mesma região pode aparecer **em mais de um dia**, ou **mais de uma vez no mesmo
+   dia** (duas viagens separadas nesse dia) — cada carregamento é uma linha compacta
+   dentro da célula daquele dia.
 7. **No topo de cada coluna** aparece a **capacidade de embarque total daquele dia**
-   — a soma do peso de todas as rotas já colocadas ali, recalculada sozinha
+   — a soma do peso de tudo que está ali, recalculada sozinha
    toda vez que você adiciona, remove, ou muda a quantidade de alguma rota.
 
 ### Relatório "Grade Cidades-Roteiros"
