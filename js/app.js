@@ -2665,6 +2665,7 @@ function switchTab(tab) {
   document.getElementById("layout").classList.toggle("hidden", tab !== "map");
   document.getElementById("adminToolbar").classList.toggle("hidden", tab !== "map" || !Auth.isAdmin);
   document.getElementById("gradeView").classList.toggle("hidden", tab !== "grade");
+  document.getElementById("gradeTabExtras").classList.toggle("hidden", tab !== "grade");
 
   document.getElementById("tabMapBtn").classList.toggle("active", tab === "map");
   document.getElementById("tabGradeBtn").classList.toggle("active", tab === "grade");

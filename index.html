@@ -37,6 +37,12 @@
 <div id="tabBar" class="tab-bar">
   <button class="tab-btn active" id="tabMapBtn" data-tab="map">🗺️ Mapa</button>
   <button class="tab-btn" id="tabGradeBtn" data-tab="grade">📅 Grade</button>
+
+  <div id="gradeTabExtras" class="grade-tab-extras hidden">
+    <span class="grade-tab-hint">Arraste uma região até o dia certo — perfil e peso já vêm preenchidos.</span>
+    <button id="btnGradeCitiesReport" class="btn btn-outline btn-tiny">📋 Grade Cidades-Roteiros</button>
+    <span id="gradeAdminHint" class="grade-tab-hint hidden">Modo admin: arraste a região até o dia certo.</span>
+  </div>
 </div>
 
 <button id="btnExitPresent" class="exit-present-btn hidden">✕ Sair da apresentação (Esc)</button>
@@ -121,18 +127,10 @@
 <!-- Aba: Grade semanal de roteiros -->
 <div id="gradeView" class="grade-view hidden">
   <div id="gradeRegionsBar">
-    <div class="grade-regions-header">
-      <h2>Regiões (arraste pra grade)</h2>
-      <p class="hint hint-small">Segure e arraste uma região até a coluna do dia certo — o perfil e o peso já vêm preenchidos sozinhos.</p>
-    </div>
     <div id="gradeRegionList" class="grade-regions-grid"></div>
   </div>
 
   <main id="gradeMain">
-    <div class="grade-toolbar">
-      <button id="btnGradeCitiesReport" class="btn btn-outline">📋 Grade Cidades-Roteiros</button>
-      <span id="gradeAdminHint" class="hint hint-small hidden">Modo admin: arraste uma região da lista até o dia certo — o perfil e o peso já vêm da própria região.</span>
-    </div>
     <div id="gradeBoard" class="grade-board"></div>
   </main>
 </div>
