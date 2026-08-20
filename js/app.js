@@ -2701,14 +2701,18 @@ function renderGradeRegionList() {
     .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
     .forEach((region) => {
       const scheduled = Grade.routesForRegion(region.id);
+      const uniqueDays = Array.from(new Set(scheduled.map((s) => s.day)));
       const card = document.createElement("div");
       card.className = "grade-region-card";
       card.draggable = Auth.isAdmin;
       card.dataset.regionId = region.id;
       card.innerHTML = `
-        <div class="grc-name"><span class="grc-swatch" style="background:${region.color}"></span>${region.name}</div>
+        <div class="grc-name">
+          <span class="grc-swatch" style="background:${region.color}"></span>
+          ${uniqueDays.map((d) => `<span class="grc-day-badge">${d}</span>`).join("")}
+          ${region.name}
+        </div>
         <div class="grc-meta">${region.cities.length} cidade(s) · perfil: ${region.vehicleProfile}</div>
-        ${scheduled.length > 0 ? `<div class="grc-scheduled">Na grade: ${scheduled.map((s) => s.day).join(", ")}</div>` : ""}
       `;
       if (Auth.isAdmin) {
         card.addEventListener("dragstart", (e) => {
