@@ -297,10 +297,6 @@ button { font-family: inherit; }
 td[data-day].drag-over,
 th[data-day].drag-over { background: var(--accent-soft) !important; }
 
-.gt-vendor-group-start td {
-  border-top: 3px dashed #1565c0;
-}
-
 .gt-empty-msg { text-align: center; color: var(--muted); padding: 30px !important; font-size: 12.5px; }
 
 .qty-stepper { display: flex; align-items: center; justify-content: center; gap: 4px; }

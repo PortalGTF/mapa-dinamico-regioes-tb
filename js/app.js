@@ -51,6 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("searchAddressInput").value = "";
 
   wireEvents();
+  setupGradeDragDrop();
   makePanelsDraggable();
 
   // Geocodifica em segundo plano tudo o que ainda não está no cache
@@ -2617,6 +2618,48 @@ const CONFIG = {
 let currentTab = "map";
 let draggedRegionId = null;
 
+let gradeDragDropReady = false;
+
+// Liga os eventos de arrastar-e-soltar da Grade UMA ÚNICA VEZ (nunca de novo a
+// cada render) — grudar de novo a cada redesenho da tabela é o que causava
+// duplicação: um "soltar" disparava vários listeners acumulados de uma vez.
+function setupGradeDragDrop() {
+  if (gradeDragDropReady) return;
+  gradeDragDropReady = true;
+
+  const board = document.getElementById("gradeBoard");
+
+  board.addEventListener("dragover", (e) => {
+    if (!Auth.isAdmin) return;
+    const cell = e.target.closest("[data-day]");
+    if (!cell) return;
+    e.preventDefault();
+    cell.classList.add("drag-over");
+  });
+
+  board.addEventListener("dragleave", (e) => {
+    const cell = e.target.closest("[data-day]");
+    if (cell) cell.classList.remove("drag-over");
+  });
+
+  board.addEventListener("drop", (e) => {
+    if (!Auth.isAdmin) return;
+    const cell = e.target.closest("[data-day]");
+    if (!cell) return;
+    e.preventDefault();
+    cell.classList.remove("drag-over");
+    const day = cell.dataset.day;
+    const regionId = e.dataTransfer.getData("text/plain") || draggedRegionId;
+    if (!regionId || !day) return;
+    const region = Regions.list.find((r) => r.id === regionId);
+    if (!region) return;
+    Grade.addRoute(day, regionId, region.vehicleProfile);
+    updateDraftHint();
+    renderGradeBoard();
+    renderGradeRegionList();
+  });
+}
+
 function switchTab(tab) {
   currentTab = tab;
   document.getElementById("layout").classList.toggle("hidden", tab !== "map");
@@ -2767,14 +2810,8 @@ function renderGradeBoard() {
     tbody.appendChild(emptyRow);
   }
 
-  let previousVendorKey = null;
   packedRows.forEach((rowData) => {
     const row = document.createElement("tr");
-    if (previousVendorKey !== null && rowData.vendorKey !== previousVendorKey) {
-      row.classList.add("gt-vendor-group-start");
-    }
-    previousVendorKey = rowData.vendorKey;
-
     row.innerHTML = `<td class="gt-col-vendor">${rowData.vendorKey}</td>`;
 
     GRADE_DAYS.forEach((day) => {
@@ -2796,35 +2833,6 @@ function renderGradeBoard() {
 
   table.appendChild(tbody);
   board.appendChild(table);
-
-  // Arrastar-e-soltar: solta em qualquer célula/cabeçalho daquele dia
-  if (Auth.isAdmin) {
-    board.addEventListener("dragover", (e) => {
-      const cell = e.target.closest("[data-day]");
-      if (!cell) return;
-      e.preventDefault();
-      cell.classList.add("drag-over");
-    });
-    board.addEventListener("dragleave", (e) => {
-      const cell = e.target.closest("[data-day]");
-      if (cell) cell.classList.remove("drag-over");
-    });
-    board.addEventListener("drop", (e) => {
-      const cell = e.target.closest("[data-day]");
-      if (!cell) return;
-      e.preventDefault();
-      cell.classList.remove("drag-over");
-      const day = cell.dataset.day;
-      const regionId = e.dataTransfer.getData("text/plain") || draggedRegionId;
-      if (!regionId || !day) return;
-      const region = Regions.list.find((r) => r.id === regionId);
-      if (!region) return;
-      Grade.addRoute(day, regionId, region.vehicleProfile);
-      updateDraftHint();
-      renderGradeBoard();
-      renderGradeRegionList();
-    });
-  }
 }
 
 // Monta as 4 células (Veic | Rota | Peso | Perfil) de uma rota, e insere na linha
