@@ -11,32 +11,37 @@ e consultar a distância rodoviária (ida / ida e volta) da origem até qualquer
 
 ---
 
-## 1. Aba Grade — quadro semanal de roteiros (arrastar e soltar)
+## 1. Aba Grade — quadro de carregamento/entrega (arrastar e soltar)
 
-Clique na aba **"📅 Grade"** no topo (ao lado de "🗺️ Mapa"). É um quadro semanal
+Clique na aba **"📅 Grade"** no topo (ao lado de "🗺️ Mapa"). É um quadro dinâmico
 independente da sua planilha — feito do zero dentro do app, usando as regiões e
-perfis de veículo que você já cadastrou.
+perfis de veículo que você já cadastrou. Segue o formato de "carregamento hoje →
+entrega amanhã" (5 colunas: **Carreg. Domingo → Entrega Segunda**, **Carreg. Segunda
+→ Entrega Terça**, e assim até **Carreg. Quinta → Entrega Sexta** — sem sábado, já
+que não tem rota nesse dia).
 
 ### Como montar a grade (modo admin)
-1. **Configure a frota do dia**: em qualquer coluna (SEG a SAB), clique em **"+
-   veículo"**, escolha o perfil (Vuc, Toco, Truck, etc.) e clique em "Adicionar". Uma
-   vaga aparece naquele dia, mostrando o perfil e a capacidade em kg.
-2. **Arraste uma região pra dentro da vaga**: na barra lateral esquerda tem todas as
-   regiões cadastradas, como cartões arrastáveis. Segure e arraste a região até a
-   vaga do dia certo.
-3. **Preenchimento automático**: ao soltar, o cartão já mostra sozinho o nome da
-   região, o perfil de veículo exigido por ela (o que já está travado na região) e a
-   capacidade, quantas cidades ela tem, e um aviso vermelho se o veículo daquela vaga
-   for mais fraco do que a região exige.
-4. **Tirar uma região da grade**: clique no "✕" no canto do cartão preenchido.
-5. **Se a região precisar de mais de um veículo naquele dia**: não precisa criar uma
-   vaga pra cada caminhão — dentro do cartão da região tem um seletor "Qtd. veículos"
-   com os botões **−** e **+**. Aumentando a quantidade, o app recalcula sozinho a
-   **capacidade total** (quantidade × capacidade do perfil daquela vaga) e avisa em
-   vermelho se, mesmo somando todos os veículos, ainda ficar abaixo do perfil mínimo
-   exigido pela região.
-6. Uma região pode ser arrastada pra **mais de um dia/vaga** — útil se o roteiro
-   roda mais de uma vez por semana.
+1. **Arraste a região direto pra coluna do dia**: na barra lateral esquerda tem
+   todas as regiões cadastradas, como cartões arrastáveis. Solte na coluna de
+   carregamento certa — **não precisa configurar frota antes**.
+2. **Preenchimento automático**: ao soltar, o cartão já vem pronto sozinho com: nome
+   da região, os vendedores que atendem ela, o **perfil de veículo já travado na
+   região** (o mesmo que você define lá no mapa), e o peso (capacidade do perfil).
+3. **Mudar o perfil daquela viagem específica, se precisar**: tem um seletor de
+   perfil dentro do cartão — normalmente não precisa mexer, já que o perfil vem
+   certo da região, mas fica disponível caso aquele carregamento específico use um
+   veículo diferente do padrão.
+4. **Mais de um veículo naquele dia**: o cartão tem um seletor "Qtd. veículos" (**−**
+   / **+**) — aumentando, o app recalcula sozinho o peso total (quantidade × peso do
+   perfil) e avisa em vermelho se, mesmo somando tudo, ainda ficar abaixo do que a
+   região exige.
+5. **Tirar uma região da grade**: clique no "✕" no canto do cartão.
+6. A mesma região pode ser arrastada **mais de uma vez no mesmo dia** (duas viagens
+   separadas) ou **em dias diferentes**, se o roteiro roda mais de uma vez por
+   semana.
+7. **No topo de cada coluna** aparece a **capacidade de embarque total daquele dia**
+   — a soma do peso de todas as rotas já colocadas ali, recalculada sozinha
+   toda vez que você adiciona, remove, ou muda a quantidade de alguma rota.
 
 ### Relatório "Grade Cidades-Roteiros"
 Clique em **"📋 Grade Cidades-Roteiros"** no topo da tela da Grade — abre uma lista
