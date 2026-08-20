@@ -527,9 +527,11 @@ me peça e eu regenero pra você a partir de uma planilha nova.
 ## 6. Modo apresentação
 
 Clique em **"🖥️ Apresentar"** no canto superior direito (funciona tanto no modo
-visualização quanto no modo admin) — esconde o topo, a barra do admin e a barra
-lateral, deixando só o mapa na tela, e tenta abrir em tela cheia de verdade também.
-Ótimo pra projetar numa reunião sem mostrar botões e menus.
+visualização quanto no modo admin) — abre a tela em **tela cheia de verdade**
+(ocupando o monitor inteiro, sem a barra de endereço/abas do navegador), mantendo
+tudo visível exatamente como no uso normal: topo, barra do admin (se estiver
+logado), barra lateral, e o mapa/grade. Ótimo pra projetar numa reunião com mais
+espaço de tela, sem perder acesso a nenhuma ferramenta.
 
 Pra sair: clique no botãozinho **"✕ Sair da apresentação"** que aparece no canto, ou
 aperte **Esc**.

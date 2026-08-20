@@ -363,11 +363,9 @@ th[data-day].drag-over { background: var(--accent-soft) !important; }
 .gcl-row .gcl-key { color: #c8960a; flex-shrink: 0; }
 .gcl-row .gcl-name { font-weight: 600; flex-shrink: 0; width: 150px; }
 .gcl-row .gcl-regions { color: var(--muted); }
-body.presentation-mode #topbar,
-body.presentation-mode #adminToolbar {
-  display: none !important;
-}
-body.presentation-mode .region-edit { display: none; } /* esconde o link "editar" ao apresentar */
+
+/* Modo apresentação agora só entra em tela cheia — mantém topo, barra do
+   admin e barra lateral visíveis exatamente como no uso normal. */
 
 .exit-present-btn {
   position: fixed;
