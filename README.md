@@ -36,10 +36,14 @@ ali dentro qual região está sendo carregada.
 2. **Preenchimento automático**: assim que a região aparece, a linha já vem com o
    **vendedor** na lateral, e nas 4 colunas daquele dia: quantidade de veículos, o
    nome da região (Rota), o peso, e o **perfil de veículo já travado na região**.
-3. **Cada rota é uma linha** — se o mesmo vendedor tiver mais de uma região na
-   semana, aparece uma linha pra cada uma (igual a sua planilha, onde "FÁBIO
-   BOIADEIRO" ou "MAICON KARPOVICZ" aparecem repetidos, uma vez por rota). As linhas
-   ficam agrupadas por vendedor.
+3. **Cada vendedor reaproveita a mesma linha entre dias diferentes**: se você
+   arrastar uma segunda região do mesmo vendedor pra outro dia, ela **entra na
+   mesma linha** dele (preenchendo a coluna daquele dia), em vez de criar uma linha
+   nova — exatamente como na sua planilha. Só cria uma linha nova quando o vendedor
+   já tem outra rota **no mesmo dia** (aí sim, vira uma segunda linha dele, igual
+   "FÁBIO BOIADEIRO" ou "MAICON KARPOVICZ" aparecem repetidos na sua planilha). Uma
+   linha tracejada azul em negrito separa visualmente onde termina um vendedor e
+   começa o próximo.
 4. **Mudar o perfil daquele carregamento específico, se precisar**: o campo
    "Perfil" tem um seletor — normalmente não precisa mexer, já que vem certo da
    região, mas fica disponível caso aquele carregamento específico use um veículo

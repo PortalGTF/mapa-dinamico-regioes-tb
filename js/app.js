@@ -2688,22 +2688,46 @@ function renderGradeBoard() {
   board.innerHTML = "";
 
   // Junta toda rota de todo dia numa lista só: {day, route, region}
-  const allRoutes = [];
+  const allEntries = [];
   GRADE_DAYS.forEach((day) => {
     Grade.days[day].forEach((route) => {
       const region = Regions.list.find((r) => r.id === route.regionId);
-      if (region) allRoutes.push({ day, route, region });
+      if (region) allEntries.push({ day, route, region });
     });
   });
 
-  // Ordena por vendedor (pra agrupar visualmente, como na planilha), depois por dia
-  allRoutes.sort((a, b) => {
-    const sellerA = (regionSellers(a.region)[0] || "").toLowerCase();
-    const sellerB = (regionSellers(b.region)[0] || "").toLowerCase();
-    const cmp = sellerA.localeCompare(sellerB, "pt-BR");
-    if (cmp !== 0) return cmp;
-    return GRADE_DAYS.indexOf(a.day) - GRADE_DAYS.indexOf(b.day);
+  // Agrupa por vendedor (mesmo texto que vai aparecer na coluna "Vendedor")
+  const vendorGroups = {};
+  allEntries.forEach((entry) => {
+    const sellers = regionSellers(entry.region);
+    const vendorKey = sellers.length > 0 ? sellers.join(", ") : "—";
+    vendorGroups[vendorKey] = vendorGroups[vendorKey] || [];
+    vendorGroups[vendorKey].push(entry);
   });
+
+  // "Empacota" as rotas de cada vendedor em linhas: reaproveita uma linha já
+  // existente daquele vendedor se o dia estiver livre nela; só cria linha nova
+  // quando o vendedor já tem outra rota no mesmo dia (ex: duas cidades no mesmo dia)
+  const packedRows = [];
+  Object.keys(vendorGroups)
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .forEach((vendorKey) => {
+      const entries = vendorGroups[vendorKey].slice().sort(
+        (a, b) => GRADE_DAYS.indexOf(a.day) - GRADE_DAYS.indexOf(b.day)
+      );
+      const rowsForVendor = [];
+      entries.forEach((entry) => {
+        let targetRow = rowsForVendor.find((r) => !r.cells[entry.day]);
+        if (!targetRow) {
+          const cells = {};
+          GRADE_DAYS.forEach((d) => (cells[d] = null));
+          targetRow = { vendorKey, cells };
+          rowsForVendor.push(targetRow);
+        }
+        targetRow.cells[entry.day] = entry;
+      });
+      packedRows.push(...rowsForVendor);
+    });
 
   const table = document.createElement("table");
   table.className = "grade-table";
@@ -2737,28 +2761,34 @@ function renderGradeBoard() {
 
   const tbody = document.createElement("tbody");
 
-  if (allRoutes.length === 0) {
+  if (packedRows.length === 0) {
     const emptyRow = document.createElement("tr");
     emptyRow.innerHTML = `<td colspan="${1 + GRADE_DAYS.length * 4}" class="gt-empty-msg">Arraste uma região da lista lateral até a coluna do dia certo pra começar a grade.</td>`;
     tbody.appendChild(emptyRow);
   }
 
-  allRoutes.forEach(({ day, route, region }) => {
+  let previousVendorKey = null;
+  packedRows.forEach((rowData) => {
     const row = document.createElement("tr");
-    const sellers = regionSellers(region);
-    row.innerHTML = `<td class="gt-col-vendor">${sellers.length > 0 ? sellers.join(", ") : "—"}</td>`;
+    if (previousVendorKey !== null && rowData.vendorKey !== previousVendorKey) {
+      row.classList.add("gt-vendor-group-start");
+    }
+    previousVendorKey = rowData.vendorKey;
 
-    GRADE_DAYS.forEach((colDay) => {
-      if (colDay !== day) {
+    row.innerHTML = `<td class="gt-col-vendor">${rowData.vendorKey}</td>`;
+
+    GRADE_DAYS.forEach((day) => {
+      const entry = rowData.cells[day];
+      if (!entry) {
         const dash = document.createElement("td");
         dash.className = "gt-dash-cell";
         dash.colSpan = 4;
-        dash.dataset.day = colDay;
+        dash.dataset.day = day;
         dash.innerHTML = `<span class="gt-dash">—</span>`;
         row.appendChild(dash);
         return;
       }
-      buildGradeRouteCells(row, day, route, region);
+      buildGradeRouteCells(row, day, entry.route, entry.region);
     });
 
     tbody.appendChild(row);
