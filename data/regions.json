@@ -4,16 +4,16 @@
     "name": "LONDRINA/REGIÃO",
     "vehicleProfile": "3/4 Leve",
     "cities": [
-      "CAMBÉ - PR",
       "GUARAVERA - PR",
-      "IBIPORÃ - PR",
       "IRERÊ - PR",
       "JATAIZINHO - PR",
-      "LONDRINA - PR",
       "PAIQUERÊ - PR",
-      "ROLÂNDIA - PR",
       "TAMARANA - PR",
-      "WARTA - PR"
+      "WARTA - PR",
+      "ROLÂNDIA - PR",
+      "CAMBÉ - PR",
+      "LONDRINA - PR",
+      "IBIPORÃ - PR"
     ],
     "color": "#e08a3c"
   },
@@ -22,7 +22,6 @@
     "name": "ARAPONGAS",
     "vehicleProfile": "3/4 Leve",
     "cities": [
-      "APUCARANA - PR",
       "ARAPONGAS - PR"
     ],
     "color": "#3c7ce0"
@@ -74,9 +73,9 @@
     "cities": [
       "ALTO PARANÁ - PR",
       "NOVA ALIANÇA DO IVAÍ - PR",
-      "PARANAVAÍ - PR",
       "TAMBOARA - PR",
-      "GRACIOSA - PR"
+      "GRACIOSA - PR",
+      "PARANAVAÍ - PR"
     ],
     "color": "#e0c93c"
   },
@@ -85,12 +84,12 @@
     "name": "CIANORTE",
     "vehicleProfile": "3/4 Leve",
     "cities": [
-      "CIANORTE - PR",
       "INDIANÓPOLIS - PR",
       "JAPURÁ - PR",
       "JUSSARA - PR",
       "SÃO MANOEL DO PARANÁ - PR",
-      "SÃO TOMÉ - PR"
+      "SÃO TOMÉ - PR",
+      "CIANORTE - PR"
     ],
     "color": "#181616"
   },
@@ -149,16 +148,6 @@
     "color": "#6ee03c"
   },
   {
-    "id": "r_1786634666508",
-    "name": "TELEM.BORBA / TIBAGI",
-    "vehicleProfile": "Toco",
-    "cities": [
-      "TELÊMACO BORBA - PR",
-      "TIBAGI - PR"
-    ],
-    "color": "#c5e13d"
-  },
-  {
     "id": "r_1786634720502",
     "name": "DOURADINA",
     "vehicleProfile": "3/4 Leve",
@@ -204,8 +193,7 @@
       "SÃO JORGE DO PATROCÍNIO - PR",
       "XAMBRÊ - PR",
       "CAFEZAL DO SUL - PR",
-      "PEROBAL - PR",
-      "UMUARAMA - PR"
+      "PEROBAL - PR"
     ],
     "color": "#34a216"
   },
@@ -220,9 +208,9 @@
       "IVATUBA - PR",
       "MANDAGUAÇU - PR",
       "MARIALVA - PR",
-      "MARINGÁ - PR",
       "PAIÇANDU - PR",
-      "SARANDI - PR"
+      "SARANDI - PR",
+      "MARINGÁ - PR"
     ],
     "color": "#d35400"
   },
@@ -235,7 +223,8 @@
       "MARIA HELENA - PR",
       "TAPEJARA - PR",
       "TUNEIRAS DO OESTE - PR",
-      "SERRA DOS DOURADOS - PR"
+      "SERRA DOS DOURADOS - PR",
+      "UMUARAMA - PR"
     ],
     "color": "#f50000"
   },
@@ -355,15 +344,6 @@
     "color": "#ea9090"
   },
   {
-    "id": "r_1786646994693",
-    "name": "FOZ DO IGUACU",
-    "vehicleProfile": "Toco",
-    "cities": [
-      "FOZ DO IGUAÇU - PR"
-    ],
-    "color": "#9b59b6"
-  },
-  {
     "id": "r_1786710545709",
     "name": "BELA VISTA",
     "vehicleProfile": "3/4 Leve",
@@ -386,11 +366,10 @@
       "ALTO PIQUIRI - PR",
       "BRASILÂNDIA DO SUL - PR",
       "FRANCISCO ALVES - PR",
-      "GUAÍRA - PR",
       "IPORÃ - PR",
       "PALOTINA - PR",
       "TERRA ROXA - PR",
-      "UMUARAMA - PR"
+      "GUAÍRA - PR"
     ],
     "color": "#00ff02"
   },
@@ -445,12 +424,12 @@
     "cities": [
       "BORRAZÓPOLIS - PR",
       "CAMBIRA - PR",
-      "JANDAIA DO SUL - PR",
       "KALORÉ - PR",
       "MARUMBI - PR",
       "NOVO ITACOLOMI - PR",
       "BOM SUCESSO - PR",
-      "MANDAGUARI - PR"
+      "MANDAGUARI - PR",
+      "JANDAIA DO SUL - PR"
     ],
     "color": "#d6001a"
   },
@@ -462,5 +441,59 @@
       "CAMPO MOURÃO - PR"
     ],
     "color": "#d74c3c"
+  },
+  {
+    "id": "r_1787251970825",
+    "name": "MUFFATO UMUARAMA",
+    "vehicleProfile": "3/4 Adaptado",
+    "cities": [
+      "CIANORTE - PR",
+      "GUAÍRA - PR",
+      "UMUARAMA - PR"
+    ],
+    "color": "#7941be"
+  },
+  {
+    "id": "r_1787252088723",
+    "name": "MUFFATO C.MOURAO",
+    "vehicleProfile": "Vuc",
+    "cities": [
+      "CAMPO MOURÃO - PR"
+    ],
+    "color": "#0000e0"
+  },
+  {
+    "id": "r_1787253565001",
+    "name": "MUFFATO LONDRINA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "APUCARANA - PR",
+      "ARAPONGAS - PR",
+      "CAMBÉ - PR",
+      "IBIPORÃ - PR",
+      "LONDRINA - PR",
+      "ROLÂNDIA - PR"
+    ],
+    "color": "#3ce0a8"
+  },
+  {
+    "id": "r_1787253836191",
+    "name": "MUFFATO MGÁ",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "MARINGÁ - PR",
+      "SARANDI - PR",
+      "JANDAIA DO SUL - PR"
+    ],
+    "color": "#e03c6e"
+  },
+  {
+    "id": "r_1787253869033",
+    "name": "MUFFATO PVAI",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "PARANAVAÍ - PR"
+    ],
+    "color": "#a83ce0"
   }
 ]
