@@ -231,88 +231,83 @@ button { font-family: inherit; }
   border-collapse: collapse;
   width: max-content;
   min-width: 100%;
-  font-size: 11.5px;
+  font-size: 11px;
   background: white;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 .grade-table th,
 .grade-table td {
   border: 1px solid var(--line);
-  padding: 6px 8px;
-  vertical-align: top;
+  padding: 5px 7px;
+  vertical-align: middle;
 }
 .grade-table thead th {
   background: var(--navy);
   color: white;
   text-align: center;
-  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  padding: 8px;
   white-space: nowrap;
 }
-.gt-day-sub { color: var(--accent); font-weight: 600; }
-.gt-col-vendor { min-width: 170px; font-weight: 600; background: #fafafa; white-space: nowrap; }
-.gt-col-region { min-width: 150px; font-weight: 700; white-space: nowrap; }
-
-.gt-totals-row td {
-  background: #fff7d6;
-  color: #5c4600;
-  font-weight: 700;
-  text-align: center;
-  font-size: 11px;
+.gt-day-group-th {
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  padding: 7px;
 }
-.gt-totals-row td:first-child { text-align: left; background: #fff2b8; }
+.gt-day-sub { color: var(--accent); font-weight: 600; font-size: 9.5px; }
+.gt-day-total { color: #ffd873; font-weight: 800; font-size: 11.5px; }
+.gt-sub-th { font-size: 9.5px; background: var(--navy-light); padding: 4px 6px; }
 
-.gt-day-td { min-width: 190px; }
+.gt-col-vendor {
+  min-width: 190px;
+  font-weight: 700;
+  background: #fafafa;
+  white-space: nowrap;
+  text-align: left !important;
+}
+
+.gt-dash-cell { text-align: center; color: var(--muted); background: #fcfcfc; }
 .gt-dash { color: var(--muted); }
 
-.gt-route-line {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-wrap: nowrap;
-  padding: 3px 0;
-}
-.gt-route-line + .gt-route-line { border-top: 1px dashed var(--line); margin-top: 3px; padding-top: 5px; }
+.gt-cell { white-space: nowrap; }
+.gt-cell-veic { text-align: center; min-width: 56px; }
+.gt-cell-rota { font-weight: 700; min-width: 140px; }
+.gt-cell-peso { text-align: right; font-weight: 700; color: var(--navy); min-width: 80px; }
+.gt-cell-perfil { min-width: 90px; }
 
 .gt-profile-select {
   font-size: 10.5px;
   padding: 2px 4px;
   margin: 0;
-  width: auto;
-  max-width: 90px;
+  width: 100%;
 }
-.gt-profile-fixed { font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+.gt-profile-fixed { font-size: 10.5px; font-weight: 600; }
 
-.gt-qty-stepper { flex-shrink: 0; }
-.gt-weight { font-weight: 700; color: var(--navy); font-size: 11px; white-space: nowrap; }
-.gt-warn-icon { cursor: help; font-size: 11px; }
+.gt-warn-icon { cursor: help; font-size: 10.5px; margin-left: 4px; }
 .gt-remove {
   border: none;
   background: none;
   color: var(--muted);
   cursor: pointer;
-  font-size: 11px;
-  margin-left: auto;
-  flex-shrink: 0;
+  font-size: 10px;
+  margin-left: 5px;
+  vertical-align: middle;
 }
 .gt-remove:hover { color: #c0392b; }
 
-.gt-day-td.drag-over,
-.gt-day-th.drag-over { background: var(--accent-soft) !important; }
+td[data-day].drag-over,
+th[data-day].drag-over { background: var(--accent-soft) !important; }
 
 .gt-empty-msg { text-align: center; color: var(--muted); padding: 30px !important; font-size: 12.5px; }
 
-.qty-stepper { display: flex; align-items: center; gap: 4px; }
+.qty-stepper { display: flex; align-items: center; justify-content: center; gap: 4px; }
 .qty-btn {
-  width: 17px;
-  height: 17px;
+  width: 16px;
+  height: 16px;
   border-radius: 4px;
   border: 1px solid var(--line);
   background: white;
   color: var(--ink);
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1;
   cursor: pointer;
   display: flex;
@@ -322,7 +317,7 @@ button { font-family: inherit; }
 }
 .qty-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .qty-btn:disabled { opacity: 0.4; cursor: default; }
-.qty-value { font-size: 11px; font-weight: 700; min-width: 12px; text-align: center; }
+.qty-value { font-size: 10.5px; font-weight: 700; min-width: 11px; text-align: center; }
 
 /* ---------- Relatório Grade Cidades-Roteiros ---------- */
 #gradeCitiesSearch { margin-bottom: 10px; }

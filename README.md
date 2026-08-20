@@ -20,34 +20,37 @@ entrega amanhã" (5 colunas: **Carreg. Domingo → Entrega Segunda**, **Carreg. 
 → Entrega Terça**, e assim até **Carreg. Quinta → Entrega Sexta** — sem sábado, já
 que não tem rota nesse dia).
 
-A tela é uma **tabela de verdade**, no mesmo espírito da sua planilha: uma coluna de
-**Vendedor** e uma de **Região** à esquerda (uma linha só por região), e depois uma
-coluna por dia — cada uma com o perfil, a quantidade de veículos e o peso daquele
-carregamento.
+A tela é uma **tabela de verdade**, igual a sua planilha: uma única coluna de
+**Vendedor** na lateral esquerda, e o resto são os 5 dias — cada um já dividido nas
+colunas **Veic | Rota | Peso | Perfil**, exatamente como na sua "GRADE DE
+ATENDIMENTO". O nome da região fica **dentro da coluna do dia dela** (na sub-coluna
+"Rota"), não separado — então olhando a coluna de segunda, por exemplo, você já vê
+ali dentro qual região está sendo carregada.
 
 ### Como montar a grade (modo admin)
 1. **Arraste a região direto pra coluna do dia**: na barra lateral esquerda tem
    todas as regiões cadastradas, como cartões arrastáveis. Solte em qualquer parte
    da coluna do dia certo (cabeçalho ou célula) — **não precisa configurar frota
-   antes**. A região só aparece na tabela depois de ser arrastada pra algum dia pelo
-   menos uma vez.
-2. **Preenchimento automático**: assim que a região aparece na tabela, a linha já
-   vem com o **vendedor** (coluna própria, ao lado, não dentro de uma caixa), o
-   **perfil de veículo já travado na região**, e o peso (capacidade do perfil).
-3. **Mudar o perfil daquele carregamento específico, se precisar**: tem um campo de
-   perfil bem compacto na célula do dia — normalmente não precisa mexer, já que vem
-   certo da região, mas fica disponível caso aquele carregamento específico use um
-   veículo diferente do padrão.
-4. **Mais de um veículo naquele dia**: ao lado do perfil tem um campo **"−ǀ+"** pra
-   mudar a quantidade — o peso daquela linha recalcula sozinho (quantidade × peso do
-   perfil), e mostra um ⚠️ (passe o mouse pra ver o motivo) se ainda ficar abaixo do
-   que a região exige.
-5. **Tirar um carregamento da grade**: clique no "✕" na célula daquele dia.
-6. A mesma região pode aparecer **em mais de um dia**, ou **mais de uma vez no mesmo
-   dia** (duas viagens separadas nesse dia) — cada carregamento é uma linha compacta
-   dentro da célula daquele dia.
-7. **No topo de cada coluna** aparece a **capacidade de embarque total daquele dia**
-   — a soma do peso de tudo que está ali, recalculada sozinha
+   antes**. A região só vira uma linha na tabela depois de ser arrastada pra algum
+   dia pelo menos uma vez.
+2. **Preenchimento automático**: assim que a região aparece, a linha já vem com o
+   **vendedor** na lateral, e nas 4 colunas daquele dia: quantidade de veículos, o
+   nome da região (Rota), o peso, e o **perfil de veículo já travado na região**.
+3. **Cada rota é uma linha** — se o mesmo vendedor tiver mais de uma região na
+   semana, aparece uma linha pra cada uma (igual a sua planilha, onde "FÁBIO
+   BOIADEIRO" ou "MAICON KARPOVICZ" aparecem repetidos, uma vez por rota). As linhas
+   ficam agrupadas por vendedor.
+4. **Mudar o perfil daquele carregamento específico, se precisar**: o campo
+   "Perfil" tem um seletor — normalmente não precisa mexer, já que vem certo da
+   região, mas fica disponível caso aquele carregamento específico use um veículo
+   diferente do padrão.
+5. **Mais de um veículo naquele dia**: o campo "Veic" tem "−ǀ+" — o peso recalcula
+   sozinho (quantidade × peso do perfil), com um ⚠️ se ficar abaixo do que a região
+   exige (passe o mouse pra ver o motivo).
+6. **Tirar uma rota da grade**: clique no "✕" ao lado do nome da região, na coluna
+   "Rota".
+7. **Capacidade de embarque de cada dia** aparece no próprio cabeçalho daquele dia,
+   recalculada sozinha toda vez que você mexe em alguma coisa.
    toda vez que você adiciona, remove, ou muda a quantidade de alguma rota.
 
 ### Relatório "Grade Cidades-Roteiros"

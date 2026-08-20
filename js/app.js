@@ -2687,82 +2687,87 @@ function renderGradeBoard() {
   document.getElementById("gradeAdminHint").classList.toggle("hidden", !Auth.isAdmin);
   board.innerHTML = "";
 
-  // Só entram na tabela as regiões que já têm pelo menos uma rota em algum dia
-  const scheduledRegionIds = new Set();
-  GRADE_DAYS.forEach((day) => Grade.days[day].forEach((r) => scheduledRegionIds.add(r.regionId)));
-  const scheduledRegions = Regions.list
-    .filter((r) => scheduledRegionIds.has(r.id))
-    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  // Junta toda rota de todo dia numa lista só: {day, route, region}
+  const allRoutes = [];
+  GRADE_DAYS.forEach((day) => {
+    Grade.days[day].forEach((route) => {
+      const region = Regions.list.find((r) => r.id === route.regionId);
+      if (region) allRoutes.push({ day, route, region });
+    });
+  });
+
+  // Ordena por vendedor (pra agrupar visualmente, como na planilha), depois por dia
+  allRoutes.sort((a, b) => {
+    const sellerA = (regionSellers(a.region)[0] || "").toLowerCase();
+    const sellerB = (regionSellers(b.region)[0] || "").toLowerCase();
+    const cmp = sellerA.localeCompare(sellerB, "pt-BR");
+    if (cmp !== 0) return cmp;
+    return GRADE_DAYS.indexOf(a.day) - GRADE_DAYS.indexOf(b.day);
+  });
 
   const table = document.createElement("table");
   table.className = "grade-table";
 
-  // Cabeçalho: Vendedor | Região | um bloco por dia (Carreg. X / Entrega Y)
+  // Cabeçalho: linha 1 = dia (carreg/entrega + capacidade), linha 2 = Veic/Rota/Peso/Perfil
   const thead = document.createElement("thead");
-  const headRow = document.createElement("tr");
-  headRow.innerHTML = `<th class="gt-col-vendor">Vendedor</th><th class="gt-col-region">Região</th>`;
-  GRADE_DAYS.forEach((day) => {
-    const th = document.createElement("th");
-    th.className = "gt-day-th";
-    th.dataset.day = day;
-    th.innerHTML = `CARREG. ${GRADE_DAY_NAMES[day]}<br><span class="gt-day-sub">ENTREGA ${GRADE_DAY_NAMES[GRADE_NEXT_DAY[day]]}</span>`;
-    headRow.appendChild(th);
-  });
-  thead.appendChild(headRow);
+  const dayRow = document.createElement("tr");
+  dayRow.innerHTML = `<th rowspan="2" class="gt-col-vendor">Vendedor</th>`;
+  const subRow = document.createElement("tr");
 
-  // Linha de totais (capacidade de embarque por dia)
-  const totalsRow = document.createElement("tr");
-  totalsRow.className = "gt-totals-row";
-  totalsRow.innerHTML = `<td colspan="2">CAPACIDADE DE EMBARQUE</td>`;
   GRADE_DAYS.forEach((day) => {
     const total = Grade.days[day].reduce((sum, r) => sum + (profileCapacity(r.profile) || 0) * (r.quantity || 1), 0);
-    const td = document.createElement("td");
-    td.className = "gt-day-td gt-totals-cell";
-    td.dataset.day = day;
-    td.textContent = `${total.toLocaleString("pt-BR")} kg`;
-    totalsRow.appendChild(td);
+    const th = document.createElement("th");
+    th.colSpan = 4;
+    th.className = "gt-day-group-th";
+    th.dataset.day = day;
+    th.innerHTML = `CARREG. ${GRADE_DAY_NAMES[day]} <span class="gt-day-sub">→ ENTREGA ${GRADE_DAY_NAMES[GRADE_NEXT_DAY[day]]}</span><br><span class="gt-day-total">${total.toLocaleString("pt-BR")} kg</span>`;
+    dayRow.appendChild(th);
+
+    ["Veic", "Rota", "Peso", "Perfil"].forEach((label) => {
+      const subTh = document.createElement("th");
+      subTh.className = "gt-sub-th";
+      subTh.dataset.day = day;
+      subTh.textContent = label;
+      subRow.appendChild(subTh);
+    });
   });
-  thead.appendChild(totalsRow);
+  thead.appendChild(dayRow);
+  thead.appendChild(subRow);
   table.appendChild(thead);
 
-  // Corpo: uma linha por região agendada
   const tbody = document.createElement("tbody");
 
-  if (scheduledRegions.length === 0) {
+  if (allRoutes.length === 0) {
     const emptyRow = document.createElement("tr");
-    emptyRow.innerHTML = `<td colspan="${2 + GRADE_DAYS.length}" class="gt-empty-msg">Arraste uma região da lista lateral até a coluna do dia certo pra começar a grade.</td>`;
+    emptyRow.innerHTML = `<td colspan="${1 + GRADE_DAYS.length * 4}" class="gt-empty-msg">Arraste uma região da lista lateral até a coluna do dia certo pra começar a grade.</td>`;
     tbody.appendChild(emptyRow);
   }
 
-  scheduledRegions.forEach((region) => {
+  allRoutes.forEach(({ day, route, region }) => {
     const row = document.createElement("tr");
     const sellers = regionSellers(region);
-    row.innerHTML = `
-      <td class="gt-col-vendor">${sellers.length > 0 ? sellers.join(", ") : "—"}</td>
-      <td class="gt-col-region"><span class="grc-swatch" style="background:${region.color}"></span>${region.name}</td>
-    `;
-    GRADE_DAYS.forEach((day) => {
-      const td = document.createElement("td");
-      td.className = "gt-day-td";
-      td.dataset.day = day;
-      const routesHere = Grade.days[day].filter((r) => r.regionId === region.id);
-      if (routesHere.length === 0) {
-        td.innerHTML = `<span class="gt-dash">—</span>`;
-      } else {
-        routesHere.forEach((route) => {
-          td.appendChild(buildGradeRouteLine(day, route, region));
-        });
+    row.innerHTML = `<td class="gt-col-vendor">${sellers.length > 0 ? sellers.join(", ") : "—"}</td>`;
+
+    GRADE_DAYS.forEach((colDay) => {
+      if (colDay !== day) {
+        const dash = document.createElement("td");
+        dash.className = "gt-dash-cell";
+        dash.colSpan = 4;
+        dash.dataset.day = colDay;
+        dash.innerHTML = `<span class="gt-dash">—</span>`;
+        row.appendChild(dash);
+        return;
       }
-      row.appendChild(td);
+      buildGradeRouteCells(row, day, route, region);
     });
+
     tbody.appendChild(row);
   });
 
   table.appendChild(tbody);
   board.appendChild(table);
 
-  // Arrastar-e-soltar: solta em qualquer célula/cabeçalho daquele dia (a coluna
-  // inteira é a área de soltar, não precisa acertar uma linha específica)
+  // Arrastar-e-soltar: solta em qualquer célula/cabeçalho daquele dia
   if (Auth.isAdmin) {
     board.addEventListener("dragover", (e) => {
       const cell = e.target.closest("[data-day]");
@@ -2792,43 +2797,62 @@ function renderGradeBoard() {
   }
 }
 
-function buildGradeRouteLine(day, route, region) {
+// Monta as 4 células (Veic | Rota | Peso | Perfil) de uma rota, e insere na linha
+function buildGradeRouteCells(row, day, route, region) {
   const cap = profileCapacity(route.profile);
   const quantity = route.quantity || 1;
   const totalWeight = cap !== null ? cap * quantity : null;
   const regionProfileCap = profileCapacity(region.vehicleProfile);
   const underCapacity = totalWeight !== null && regionProfileCap !== null && totalWeight < regionProfileCap;
 
-  const line = document.createElement("div");
-  line.className = "gt-route-line";
-  line.innerHTML = `
-    ${
-      Auth.isAdmin
-        ? `<select class="gt-profile-select">${VEHICLE_PROFILES.map(
-            (p) => `<option value="${p.name}" ${p.name === route.profile ? "selected" : ""}>${p.name}</option>`
-          ).join("")}</select>`
-        : `<span class="gt-profile-fixed">${route.profile}</span>`
-    }
-    <div class="qty-stepper gt-qty-stepper">
+  // Veic (quantidade)
+  const veicTd = document.createElement("td");
+  veicTd.className = "gt-cell gt-cell-veic";
+  veicTd.dataset.day = day;
+  veicTd.innerHTML = `
+    <div class="qty-stepper">
       <button class="qty-btn" data-op="dec" ${!Auth.isAdmin ? "disabled" : ""}>−</button>
       <span class="qty-value">${quantity}</span>
       <button class="qty-btn" data-op="inc" ${!Auth.isAdmin ? "disabled" : ""}>+</button>
     </div>
-    <span class="gt-weight">${totalWeight !== null ? `${totalWeight.toLocaleString("pt-BR")} kg` : "—"}</span>
-    ${underCapacity ? `<span class="gt-warn-icon" title="Abaixo do perfil mínimo da região (${region.vehicleProfile}, ${regionProfileCap.toLocaleString("pt-BR")} kg)">⚠️</span>` : ""}
+  `;
+
+  // Rota (nome da região) + botão de remover
+  const rotaTd = document.createElement("td");
+  rotaTd.className = "gt-cell gt-cell-rota";
+  rotaTd.dataset.day = day;
+  rotaTd.innerHTML = `
+    <span class="grc-swatch" style="background:${region.color}"></span>${region.name}
     ${Auth.isAdmin ? `<button class="gt-remove" title="Remover">✕</button>` : ""}
   `;
 
+  // Peso
+  const pesoTd = document.createElement("td");
+  pesoTd.className = "gt-cell gt-cell-peso";
+  pesoTd.dataset.day = day;
+  pesoTd.innerHTML = `${totalWeight !== null ? `${totalWeight.toLocaleString("pt-BR")} kg` : "—"}${
+    underCapacity
+      ? `<span class="gt-warn-icon" title="Abaixo do perfil mínimo da região (${region.vehicleProfile}, ${regionProfileCap.toLocaleString("pt-BR")} kg)">⚠️</span>`
+      : ""
+  }`;
+
+  // Perfil
+  const perfilTd = document.createElement("td");
+  perfilTd.className = "gt-cell gt-cell-perfil";
+  perfilTd.dataset.day = day;
+  perfilTd.innerHTML = Auth.isAdmin
+    ? `<select class="gt-profile-select">${VEHICLE_PROFILES.map(
+        (p) => `<option value="${p.name}" ${p.name === route.profile ? "selected" : ""}>${p.name}</option>`
+      ).join("")}</select>`
+    : `<span class="gt-profile-fixed">${route.profile}</span>`;
+
+  row.appendChild(veicTd);
+  row.appendChild(rotaTd);
+  row.appendChild(pesoTd);
+  row.appendChild(perfilTd);
+
   if (Auth.isAdmin) {
-    const select = line.querySelector(".gt-profile-select");
-    if (select) {
-      select.addEventListener("change", (e) => {
-        Grade.setRouteProfile(day, route.id, e.target.value);
-        updateDraftHint();
-        renderGradeBoard();
-      });
-    }
-    line.querySelectorAll(".qty-btn").forEach((btn) => {
+    veicTd.querySelectorAll(".qty-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const delta = btn.dataset.op === "inc" ? 1 : -1;
         Grade.setRouteQuantity(day, route.id, quantity + delta);
@@ -2836,15 +2860,19 @@ function buildGradeRouteLine(day, route, region) {
         renderGradeBoard();
       });
     });
-    line.querySelector(".gt-remove").addEventListener("click", () => {
+    rotaTd.querySelector(".gt-remove").addEventListener("click", () => {
       Grade.removeRoute(day, route.id);
       updateDraftHint();
       renderGradeBoard();
       renderGradeRegionList();
     });
+    const select = perfilTd.querySelector(".gt-profile-select");
+    select.addEventListener("change", (e) => {
+      Grade.setRouteProfile(day, route.id, e.target.value);
+      updateDraftHint();
+      renderGradeBoard();
+    });
   }
-
-  return line;
 }
 
 // Relatório: Grade Cidades-Roteiros
