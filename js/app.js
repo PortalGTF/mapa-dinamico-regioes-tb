@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadStaticData();
   await Regions.load();
   await Grade.load();
+  cleanupGhostGradeRoutes();
   await Geocode.loadCommittedCache();
 
   initMap();
@@ -1576,9 +1577,39 @@ function deleteRegionFromModal() {
   if (!editingRegionId) return;
   if (!confirm("Excluir esta região? As cidades voltam para 'sem região'.")) return;
   Regions.remove(editingRegionId);
+  removeRegionFromGrade(editingRegionId);
   rebuildClusters();
   renderRegionsList();
   closeRegionModal();
+}
+
+// Tira da Grade qualquer rota que aponte pra uma região que acabou de ser
+// excluída — evita "rotas fantasma" que ficam contando peso/veículos sem
+// aparecer na tabela.
+function removeRegionFromGrade(regionId) {
+  let changed = false;
+  GRADE_DAYS.forEach((day) => {
+    const before = Grade.days[day].length;
+    Grade.days[day] = Grade.days[day].filter((r) => r.regionId !== regionId);
+    if (Grade.days[day].length !== before) changed = true;
+  });
+  if (changed) {
+    Grade._saveDraft();
+    updateDraftHint();
+  }
+}
+
+// Limpeza automática rodada uma vez ao abrir o app: remove qualquer rota que
+// já esteja "fantasma" (região excluída antes dessa correção existir, ou
+// vagas antigas do sistema anterior sem região nenhuma).
+function cleanupGhostGradeRoutes() {
+  let changed = false;
+  GRADE_DAYS.forEach((day) => {
+    const before = Grade.days[day].length;
+    Grade.days[day] = Grade.days[day].filter((r) => r.regionId && Regions.list.some((reg) => reg.id === r.regionId));
+    if (Grade.days[day].length !== before) changed = true;
+  });
+  if (changed) Grade._saveDraft();
 }
 
 // ------------------------------------------------------------
@@ -2814,7 +2845,9 @@ function renderGradeBoard() {
   const subRow = document.createElement("tr");
 
   GRADE_DAYS.forEach((day) => {
-    const total = Grade.days[day].reduce((sum, r) => sum + (profileCapacity(r.profile) || 0) * (r.quantity || 1), 0);
+    const total = Grade.days[day]
+      .filter((r) => Regions.list.some((reg) => reg.id === r.regionId))
+      .reduce((sum, r) => sum + (profileCapacity(r.profile) || 0) * (r.quantity || 1), 0);
     const th = document.createElement("th");
     th.colSpan = 4;
     th.className = "gt-day-group-th";
@@ -2902,7 +2935,9 @@ function buildFleetChartSVG() {
   const data = GRADE_DAYS.map((day) => {
     const counts = {};
     VEHICLE_PROFILES.forEach((p) => {
-      counts[p.name] = Grade.days[day].filter((r) => r.profile === p.name).reduce((s, r) => s + (r.quantity || 1), 0);
+      counts[p.name] = Grade.days[day]
+        .filter((r) => r.profile === p.name && Regions.list.some((reg) => reg.id === r.regionId))
+        .reduce((s, r) => s + (r.quantity || 1), 0);
     });
     return { day, counts };
   });
@@ -2962,12 +2997,25 @@ function buildGradeFleetSummary() {
   summary.className = "grade-fleet-summary";
   summary.innerHTML = `<caption>Resumo de veículos por dia (quantidade por perfil)</caption>`;
 
+  // Mesma largura em porcentagem da tabela principal (15% + 5 × 17%), pra ficar
+  // sempre alinhado visualmente com as colunas de cima, em qualquer tela.
+  const colgroup = document.createElement("colgroup");
+  const firstCol = document.createElement("col");
+  firstCol.style.width = "15%";
+  colgroup.appendChild(firstCol);
+  GRADE_DAYS.forEach(() => {
+    const col = document.createElement("col");
+    col.style.width = "17%";
+    colgroup.appendChild(col);
+  });
+  summary.appendChild(colgroup);
+
   const thead = document.createElement("thead");
   const headRow = document.createElement("tr");
   headRow.innerHTML = `<th class="gfs-profile-col">Perfil</th>`;
   GRADE_DAYS.forEach((day) => {
     const th = document.createElement("th");
-    th.textContent = `${GRADE_DAY_NAMES[day].toUpperCase()}`;
+    th.innerHTML = `CARREG. ${GRADE_DAY_NAMES[day]} <span class="gt-day-sub">→ ENTREGA ${GRADE_DAY_NAMES[GRADE_NEXT_DAY[day]]}</span>`;
     headRow.appendChild(th);
   });
   thead.appendChild(headRow);
@@ -2978,8 +3026,12 @@ function buildGradeFleetSummary() {
     const row = document.createElement("tr");
     row.innerHTML = `<td class="gfs-profile-col">${profile.name}</td>`;
     GRADE_DAYS.forEach((day) => {
+      // Só conta rotas cuja região ainda existe de verdade — igual a tabela de
+      // cima já faz. Antes, uma rota "fantasma" (de região já apagada) ainda
+      // entrava na soma aqui, mesmo sem aparecer na tabela — daí a conta batia
+      // errado.
       const count = Grade.days[day]
-        .filter((r) => r.profile === profile.name)
+        .filter((r) => r.profile === profile.name && Regions.list.some((reg) => reg.id === r.regionId))
         .reduce((sum, r) => sum + (r.quantity || 1), 0);
       const td = document.createElement("td");
       td.className = count > 0 ? "gfs-nonzero" : "gfs-zero";
