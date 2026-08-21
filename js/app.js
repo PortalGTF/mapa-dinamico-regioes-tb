@@ -2488,15 +2488,17 @@ function openEditCitySellersModal(cityLabel, marker) {
 
   const current = CITY_TO_SELLERS[cityLabel] || [];
   const checklist = document.getElementById("editCitySellersChecklist");
-  checklist.innerHTML = `<p class="hint hint-small">Atende hoje: ${current.join(", ") || "ninguém"}. Marque abaixo quem deve atender daqui pra frente (nada vem pré-marcado).</p>`;
+  checklist.innerHTML = "";
   Object.keys(SELLERS)
     .sort((a, b) => a.localeCompare(b, "pt-BR"))
     .forEach((name) => {
       const label = document.createElement("label");
-      label.innerHTML = `<input type="checkbox" value="${name}" /> ${name}`;
+      const checked = current.includes(name) ? "checked" : "";
+      label.innerHTML = `<input type="checkbox" value="${name}" ${checked} /> ${name}`;
       checklist.appendChild(label);
     });
 
+  document.getElementById("newSellerNameInput").value = "";
   document.getElementById("editCitySellersModal").classList.remove("hidden");
 }
 
@@ -2504,6 +2506,35 @@ function closeEditCitySellersModal() {
   document.getElementById("editCitySellersModal").classList.add("hidden");
   editingCitySellersLabel = null;
   editingCitySellersMarker = null;
+}
+
+// Adiciona um vendedor novo direto na lista do modal, já marcado. Ele só passa
+// a existir de verdade quando o modal for salvo (rebuildSellersFromCityToSellers
+// cria o vendedor automaticamente assim que ele aparece em alguma cidade).
+function addNewSellerToChecklist() {
+  if (!Auth.isAdmin) return;
+  const input = document.getElementById("newSellerNameInput");
+  const name = input.value.trim();
+  if (!name) {
+    alert("Digite o nome do vendedor antes de adicionar.");
+    return;
+  }
+
+  const checklist = document.getElementById("editCitySellersChecklist");
+  const existing = Array.from(checklist.querySelectorAll("input")).find(
+    (el) => el.value.toLowerCase() === name.toLowerCase()
+  );
+  if (existing) {
+    existing.checked = true;
+    input.value = "";
+    return;
+  }
+
+  const label = document.createElement("label");
+  label.innerHTML = `<input type="checkbox" value="${name}" checked /> ${name}`;
+  checklist.appendChild(label);
+  input.value = "";
+  input.focus();
 }
 
 function saveEditCitySellers() {
@@ -3383,6 +3414,13 @@ function wireEvents() {
   document.getElementById("btnCloseEditCitySellers").addEventListener("click", closeEditCitySellersModal);
   document.getElementById("btnCancelEditCitySellers").addEventListener("click", closeEditCitySellersModal);
   document.getElementById("btnSaveEditCitySellers").addEventListener("click", saveEditCitySellers);
+  document.getElementById("btnAddNewSeller").addEventListener("click", addNewSellerToChecklist);
+  document.getElementById("newSellerNameInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addNewSellerToChecklist();
+    }
+  });
   document.getElementById("btnCloseKeyCity").addEventListener("click", closeKeyCityModal);
   document.getElementById("btnCancelKeyCity").addEventListener("click", closeKeyCityModal);
   document.getElementById("btnSaveKeyCity").addEventListener("click", saveKeyCityRegions);

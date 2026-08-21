@@ -898,6 +898,20 @@ main { position: relative; flex: 1; }
 }
 .checklist input { width: auto; margin: 0; }
 
+.new-seller-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.new-seller-row input {
+  flex: 1;
+  margin: 0;
+}
+.new-seller-row button {
+  white-space: nowrap;
+  margin: 0;
+}
+
 /* ---------- Detalhes da região / raio ---------- */
 .region-detail-summary {
   background: #f4f2ee;

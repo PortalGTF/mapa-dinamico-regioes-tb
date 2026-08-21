@@ -178,6 +178,15 @@ Ninguém nesse modo consegue mover, criar ou apagar nada.
 5. Repita para as demais regiões. Para editar ou excluir uma região já criada, clique
    em "editar" na lista de regiões da barra lateral.
 
+### Editar vendedor(es) de uma cidade — melhorias
+No popup de qualquer cidade (modo admin), "Editar vendedor(es)" agora:
+- **Já vem com quem atende hoje pré-marcado** — antes vinha tudo desmarcado, e
+  você precisava lembrar e marcar de novo manualmente.
+- Tem um campo **"Nome de um vendedor novo" + "+ Adicionar"** dentro do próprio
+  modal — não precisa mais existir um vendedor antes pra poder escolher ele; digite
+  o nome, clique em adicionar (ou aperte Enter), que ele já entra na lista marcado.
+  Vira vendedor de verdade assim que você clicar em "Salvar".
+
 ### Corrigindo uma cidade com localização errada (admin)
 Serviços gratuitos de geocodificação às vezes erram — por exemplo, uma cidade pequena
 pode "cair" em outro estado com nome parecido (ex: "Santa Fé" existe em vários estados
