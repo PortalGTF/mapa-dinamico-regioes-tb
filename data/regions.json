@@ -208,9 +208,9 @@
       "IVATUBA - PR",
       "MANDAGUAÇU - PR",
       "MARIALVA - PR",
-      "PAIÇANDU - PR",
       "SARANDI - PR",
-      "MARINGÁ - PR"
+      "MARINGÁ - PR",
+      "PAIÇANDU - PR"
     ],
     "color": "#d35400"
   },
@@ -495,5 +495,14 @@
       "PARANAVAÍ - PR"
     ],
     "color": "#a83ce0"
+  },
+  {
+    "id": "r_1787325346040",
+    "name": "CSD AMIGÃO",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "PAIÇANDU - PR"
+    ],
+    "color": "#e03c6e"
   }
 ]
