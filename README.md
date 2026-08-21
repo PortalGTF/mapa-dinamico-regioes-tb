@@ -87,6 +87,22 @@ dia da semana, **quantos veículos de cada perfil** são necessários (somando a
 quantidade de todos os carregamentos daquele perfil naquele dia). Ajuda a ver de
 relance se vai faltar caminhão de algum tipo específico num dia.
 
+### Aba "Veículos" (só pro admin/logística)
+Ao lado da aba "Grade" tem uma aba **"🚚 Veículos"**, que só aparece pra quem está
+logado como admin — em modo visualização ela nem aparece na barra. Mostra o mesmo
+resumo de "quantos veículos de cada perfil por dia" que já existe embaixo da Grade,
+só que numa tela própria, maior, com um **gráfico de barras** colorido por perfil de
+veículo — bom pra logística bater o olho e ver rapidinho onde pode faltar caminhão
+de algum tipo. O resumo continua também embaixo da tabela da Grade, como já estava
+— essa aba nova é um complemento, não substitui.
+
+### Modo visualização com a Grade mais enxuta
+Em modo visualização (sem senha), a faixa de regiões arrastáveis no topo da aba
+Grade fica escondida — já que arrastar só funciona logado como admin mesmo, essa
+parte só ocupava espaço à toa pra quem está só olhando. A tabela da Grade (e o
+resumo de veículos embaixo dela) continuam aparecendo normalmente pra qualquer
+pessoa, só a área de arrastar lá em cima some.
+
 ### Regiões em 7 colunas
 A faixa de regiões pra arrastar no topo da tela agora está organizada em 7 colunas
 (era 6), pra caber mais regiões por linha e ocupar menos altura da tela.

@@ -152,6 +152,11 @@ button { font-family: inherit; }
 }
 
 /* ---------- Barra de abas ---------- */
+/* Esconde coisas que só fazem sentido pro admin (logística) — controlado pela
+   classe "is-admin" no <body>, atualizada sempre que o modo admin muda. */
+body:not(.is-admin) #tabVehiclesBtn { display: none; }
+body:not(.is-admin) #gradeRegionsBar { display: none; }
+
 .tab-bar {
   flex-shrink: 0;
   display: flex;
@@ -400,6 +405,34 @@ th[data-day].drag-over { background: var(--accent-soft) !important; }
 .qty-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .qty-btn:disabled { opacity: 0.4; cursor: default; }
 .qty-value { font-size: 10.5px; font-weight: 700; min-width: 11px; text-align: center; }
+
+/* ---------- Aba Veículos (resumo + gráfico) ---------- */
+.vehicles-view {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 24px;
+  background: var(--paper);
+}
+.vehicles-header h2 { margin: 0 0 4px; font-size: 15px; color: var(--navy); }
+.vehicles-chart {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 18px 8px;
+  margin: 14px 0 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.vc-svg { width: 100%; height: auto; display: block; }
+.vc-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  padding: 8px 0 4px;
+}
+.vc-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink); font-weight: 600; }
+.vc-legend-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
 
 /* ---------- Relatório Grade Cidades-Roteiros ---------- */
 #gradeCitiesSearch { margin-bottom: 10px; }

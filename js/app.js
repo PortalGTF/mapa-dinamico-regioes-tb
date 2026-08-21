@@ -2662,20 +2662,27 @@ function setupGradeDragDrop() {
 }
 
 function switchTab(tab) {
+  // Some é admin, a aba Veículos não existe pra visualização — cai pro mapa
+  if (tab === "vehicles" && !Auth.isAdmin) tab = "map";
+
   currentTab = tab;
   document.getElementById("layout").classList.toggle("hidden", tab !== "map");
   document.getElementById("adminToolbar").classList.toggle("hidden", tab !== "map" || !Auth.isAdmin);
   document.getElementById("gradeView").classList.toggle("hidden", tab !== "grade");
   document.getElementById("gradeTabExtras").classList.toggle("hidden", tab !== "grade");
+  document.getElementById("vehiclesView").classList.toggle("hidden", tab !== "vehicles");
 
   document.getElementById("tabMapBtn").classList.toggle("active", tab === "map");
   document.getElementById("tabGradeBtn").classList.toggle("active", tab === "grade");
+  document.getElementById("tabVehiclesBtn").classList.toggle("active", tab === "vehicles");
 
   if (tab === "map") {
     setTimeout(() => map && map.invalidateSize(), 60);
-  } else {
+  } else if (tab === "grade") {
     renderGradeBoard();
     renderGradeRegionList();
+  } else if (tab === "vehicles") {
+    renderVehiclesView();
   }
 }
 
@@ -2864,6 +2871,92 @@ function renderGradeBoard() {
 
 // Tabela resumo: quantos veículos de cada perfil são necessários em cada dia,
 // somando a quantidade de todas as rotas daquele perfil naquele dia.
+// ------------------------------------------------------------
+// Aba Veículos — mesmo resumo que já aparece embaixo da Grade, só que numa
+// aba própria, maior, com gráfico — só visível pro admin.
+// ------------------------------------------------------------
+const PROFILE_CHART_COLORS = {
+  Vuc: "#3498db",
+  "3/4 Leve": "#2ecc71",
+  "3/4 Adaptado": "#f39c12",
+  Toco: "#9b59b6",
+  Truck: "#e74c3c",
+};
+
+function renderVehiclesView() {
+  document.getElementById("vehiclesChart").innerHTML = buildFleetChartSVG();
+  const tableWrap = document.getElementById("vehiclesTableWrap");
+  tableWrap.innerHTML = "";
+  tableWrap.appendChild(buildGradeFleetSummary());
+}
+
+function buildFleetChartSVG() {
+  const width = 900;
+  const height = 260;
+  const marginLeft = 34;
+  const marginBottom = 26;
+  const marginTop = 14;
+  const chartW = width - marginLeft - 16;
+  const chartH = height - marginBottom - marginTop;
+
+  const data = GRADE_DAYS.map((day) => {
+    const counts = {};
+    VEHICLE_PROFILES.forEach((p) => {
+      counts[p.name] = Grade.days[day].filter((r) => r.profile === p.name).reduce((s, r) => s + (r.quantity || 1), 0);
+    });
+    return { day, counts };
+  });
+
+  let maxVal = 1;
+  data.forEach((d) => VEHICLE_PROFILES.forEach((p) => { if (d.counts[p.name] > maxVal) maxVal = d.counts[p.name]; }));
+  maxVal = Math.max(2, Math.ceil(maxVal / 2) * 2);
+
+  const groupWidth = chartW / GRADE_DAYS.length;
+  const barGap = 3;
+  const barWidth = (groupWidth - barGap * (VEHICLE_PROFILES.length + 1)) / VEHICLE_PROFILES.length;
+
+  let gridLines = "";
+  const steps = 4;
+  for (let i = 0; i <= steps; i++) {
+    const val = Math.round((maxVal / steps) * i);
+    const y = marginTop + chartH - (val / maxVal) * chartH;
+    gridLines += `<line x1="${marginLeft}" y1="${y.toFixed(1)}" x2="${width - 16}" y2="${y.toFixed(1)}" stroke="#e2e6ea" stroke-width="1" />`;
+    gridLines += `<text x="${marginLeft - 8}" y="${(y + 4).toFixed(1)}" font-size="10" fill="#767066" text-anchor="end">${val}</text>`;
+  }
+
+  let bars = "";
+  let labels = "";
+  data.forEach((d, di) => {
+    const groupX = marginLeft + di * groupWidth;
+    VEHICLE_PROFILES.forEach((p, pi) => {
+      const val = d.counts[p.name] || 0;
+      const barH = (val / maxVal) * chartH;
+      const x = groupX + barGap + pi * (barWidth + barGap);
+      const y = marginTop + chartH - barH;
+      const color = PROFILE_CHART_COLORS[p.name] || "#7f8c8d";
+      bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" rx="2"><title>${p.name} — ${GRADE_DAY_NAMES[d.day]}: ${val}</title></rect>`;
+      if (val > 0) {
+        bars += `<text x="${(x + barWidth / 2).toFixed(1)}" y="${(y - 4).toFixed(1)}" font-size="9" fill="#1a2332" text-anchor="middle" font-weight="700">${val}</text>`;
+      }
+    });
+    labels += `<text x="${(groupX + groupWidth / 2).toFixed(1)}" y="${height - 8}" font-size="10.5" fill="#1a2332" text-anchor="middle" font-weight="700">${GRADE_DAY_NAMES[d.day].toUpperCase()}</text>`;
+  });
+
+  const legend = VEHICLE_PROFILES.map((p) => {
+    const color = PROFILE_CHART_COLORS[p.name] || "#7f8c8d";
+    return `<span class="vc-legend-item"><span class="vc-legend-dot" style="background:${color}"></span>${p.name}</span>`;
+  }).join("");
+
+  return `
+    <svg viewBox="0 0 ${width} ${height}" class="vc-svg">
+      ${gridLines}
+      ${bars}
+      ${labels}
+    </svg>
+    <div class="vc-legend">${legend}</div>
+  `;
+}
+
 function buildGradeFleetSummary() {
   const summary = document.createElement("table");
   summary.className = "grade-fleet-summary";
@@ -3058,6 +3151,9 @@ function updateAdminUI() {
   const btnLogout = document.getElementById("btnLogout");
   const adminToolbar = document.getElementById("adminToolbar");
 
+  document.body.classList.toggle("is-admin", Auth.isAdmin);
+  if (!Auth.isAdmin && currentTab === "vehicles") switchTab("map");
+
   if (Auth.isAdmin) {
     badge.textContent = "Modo admin";
     badge.className = "badge badge-admin";
@@ -3100,6 +3196,7 @@ function wireEvents() {
 
   document.getElementById("tabMapBtn").addEventListener("click", () => switchTab("map"));
   document.getElementById("tabGradeBtn").addEventListener("click", () => switchTab("grade"));
+  document.getElementById("tabVehiclesBtn").addEventListener("click", () => switchTab("vehicles"));
 
   document.getElementById("btnGradeCitiesReport").addEventListener("click", openGradeCitiesModal);
   document.getElementById("btnCloseGradeCities").addEventListener("click", closeGradeCitiesModal);
