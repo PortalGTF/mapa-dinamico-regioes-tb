@@ -1,22 +1,6 @@
 {
   "SEG": [
     {
-      "id": "slot_1787169423077_rhnu4",
-      "profile": "Vuc",
-      "regionId": null,
-      "quantity": 1
-    },
-    {
-      "id": "slot_1787169446927_9ztgv",
-      "profile": "Truck",
-      "regionId": null
-    },
-    {
-      "id": "slot_1787169449799_48aum",
-      "profile": "3/4 Adaptado",
-      "regionId": null
-    },
-    {
       "id": "route_1787228747888_jeotu",
       "regionId": "r_1786997082140",
       "profile": "3/4 Adaptado",
@@ -63,6 +47,12 @@
       "regionId": "r_1786631703669",
       "profile": "3/4 Leve",
       "quantity": 3
+    },
+    {
+      "id": "route_1787318682689_m43er",
+      "regionId": "r_1787253869033",
+      "profile": "3/4 Leve",
+      "quantity": 1
     }
   ],
   "TER": [
@@ -233,6 +223,24 @@
     {
       "id": "route_1787242626609_czhy9",
       "regionId": "r_1786631703669",
+      "profile": "3/4 Leve",
+      "quantity": 2
+    },
+    {
+      "id": "route_1787318564166_fpu1p",
+      "regionId": "r_1787253565001",
+      "profile": "3/4 Leve",
+      "quantity": 5
+    },
+    {
+      "id": "route_1787318642836_3vcu3",
+      "regionId": "r_1787252088723",
+      "profile": "Vuc",
+      "quantity": 1
+    },
+    {
+      "id": "route_1787318669078_ngdla",
+      "regionId": "r_1787253836191",
       "profile": "3/4 Leve",
       "quantity": 2
     }
