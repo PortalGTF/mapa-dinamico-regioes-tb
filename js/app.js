@@ -2620,12 +2620,49 @@ function openKeyCityModal(cityLabel) {
     checklist.innerHTML = `<p class="hint">Nenhuma região criada ainda.</p>`;
   }
 
+  // Popula o seletor de perfil do formulário de "criar região nova"
+  const profileSelect = document.getElementById("newRegionInKeyCityProfile");
+  profileSelect.innerHTML = VEHICLE_PROFILES.map((p) => `<option value="${p.name}">${p.name}</option>`).join("");
+  document.getElementById("newRegionInKeyCityForm").classList.add("hidden");
+  document.getElementById("newRegionInKeyCityName").value = "";
+
   document.getElementById("keyCityModal").classList.remove("hidden");
 }
 
 function closeKeyCityModal() {
   document.getElementById("keyCityModal").classList.add("hidden");
   editingKeyCityLabel = null;
+}
+
+// Cria uma região nova, só com a cidade que está sendo editada, direto do
+// modal de cidade-chave. Diferente de desenhar região nova no mapa, essa NÃO
+// tira a cidade de nenhuma outra região — é exatamente o ponto de ser uma
+// cidade-chave.
+function createRegionFromKeyCityModal() {
+  if (!Auth.isAdmin || !editingKeyCityLabel) return;
+  const name = document.getElementById("newRegionInKeyCityName").value.trim();
+  const vehicleProfile = document.getElementById("newRegionInKeyCityProfile").value;
+
+  if (!name) {
+    alert("Digite um nome pra região antes de criar.");
+    return;
+  }
+
+  const region = Regions.create({ name, vehicleProfile, cities: [editingKeyCityLabel] });
+
+  // Já marca a região recém-criada no checklist, e limpa/esconde o formulário
+  const checklist = document.getElementById("keyCityChecklist");
+  const emptyMsg = checklist.querySelector("p.hint");
+  if (emptyMsg) checklist.innerHTML = "";
+  const label = document.createElement("label");
+  label.innerHTML = `<input type="checkbox" value="${region.id}" checked /> ${region.name}`;
+  checklist.appendChild(label);
+
+  document.getElementById("newRegionInKeyCityForm").classList.add("hidden");
+  document.getElementById("newRegionInKeyCityName").value = "";
+
+  rebuildClusters();
+  renderRegionsList();
 }
 
 function saveKeyCityRegions() {
@@ -3756,6 +3793,10 @@ function wireEvents() {
   document.getElementById("btnCloseKeyCity").addEventListener("click", closeKeyCityModal);
   document.getElementById("btnCancelKeyCity").addEventListener("click", closeKeyCityModal);
   document.getElementById("btnSaveKeyCity").addEventListener("click", saveKeyCityRegions);
+  document.getElementById("btnToggleNewRegionInKeyCity").addEventListener("click", () => {
+    document.getElementById("newRegionInKeyCityForm").classList.toggle("hidden");
+  });
+  document.getElementById("btnCreateRegionInKeyCity").addEventListener("click", createRegionFromKeyCityModal);
   document.getElementById("btnCloseDedupe").addEventListener("click", closeDedupeModal);
   document.getElementById("btnRunCommand").addEventListener("click", runConflictCommand);
 

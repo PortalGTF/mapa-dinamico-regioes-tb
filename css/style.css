@@ -966,6 +966,28 @@ main { position: relative; flex: 1; }
   margin: 0;
 }
 
+.btn-small-full {
+  width: 100%;
+  margin-top: 10px;
+  font-size: 12px;
+  padding: 8px;
+}
+.new-region-inline-form {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  background: #fafafa;
+}
+.new-region-inline-form label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 6px;
+  display: block;
+}
+.new-region-inline-form label:first-child { margin-top: 0; }
+
 /* ---------- Detalhes da região / raio ---------- */
 .region-detail-summary {
   background: #f4f2ee;

@@ -351,6 +351,17 @@
   </div>
   <p class="hint">Marque todas as regiões que essa cidade pode compor no roteiro. Marcando mais de uma, ela vira uma "cidade-chave" — aparece com um selo 🔑 no mapa, e linhas tracejadas ligando ela às outras regiões quando você focar numa delas.</p>
   <div id="keyCityChecklist" class="checklist"></div>
+
+  <button id="btnToggleNewRegionInKeyCity" class="btn btn-outline btn-small-full">+ Criar uma região nova com essa cidade</button>
+  <div id="newRegionInKeyCityForm" class="new-region-inline-form hidden">
+    <label>Nome da nova região</label>
+    <input type="text" id="newRegionInKeyCityName" placeholder="Ex: GOIOERÊ 2" />
+    <label>Perfil mínimo de veículo</label>
+    <select id="newRegionInKeyCityProfile"></select>
+    <p class="hint hint-small">A região nasce só com essa cidade dentro — depois é só editar ela normal pra adicionar mais cidades. Ela <strong>não</strong> tira essa cidade de nenhuma outra região (diferente de desenhar região nova no mapa).</p>
+    <button id="btnCreateRegionInKeyCity" class="btn btn-primary btn-small-full">Criar região</button>
+  </div>
+
   <div class="modal-actions">
     <button id="btnCancelKeyCity" class="btn btn-outline">Cancelar</button>
     <button id="btnSaveKeyCity" class="btn btn-primary">Salvar</button>

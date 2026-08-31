@@ -503,6 +503,13 @@ Mourão compondo tanto Goioerê quanto Ubiratã). Pra marcar isso:
 1. Clique na cidade no mapa (modo admin) e depois em **"🔑 Cidade-chave (compor mais
    regiões)"**.
 2. Marque todas as regiões que essa cidade deve compor (pode marcar quantas quiser).
+   Se uma das regiões que ela deveria compor **ainda nem existe**, clique em **"+
+   Criar uma região nova com essa cidade"** direto ali dentro — preenche nome e
+   perfil mínimo, e a região nasce só com essa cidade (depois edita normal pra
+   adicionar as outras). Importante: criar a região por aqui **não tira a cidade de
+   nenhuma outra região** que ela já compõe — diferente de desenhar uma região nova
+   no mapa (que tiraria automaticamente), aqui é o próprio propósito de virar
+   cidade-chave.
 3. Salve.
 
 A partir daí, a cidade-chave se destaca bastante das demais:
