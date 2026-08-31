@@ -2281,19 +2281,22 @@ async function generateGradePdf() {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a3" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Cabeçalho: logo + título
+  // Cabeçalho: logo (mantendo a proporção real dela, 136×107 — sem espremer
+  // num quadrado) + título
   try {
     const logoDataUrl = await imageUrlToDataUrl("img/logo.png");
-    doc.addImage(logoDataUrl, "PNG", 12, 10, 22, 22);
+    const logoW = 26;
+    const logoH = logoW * (107 / 136);
+    doc.addImage(logoDataUrl, "PNG", 14, 12, logoW, logoH);
   } catch (e) {
     // segue sem logo se não conseguir carregar
   }
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.text("GRADE DE ATENDIMENTO — GTF TERRA BOA", pageWidth / 2, 18, { align: "center" });
+  doc.text("GRADE DE ATENDIMENTO — GTF TERRA BOA", pageWidth / 2, 20, { align: "center" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, pageWidth / 2, 25, { align: "center" });
+  doc.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, pageWidth / 2, 27, { align: "center" });
 
   // Cabeçalho da tabela: linha 1 = dia (com capacidade total), linha 2 = Veic/Rota/Peso/Perfil
   const headRow1 = [{ content: "VENDEDOR", rowSpan: 2, styles: { valign: "middle" } }];
@@ -2310,7 +2313,10 @@ async function generateGradePdf() {
     headRow2.push("Veic", "Rota", "Peso", "Perfil");
   });
 
-  // Corpo: mesmas linhas já empacotadas usadas na tela
+  // Corpo: mesmas linhas já empacotadas usadas na tela. O jsPDF não desenha
+  // emoji (viravam símbolos quebrados tipo "Ø-Y") — troca por um "*" comum,
+  // com legenda explicando embaixo da tabela.
+  let hasSharedRoute = false;
   const body = packedRows.map((rowData) => {
     const cells = [rowData.vendorKey];
     GRADE_DAYS.forEach((day) => {
@@ -2323,9 +2329,10 @@ async function generateGradePdf() {
       const quantity = entry.route.quantity || 1;
       const weight = cap !== null ? cap * quantity : null;
       const shared = entry.coSellers && entry.coSellers.length > 0;
+      if (shared) hasSharedRoute = true;
       cells.push(
         String(quantity),
-        entry.region.name + (shared ? " 🔗" : ""),
+        entry.region.name + (shared ? " *" : ""),
         weight !== null ? `${weight.toLocaleString("pt-BR")} kg` : "—",
         entry.route.profile
       );
@@ -2333,22 +2340,42 @@ async function generateGradePdf() {
     return cells;
   });
 
-  doc.autoTable({
+  const tableResult = doc.autoTable({
     head: [headRow1, headRow2],
     body,
-    startY: 30,
+    startY: 32,
     theme: "grid",
-    styles: { fontSize: 6.5, cellPadding: 1.2, lineColor: [26, 43, 74], lineWidth: 0.1 },
+    styles: { fontSize: 6.5, cellPadding: 1.2, lineColor: [26, 43, 74], lineWidth: 0.1, valign: "middle" },
     headStyles: { fillColor: [26, 43, 74], textColor: 255, fontSize: 6.5, halign: "center" },
-    columnStyles: { 0: { fontStyle: "bold", cellWidth: 30 } },
+    columnStyles: { 0: { fontStyle: "bold", cellWidth: 30, valign: "middle" } },
     margin: { left: 8, right: 8 },
     didParseCell: (data) => {
       // Colore de leve a linha do cabeçalho de dia (segunda linha do head)
       if (data.section === "head" && data.row.index === 1) {
         data.cell.styles.fillColor = [42, 62, 100];
       }
+      // Alinhamento por tipo de sub-coluna (Veic/Rota/Peso/Perfil, repetido a
+      // cada dia): Veic e Peso centralizados, Rota em negrito e à esquerda
+      // (mas centralizado verticalmente na célula), Perfil centralizado.
+      if (data.section === "body" && data.column.index > 0) {
+        const offset = (data.column.index - 1) % 4;
+        data.cell.styles.valign = "middle";
+        if (offset === 0 || offset === 2 || offset === 3) {
+          data.cell.styles.halign = "center";
+        } else if (offset === 1) {
+          data.cell.styles.halign = "left";
+          data.cell.styles.fontStyle = "bold";
+        }
+      }
     },
   });
+
+  if (hasSharedRoute) {
+    const finalY = doc.lastAutoTable.finalY || 32;
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.text("* Rota dividida entre mais de um vendedor — o peso conta uma vez só no total do dia.", 14, finalY + 6);
+  }
 
   doc.save("grade-atendimento-terra-boa.pdf");
 
