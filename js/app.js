@@ -2942,7 +2942,7 @@ function openRouteSellersModal(region, sellers) {
   checklist.innerHTML = "";
   sellers.forEach((name) => {
     const label = document.createElement("label");
-    label.innerHTML = `<input type="checkbox" value="${name}" checked /> ${name}`;
+    label.innerHTML = `<input type="checkbox" value="${name}" /> ${name}`;
     checklist.appendChild(label);
   });
   document.getElementById("routeSellersOverlay").classList.remove("hidden");
