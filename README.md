@@ -535,6 +535,23 @@ Cidade Y, Cidade Z"), em vez de uma linha por cidade — bem mais compacto quand
 muitas. Clique em qualquer nome de cidade dentro desse aviso (modo admin) pra abrir
 direto a troca de vendedor daquela cidade.
 
+### Publicando direto no GitHub, sem baixar/subir manual
+Em **"Outras ações ▾" → "🚀 Publicar no GitHub (automático)"**, você configura uma
+vez: usuário/organização do GitHub, nome do repositório, branch (geralmente
+"main"), e um **token de acesso pessoal**. Depois disso, sempre que terminar de
+editar (regiões, cidades, vendedores, grade), é só clicar em **"🚀 Publicar tudo
+agora"** — o app sobe todos os arquivos de dados direto pro GitHub sozinho, sem
+precisar baixar nada nem arrastar arquivo nenhum.
+
+**Como gerar o token**: clique no link dentro do painel ("Criar um token aqui"),
+crie um token do tipo **"Fine-grained"**, restrito só a esse repositório, com a
+permissão **"Contents: Read and write"**. Guarde esse token com cuidado — ele fica
+salvo só no seu navegador (nunca é enviado pra mais ninguém além do próprio
+GitHub), mas quem tiver acesso a ele consegue editar o repositório.
+
+Depois de publicar com sucesso, o app descarta os rascunhos locais sozinho — já que
+não tem mais nada "pendente" (o publicado já é igual ao que você editou).
+
 ### Trocando a senha do admin pelo próprio app
 Em **"Outras ações ▾" → "🔑 Trocar senha do admin"**, digite a senha nova duas vezes
 e clique em "Gerar novo config.js" — o app calcula o hash da senha nova e já baixa um

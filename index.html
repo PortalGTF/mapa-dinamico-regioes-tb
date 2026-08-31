@@ -72,6 +72,7 @@
       <button class="dropdown-action-btn" id="btnStandardizeFromMenu">🔤 Padronizar nomes (MAIÚSCULAS)</button>
       <button class="dropdown-action-btn" id="btnReverifyFromMenu">Reconferir todas as cidades</button>
       <button class="dropdown-action-btn" id="btnChangePasswordFromMenu">🔑 Trocar senha do admin</button>
+      <button class="dropdown-action-btn" id="btnOpenGithubPublish">🚀 Publicar no GitHub (automático)</button>
     </div>
   </div>
 
@@ -234,6 +235,47 @@
     <button id="btnRegionDelete" class="btn btn-danger hidden">Excluir região</button>
     <button id="btnRegionSave" class="btn btn-primary">Salvar região</button>
   </div>
+</div>
+
+<!-- Painel: publicar direto no GitHub -->
+<div id="githubPublishModal" class="side-panel side-panel-wide hidden">
+  <div class="side-panel-header" id="githubPublishHeader">
+    <h3>Publicar no GitHub (automático)</h3>
+    <div class="side-panel-header-actions">
+      <button id="btnCloseGithubPublish" class="icon-btn" title="Fechar">✕</button>
+    </div>
+  </div>
+  <p class="hint">
+    Configure uma vez e, depois, é só clicar em "Publicar tudo agora" sempre que
+    terminar de editar — o app sobe todos os arquivos de dados direto pro GitHub
+    sozinho, sem precisar baixar e subir manualmente. Suas informações ficam salvas
+    só no seu navegador (nunca são enviadas pra mim nem pra ninguém além do GitHub).
+  </p>
+
+  <label>Usuário ou organização do GitHub</label>
+  <input type="text" id="ghOwner" placeholder="Ex: portalgtf" />
+
+  <label>Nome do repositório</label>
+  <input type="text" id="ghRepo" placeholder="Ex: mapa-dinamico-regioes-tb" />
+
+  <label>Branch (geralmente "main")</label>
+  <input type="text" id="ghBranch" placeholder="main" value="main" />
+
+  <label>Token de acesso pessoal (GitHub)</label>
+  <input type="password" id="ghToken" placeholder="ghp_..." />
+  <p class="hint hint-small">
+    Precisa de um token com permissão de escrita nesse repositório específico.
+    <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">Criar um token aqui</a>
+    (tipo "Fine-grained", marcando esse repositório e a permissão "Contents: Read and write").
+    Guarde ele com cuidado — quem tiver esse token consegue editar seu repositório.
+  </p>
+
+  <div class="modal-actions">
+    <button id="btnSaveGithubConfig" class="btn btn-outline">Salvar configuração</button>
+    <button id="btnPublishNow" class="btn btn-primary">🚀 Publicar tudo agora</button>
+  </div>
+
+  <p id="githubPublishStatus" class="hint hint-small"></p>
 </div>
 
 <!-- Painel: trocar senha do admin -->

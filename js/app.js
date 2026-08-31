@@ -97,6 +97,7 @@ function makePanelsDraggable() {
   attachDrag("editCitySellersModal", document.getElementById("editCitySellersHeader"));
   attachDrag("keyCityModal", document.getElementById("keyCityHeader"));
   attachDrag("changePasswordModal", document.getElementById("changePasswordHeader"));
+  attachDrag("githubPublishModal", document.getElementById("githubPublishHeader"));
   attachDrag("gradeCitiesModal", document.getElementById("gradeCitiesHeader"));
   attachDrag("gradeRegionInfoModal", document.getElementById("gradeRegionInfoHeader"));
   attachDrag("dedupeModal", document.getElementById("dedupeModalHeader"));
@@ -2921,6 +2922,138 @@ function exportEverythingNow() {
 // Trocar senha do admin — gera um novo js/config.js já com o
 // hash da senha nova, pronto pra subir no GitHub.
 // ------------------------------------------------------------
+// ------------------------------------------------------------
+// Publicar direto no GitHub — sem precisar baixar/subir manual. Usa a API
+// do GitHub direto do navegador, com um token de acesso pessoal que fica
+// salvo só localmente (localStorage), nunca é enviado pra mais ninguém.
+// ------------------------------------------------------------
+function utf8ToBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
+function getGithubConfig() {
+  try {
+    const raw = localStorage.getItem("regioes_github_config");
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveGithubConfig(config) {
+  localStorage.setItem("regioes_github_config", JSON.stringify(config));
+}
+
+function openGithubPublishModal() {
+  if (!Auth.isAdmin) return;
+  const config = getGithubConfig();
+  document.getElementById("ghOwner").value = (config && config.owner) || "";
+  document.getElementById("ghRepo").value = (config && config.repo) || "";
+  document.getElementById("ghBranch").value = (config && config.branch) || "main";
+  document.getElementById("ghToken").value = (config && config.token) || "";
+  document.getElementById("githubPublishStatus").textContent = "";
+  document.getElementById("githubPublishModal").classList.remove("hidden");
+}
+
+function closeGithubPublishModal() {
+  document.getElementById("githubPublishModal").classList.add("hidden");
+}
+
+function saveGithubConfigFromForm() {
+  const owner = document.getElementById("ghOwner").value.trim();
+  const repo = document.getElementById("ghRepo").value.trim();
+  const branch = document.getElementById("ghBranch").value.trim() || "main";
+  const token = document.getElementById("ghToken").value.trim();
+
+  if (!owner || !repo || !token) {
+    alert("Preencha usuário, repositório e token antes de salvar.");
+    return;
+  }
+  saveGithubConfig({ owner, repo, branch, token });
+  const statusEl = document.getElementById("githubPublishStatus");
+  statusEl.style.color = "";
+  statusEl.textContent = "Configuração salva neste navegador.";
+}
+
+async function githubGetFileSha(owner, repo, path, branch, token) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+  });
+  if (res.status === 404) return null; // arquivo ainda não existe nesse caminho
+  if (!res.ok) throw new Error(`Erro ao consultar ${path} (${res.status})`);
+  const data = await res.json();
+  return data.sha;
+}
+
+async function githubPutFile(owner, repo, path, branch, token, content, message) {
+  const sha = await githubGetFileSha(owner, repo, path, branch, token);
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
+  const body = { message, content: utf8ToBase64(content), branch };
+  if (sha) body.sha = sha;
+
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`${path}: ${res.status} — ${err.message || "erro desconhecido"}`);
+  }
+}
+
+async function publishAllToGitHub() {
+  const config = getGithubConfig();
+  if (!config || !config.owner || !config.repo || !config.token) {
+    alert("Preencha e salve a configuração do GitHub antes de publicar.");
+    return;
+  }
+
+  const statusEl = document.getElementById("githubPublishStatus");
+  const btn = document.getElementById("btnPublishNow");
+  btn.disabled = true;
+  statusEl.style.color = "";
+
+  const branch = config.branch || "main";
+  const message = `Atualização via app — ${new Date().toLocaleString("pt-BR")}`;
+
+  const files = [
+    { path: "data/regions.json", content: Regions.exportJSON() },
+    { path: "data/cities.json", content: Geocode.exportJSON() },
+    { path: "data/grade.json", content: Grade.exportJSON() },
+    { path: "data/sellers.json", content: JSON.stringify(SELLERS, null, 2) },
+    { path: "data/city_to_sellers.json", content: JSON.stringify(CITY_TO_SELLERS, null, 2) },
+    { path: "data/cities_list.json", content: JSON.stringify(CITIES_LIST, null, 2) },
+  ];
+
+  try {
+    for (let i = 0; i < files.length; i++) {
+      statusEl.textContent = `Publicando ${files[i].path}… (${i + 1}/${files.length})`;
+      await githubPutFile(config.owner, config.repo, files[i].path, branch, config.token, files[i].content, message);
+    }
+    statusEl.style.color = "#1a7d3c";
+    statusEl.textContent = "✅ Tudo publicado! O GitHub Pages costuma atualizar em 1-2 minutos.";
+
+    // Já que está tudo publicado agora, descarta os rascunhos locais — não tem
+    // mais nada "pendente", published = draft.
+    Regions.discardDraft();
+    localStorage.removeItem("regioes_directory_draft");
+    Grade.discardDraft();
+    updateDraftHint();
+  } catch (e) {
+    statusEl.style.color = "#c0392b";
+    statusEl.textContent = `❌ Erro ao publicar: ${e.message}`;
+  }
+
+  btn.disabled = false;
+}
+
 function openChangePasswordModal() {
   if (!Auth.isAdmin) return;
   document.getElementById("newAdminPassword").value = "";
@@ -3667,6 +3800,7 @@ function updateAdminUI() {
     closeKeyCityModal();
     closeDedupeModal();
     closeChangePasswordModal();
+    closeGithubPublishModal();
     closeGradeCitiesModal();
     closeRouteSellersModal();
     clearSearchPreview();
@@ -3824,6 +3958,13 @@ function wireEvents() {
   document.getElementById("btnCloseChangePassword").addEventListener("click", closeChangePasswordModal);
   document.getElementById("btnCancelChangePassword").addEventListener("click", closeChangePasswordModal);
   document.getElementById("btnGenerateNewConfig").addEventListener("click", generateNewConfigFile);
+  document.getElementById("btnOpenGithubPublish").addEventListener("click", () => {
+    document.getElementById("otherActionsDropdown").classList.add("hidden");
+    openGithubPublishModal();
+  });
+  document.getElementById("btnCloseGithubPublish").addEventListener("click", closeGithubPublishModal);
+  document.getElementById("btnSaveGithubConfig").addEventListener("click", saveGithubConfigFromForm);
+  document.getElementById("btnPublishNow").addEventListener("click", publishAllToGitHub);
 
   document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);
   document.getElementById("btnNewCityCancel").addEventListener("click", closeNewCityModal);
