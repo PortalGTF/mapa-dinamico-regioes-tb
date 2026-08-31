@@ -102,6 +102,15 @@
       "sellers": [
         "Boiadeiro"
       ]
+    },
+    {
+      "id": "route_1788202674610_8x219",
+      "regionId": "r_1787253869033",
+      "profile": "3/4 Leve",
+      "quantity": 1,
+      "sellers": [
+        "ALESSANDRA BORGATO"
+      ]
     }
   ],
   "TER": [
@@ -485,6 +494,42 @@
       "quantity": 2,
       "sellers": [
         "Boiadeiro"
+      ]
+    },
+    {
+      "id": "route_1788202657316_vx72m",
+      "regionId": "r_1787253565001",
+      "profile": "3/4 Leve",
+      "quantity": 4,
+      "sellers": [
+        "ALESSANDRA BORGATO"
+      ]
+    },
+    {
+      "id": "route_1788202665370_3yq5z",
+      "regionId": "r_1787251970825",
+      "profile": "3/4 Leve",
+      "quantity": 1,
+      "sellers": [
+        "ALESSANDRA BORGATO"
+      ]
+    },
+    {
+      "id": "route_1788202679806_uj55s",
+      "regionId": "r_1787253836191",
+      "profile": "3/4 Leve",
+      "quantity": 2,
+      "sellers": [
+        "ALESSANDRA BORGATO"
+      ]
+    },
+    {
+      "id": "route_1788202688171_5ssfn",
+      "regionId": "r_1787252088723",
+      "profile": "3/4 Leve",
+      "quantity": 1,
+      "sellers": [
+        "ALESSANDRA BORGATO"
       ]
     }
   ]

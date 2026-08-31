@@ -504,5 +504,31 @@
       "PAIÇANDU - PR"
     ],
     "color": "#e03c6e"
+  },
+  {
+    "id": "r_1788202754028",
+    "name": "VENDRAMINI - BOM DIA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "SÃO PEDRO DO IVAÍ - PR",
+      "QUINTA DO SOL - PR",
+      "ENGENHEIRO BELTRÃO - PR",
+      "PEABIRU - PR",
+      "TERRA BOA - PR",
+      "CAMPO MOURÃO - PR"
+    ],
+    "color": "#a83ce0"
+  },
+  {
+    "id": "r_1788202851012",
+    "name": "FK + FINCO - BOM DIA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "MANDAGUAÇU - PR",
+      "MARINGÁ - PR",
+      "PAIÇANDU - PR",
+      "SARANDI - PR"
+    ],
+    "color": "#e0c93c"
   }
 ]
