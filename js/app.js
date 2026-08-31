@@ -2306,7 +2306,7 @@ async function generateGradePdf() {
       .filter((r) => Regions.list.some((reg) => reg.id === r.regionId))
       .reduce((sum, r) => sum + (profileCapacity(r.profile) || 0) * (r.quantity || 1), 0);
     headRow1.push({
-      content: `CARREG. ${GRADE_DAY_NAMES[day]} → ENTREGA ${GRADE_DAY_NAMES[GRADE_NEXT_DAY[day]]}\n${total.toLocaleString("pt-BR")} kg`,
+      content: `CARREG: ${day} > ENTREG: ${GRADE_NEXT_DAY[day]}\n${total.toLocaleString("pt-BR")} kg`,
       colSpan: 4,
       styles: { halign: "center" },
     });
@@ -2374,7 +2374,16 @@ async function generateGradePdf() {
     const finalY = doc.lastAutoTable.finalY || 32;
     doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
-    doc.text("* Rota dividida entre mais de um vendedor — o peso conta uma vez só no total do dia.", 14, finalY + 6);
+    doc.text(
+      "* Rota compartilhada — atendida por mais de um vendedor. Mesmo aparecendo repetida em várias linhas,",
+      14,
+      finalY + 6
+    );
+    doc.text(
+      "a quantidade de veículos e o peso contam UMA VEZ SÓ no total do dia (não some cada linha em que aparece).",
+      14,
+      finalY + 10.5
+    );
   }
 
   doc.save("grade-atendimento-terra-boa.pdf");
