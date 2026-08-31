@@ -80,16 +80,7 @@
     "ROSÁRIO DO IVAÍ - PR",
     "RIO BRANCO DO IVAÍ - PR"
   ],
-  "Rodrigo Glauber Correia": [
-    "LONDRINA - PR",
-    "CAMBÉ - PR",
-    "ROLÂNDIA - PR",
-    "TAMARANA - PR",
-    "GUARAVERA - PR",
-    "PAIQUERÊ - PR",
-    "IRERÊ - PR",
-    "WARTA - PR"
-  ],
+  "Rodrigo Glauber Correia": [],
   "Maycon Rodrigo Pupulin": [
     "SARANDI - PR",
     "MARIALVA - PR",
@@ -272,5 +263,15 @@
   ],
   "Alexandre Ticianel": [
     "MARINGÁ - PR"
+  ],
+  "Willian Testa": [
+    "LONDRINA - PR",
+    "CAMBÉ - PR",
+    "ROLÂNDIA - PR",
+    "TAMARANA - PR",
+    "GUARAVERA - PR",
+    "PAIQUERÊ - PR",
+    "IRERÊ - PR",
+    "WARTA - PR"
   ]
 }
