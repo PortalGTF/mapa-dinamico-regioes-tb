@@ -2254,6 +2254,108 @@ async function exportFilialExcel() {
   btn.textContent = originalText;
 }
 
+// ------------------------------------------------------------
+// PDF da Grade — paisagem, tudo numa página só, no mesmo formato da planilha
+// "GRADE DE ATENDIMENTO": Vendedor + Veic/Rota/Peso/Perfil por dia.
+// ------------------------------------------------------------
+async function generateGradePdf() {
+  if (typeof window.jspdf === "undefined") {
+    alert("A biblioteca de PDF ainda não carregou — aguarde alguns segundos e tente de novo.");
+    return;
+  }
+
+  const packedRows = computePackedGradeRows();
+  if (packedRows.length === 0) {
+    alert("A Grade ainda está vazia — arraste alguma região pra algum dia antes de gerar o PDF.");
+    return;
+  }
+
+  const btn = document.getElementById("btnGradePdf");
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Gerando…";
+
+  const { jsPDF } = window.jspdf;
+  // A3 paisagem — dá espaço suficiente pra caber vendedor + 5 dias × 4
+  // colunas cada, tudo numa página só, sem espremer demais o texto.
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a3" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  // Cabeçalho: logo + título
+  try {
+    const logoDataUrl = await imageUrlToDataUrl("img/logo.png");
+    doc.addImage(logoDataUrl, "PNG", 12, 10, 22, 22);
+  } catch (e) {
+    // segue sem logo se não conseguir carregar
+  }
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("GRADE DE ATENDIMENTO — GTF TERRA BOA", pageWidth / 2, 18, { align: "center" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text(`Gerado em ${new Date().toLocaleDateString("pt-BR")}`, pageWidth / 2, 25, { align: "center" });
+
+  // Cabeçalho da tabela: linha 1 = dia (com capacidade total), linha 2 = Veic/Rota/Peso/Perfil
+  const headRow1 = [{ content: "VENDEDOR", rowSpan: 2, styles: { valign: "middle" } }];
+  const headRow2 = [];
+  GRADE_DAYS.forEach((day) => {
+    const total = Grade.days[day]
+      .filter((r) => Regions.list.some((reg) => reg.id === r.regionId))
+      .reduce((sum, r) => sum + (profileCapacity(r.profile) || 0) * (r.quantity || 1), 0);
+    headRow1.push({
+      content: `CARREG. ${GRADE_DAY_NAMES[day]} → ENTREGA ${GRADE_DAY_NAMES[GRADE_NEXT_DAY[day]]}\n${total.toLocaleString("pt-BR")} kg`,
+      colSpan: 4,
+      styles: { halign: "center" },
+    });
+    headRow2.push("Veic", "Rota", "Peso", "Perfil");
+  });
+
+  // Corpo: mesmas linhas já empacotadas usadas na tela
+  const body = packedRows.map((rowData) => {
+    const cells = [rowData.vendorKey];
+    GRADE_DAYS.forEach((day) => {
+      const entry = rowData.cells[day];
+      if (!entry) {
+        cells.push("—", "—", "—", "—");
+        return;
+      }
+      const cap = profileCapacity(entry.route.profile);
+      const quantity = entry.route.quantity || 1;
+      const weight = cap !== null ? cap * quantity : null;
+      const shared = entry.coSellers && entry.coSellers.length > 0;
+      cells.push(
+        String(quantity),
+        entry.region.name + (shared ? " 🔗" : ""),
+        weight !== null ? `${weight.toLocaleString("pt-BR")} kg` : "—",
+        entry.route.profile
+      );
+    });
+    return cells;
+  });
+
+  doc.autoTable({
+    head: [headRow1, headRow2],
+    body,
+    startY: 30,
+    theme: "grid",
+    styles: { fontSize: 6.5, cellPadding: 1.2, lineColor: [26, 43, 74], lineWidth: 0.1 },
+    headStyles: { fillColor: [26, 43, 74], textColor: 255, fontSize: 6.5, halign: "center" },
+    columnStyles: { 0: { fontStyle: "bold", cellWidth: 30 } },
+    margin: { left: 8, right: 8 },
+    didParseCell: (data) => {
+      // Colore de leve a linha do cabeçalho de dia (segunda linha do head)
+      if (data.section === "head" && data.row.index === 1) {
+        data.cell.styles.fillColor = [42, 62, 100];
+      }
+    },
+  });
+
+  doc.save("grade-atendimento-terra-boa.pdf");
+
+  btn.disabled = false;
+  btn.textContent = originalText;
+}
+
 async function imageUrlToDataUrl(url) {
   const res = await fetch(url);
   const blob = await res.blob();
@@ -2894,6 +2996,14 @@ function switchTab(tab) {
 
 // Vendedores que atendem uma região — todos os vendedores distintos entre as
 // cidades dela (usado pra exibir "Vendedor(es)" no cartão da grade).
+// "Alessandra Borgato" -> "Alessandra B." — usado no resumo de quem divide
+// veículo, pra caber numa linha só embaixo do nome do vendedor principal.
+function abbreviateName(name) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[1][0]}.`;
+}
+
 function regionSellers(region) {
   const sellers = new Set();
   region.cities.forEach((c) => {
@@ -2945,11 +3055,10 @@ function renderGradeRegionList() {
     });
 }
 
-function renderGradeBoard() {
-  const board = document.getElementById("gradeBoard");
-  document.getElementById("gradeAdminHint").classList.toggle("hidden", !Auth.isAdmin);
-  board.innerHTML = "";
-
+// Monta as linhas já "empacotadas" (uma linha por vendedor, dias preenchidos
+// quando possível na mesma linha) — usado tanto pra desenhar a tabela na tela
+// quanto pra gerar o PDF da grade, garantindo que os dois fiquem idênticos.
+function computePackedGradeRows() {
   // Junta toda rota de todo dia numa lista só: {day, route, region}
   const allEntries = [];
   GRADE_DAYS.forEach((day) => {
@@ -3000,6 +3109,16 @@ function renderGradeBoard() {
       });
       packedRows.push(...rowsForVendor);
     });
+
+  return packedRows;
+}
+
+function renderGradeBoard() {
+  const board = document.getElementById("gradeBoard");
+  document.getElementById("gradeAdminHint").classList.toggle("hidden", !Auth.isAdmin);
+  board.innerHTML = "";
+
+  const packedRows = computePackedGradeRows();
 
   const table = document.createElement("table");
   table.className = "grade-table";
@@ -3058,7 +3177,21 @@ function renderGradeBoard() {
 
   packedRows.forEach((rowData) => {
     const row = document.createElement("tr");
-    row.innerHTML = `<td class="gt-col-vendor">${rowData.vendorKey}</td>`;
+
+    // Junta quem divide veículo em qualquer dia dessa linha, num resumo só,
+    // abreviado, embaixo do nome do vendedor — em vez de repetir por célula.
+    const coSellersSet = new Set();
+    GRADE_DAYS.forEach((day) => {
+      const entry = rowData.cells[day];
+      if (entry && entry.coSellers && entry.coSellers.length > 0) {
+        entry.coSellers.forEach((s) => coSellersSet.add(s));
+      }
+    });
+    const sharedNote =
+      coSellersSet.size > 0
+        ? `<div class="gt-vendor-shared-note">com: ${Array.from(coSellersSet).map(abbreviateName).join(", ")}</div>`
+        : "";
+    row.innerHTML = `<td class="gt-col-vendor">${rowData.vendorKey}${sharedNote}</td>`;
 
     GRADE_DAYS.forEach((day) => {
       const entry = rowData.cells[day];
@@ -3253,9 +3386,8 @@ function buildGradeRouteCells(row, day, route, region, coSellers) {
   rotaTd.dataset.day = day;
   rotaTd.innerHTML = `
     <span class="grc-swatch" style="background:${region.color}"></span><span class="gri-region-clickable">${region.name}</span>
-    ${isShared ? `<span class="gt-shared-tag">🔗 compartilhado</span>` : ""}
+    ${isShared ? `<span class="gt-shared-tag" title="Divide veículo com: ${coSellers.join(", ")} — conta uma vez só no total do dia">🔗 compartilhado</span>` : ""}
     ${Auth.isAdmin ? `<button class="gt-remove" title="Remover">✕</button>` : ""}
-    ${isShared ? `<div class="gt-shared-note">divide veículo com: ${coSellers.join(", ")} — conta uma vez só no total do dia</div>` : ""}
   `;
   rotaTd.querySelector(".gri-region-clickable").addEventListener("click", () => {
     openGradeRegionInfo(region.id);
@@ -3442,6 +3574,7 @@ function wireEvents() {
   });
 
   document.getElementById("btnGradeCitiesReport").addEventListener("click", openGradeCitiesModal);
+  document.getElementById("btnGradePdf").addEventListener("click", generateGradePdf);
   document.getElementById("btnCloseGradeCities").addEventListener("click", closeGradeCitiesModal);
   document.getElementById("btnCloseGradeRegionInfo").addEventListener("click", closeGradeRegionInfo);
   document.getElementById("gradeCitiesSearch").addEventListener("input", (e) => {

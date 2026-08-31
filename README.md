@@ -76,6 +76,15 @@ linhas em vez de cortar.
 9. **Capacidade de embarque de cada dia** aparece no próprio cabeçalho daquele dia,
    recalculada sozinha toda vez que você mexe em alguma coisa.
 
+### Baixar a Grade em PDF (pra mandar no grupo comercial)
+No topo da aba Grade tem o botão **"📄 Baixar Grade em PDF"** — gera um PDF em
+**paisagem, tudo numa página só** (papel A3, pra caber a semana inteira sem
+espremer demais), no mesmo formato da sua planilha "GRADE DE ATENDIMENTO": uma
+coluna de Vendedor e, pra cada dia, as colunas Veic/Rota/Peso/Perfil, com a
+capacidade de embarque de cada dia no próprio cabeçalho. Rotas compartilhadas entre
+vendedores aparecem com um 🔗 do lado do nome da região. Disponível tanto no modo
+admin quanto no modo visualização — não precisa de senha pra baixar.
+
 ### Exportar Excel no formato "Filial" (pra outro sistema)
 No topo do mapa (modo admin), o botão **"📊 Excel (Filial)"** gera um arquivo
 `.xlsx` de verdade, com uma linha por cidade de todas as regiões, no formato:
