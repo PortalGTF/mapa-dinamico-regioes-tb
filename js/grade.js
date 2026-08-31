@@ -57,13 +57,16 @@ const Grade = {
 
   // Adiciona a região como uma nova rota naquele dia, já puxando o perfil
   // travado na própria região. Pode adicionar a mesma região mais de uma vez
-  // no mesmo dia (ex: duas viagens separadas).
-  addRoute(day, regionId, defaultProfile) {
+  // no mesmo dia (ex: duas viagens separadas). "sellers" guarda quem foi
+  // escolhido pra essa rota específica (pode ser mais de um, dividindo o
+  // mesmo veículo).
+  addRoute(day, regionId, defaultProfile, sellers) {
     const route = {
       id: "route_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
       regionId,
       profile: defaultProfile,
       quantity: 1,
+      sellers: sellers || [],
     };
     this.days[day].push(route);
     this._saveDraft();

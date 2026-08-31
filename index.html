@@ -148,6 +148,19 @@
 </div>
 
 <!-- Painel: detalhes de uma região (cidades + cidades-chave), aberto ao clicar em qualquer região na Grade -->
+<!-- Overlay: escolher quem atende essa rota, ao soltar uma região com mais de um vendedor -->
+<div id="routeSellersOverlay" class="route-sellers-overlay hidden">
+  <div class="route-sellers-box">
+    <h3 id="routeSellersTitle">Quem atende essa rota?</h3>
+    <p class="hint hint-small">Essa região tem mais de um vendedor. Marque quem vai dividir esse carregamento — pode marcar mais de um.</p>
+    <div id="routeSellersChecklist" class="checklist"></div>
+    <div class="modal-actions">
+      <button id="btnCancelRouteSellers" class="btn btn-outline">Cancelar</button>
+      <button id="btnConfirmRouteSellers" class="btn btn-primary">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <div id="gradeRegionInfoModal" class="side-panel hidden">
   <div class="side-panel-header" id="gradeRegionInfoHeader">
     <h3 id="gradeRegionInfoTitle">Região</h3>

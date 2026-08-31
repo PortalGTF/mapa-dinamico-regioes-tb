@@ -2775,6 +2775,7 @@ const CONFIG = {
 // ------------------------------------------------------------
 let currentTab = "map";
 let draggedRegionId = null;
+let pendingRouteDrop = null; // { day, regionId, defaultProfile } — enquanto o modal de vendedores está aberto
 
 let gradeDragDropReady = false;
 
@@ -2809,13 +2810,61 @@ function setupGradeDragDrop() {
     const day = cell.dataset.day;
     const regionId = e.dataTransfer.getData("text/plain") || draggedRegionId;
     if (!regionId || !day) return;
-    const region = Regions.list.find((r) => r.id === regionId);
-    if (!region) return;
-    Grade.addRoute(day, regionId, region.vehicleProfile);
+    handleRegionDrop(day, regionId);
+  });
+}
+
+// Decide o que fazer quando uma região é solta num dia: se ela tem só um
+// vendedor, cria a rota direto (sem abrir nada). Se tem mais de um, abre a
+// caixa pra escolher quem vai dividir esse carregamento.
+function handleRegionDrop(day, regionId) {
+  const region = Regions.list.find((r) => r.id === regionId);
+  if (!region) return;
+  const sellers = regionSellers(region);
+
+  if (sellers.length <= 1) {
+    Grade.addRoute(day, regionId, region.vehicleProfile, sellers);
     updateDraftHint();
     renderGradeBoard();
     renderGradeRegionList();
+    return;
+  }
+
+  pendingRouteDrop = { day, regionId, defaultProfile: region.vehicleProfile };
+  openRouteSellersModal(region, sellers);
+}
+
+function openRouteSellersModal(region, sellers) {
+  document.getElementById("routeSellersTitle").textContent = `Quem atende ${region.name}?`;
+  const checklist = document.getElementById("routeSellersChecklist");
+  checklist.innerHTML = "";
+  sellers.forEach((name) => {
+    const label = document.createElement("label");
+    label.innerHTML = `<input type="checkbox" value="${name}" checked /> ${name}`;
+    checklist.appendChild(label);
   });
+  document.getElementById("routeSellersOverlay").classList.remove("hidden");
+}
+
+function closeRouteSellersModal() {
+  document.getElementById("routeSellersOverlay").classList.add("hidden");
+  pendingRouteDrop = null;
+}
+
+function confirmRouteSellers() {
+  if (!pendingRouteDrop) return;
+  const checked = Array.from(document.querySelectorAll("#routeSellersChecklist input:checked")).map(
+    (el) => el.value
+  );
+  if (checked.length === 0) {
+    alert("Marque ao menos um vendedor.");
+    return;
+  }
+  Grade.addRoute(pendingRouteDrop.day, pendingRouteDrop.regionId, pendingRouteDrop.defaultProfile, checked);
+  updateDraftHint();
+  renderGradeBoard();
+  renderGradeRegionList();
+  closeRouteSellersModal();
 }
 
 function switchTab(tab) {
@@ -2910,13 +2959,22 @@ function renderGradeBoard() {
     });
   });
 
-  // Agrupa por vendedor (mesmo texto que vai aparecer na coluna "Vendedor")
+  // Agrupa por vendedor INDIVIDUAL — cada rota pode ter mais de um vendedor
+  // escolhido (dividindo o mesmo veículo), então ela entra na linha de cada um
+  // deles. Rotas antigas (de antes dessa escolha existir) caem de volta pra
+  // todos os vendedores da região, como já era.
   const vendorGroups = {};
   allEntries.forEach((entry) => {
-    const sellers = regionSellers(entry.region);
-    const vendorKey = sellers.length > 0 ? sellers.join(", ") : "—";
-    vendorGroups[vendorKey] = vendorGroups[vendorKey] || [];
-    vendorGroups[vendorKey].push(entry);
+    const sellersForRoute =
+      entry.route.sellers && entry.route.sellers.length > 0 ? entry.route.sellers : regionSellers(entry.region);
+    const sellerList = sellersForRoute.length > 0 ? sellersForRoute : ["—"];
+    sellerList.forEach((sellerName) => {
+      vendorGroups[sellerName] = vendorGroups[sellerName] || [];
+      vendorGroups[sellerName].push({
+        ...entry,
+        coSellers: sellerList.filter((s) => s !== sellerName),
+      });
+    });
   });
 
   // "Empacota" as rotas de cada vendedor em linhas: reaproveita uma linha já
@@ -3000,11 +3058,7 @@ function renderGradeBoard() {
 
   packedRows.forEach((rowData) => {
     const row = document.createElement("tr");
-    const vendorLines = rowData.vendorKey
-      .split(", ")
-      .map((name) => `<div class="gt-vendor-line">${name}</div>`)
-      .join("");
-    row.innerHTML = `<td class="gt-col-vendor">${vendorLines}</td>`;
+    row.innerHTML = `<td class="gt-col-vendor">${rowData.vendorKey}</td>`;
 
     GRADE_DAYS.forEach((day) => {
       const entry = rowData.cells[day];
@@ -3017,7 +3071,7 @@ function renderGradeBoard() {
         row.appendChild(dash);
         return;
       }
-      buildGradeRouteCells(row, day, entry.route, entry.region);
+      buildGradeRouteCells(row, day, entry.route, entry.region, entry.coSellers);
     });
 
     tbody.appendChild(row);
@@ -3173,12 +3227,13 @@ function buildGradeFleetSummary() {
 }
 
 // Monta as 4 células (Veic | Rota | Peso | Perfil) de uma rota, e insere na linha
-function buildGradeRouteCells(row, day, route, region) {
+function buildGradeRouteCells(row, day, route, region, coSellers) {
   const cap = profileCapacity(route.profile);
   const quantity = route.quantity || 1;
   const totalWeight = cap !== null ? cap * quantity : null;
   const regionProfileCap = profileCapacity(region.vehicleProfile);
   const underCapacity = totalWeight !== null && regionProfileCap !== null && totalWeight < regionProfileCap;
+  const isShared = coSellers && coSellers.length > 0;
 
   // Veic (quantidade)
   const veicTd = document.createElement("td");
@@ -3192,13 +3247,15 @@ function buildGradeRouteCells(row, day, route, region) {
     </div>
   `;
 
-  // Rota (nome da região) + botão de remover
+  // Rota (nome da região) + selo de compartilhado + botão de remover
   const rotaTd = document.createElement("td");
   rotaTd.className = "gt-cell gt-cell-rota";
   rotaTd.dataset.day = day;
   rotaTd.innerHTML = `
     <span class="grc-swatch" style="background:${region.color}"></span><span class="gri-region-clickable">${region.name}</span>
+    ${isShared ? `<span class="gt-shared-tag">🔗 compartilhado</span>` : ""}
     ${Auth.isAdmin ? `<button class="gt-remove" title="Remover">✕</button>` : ""}
+    ${isShared ? `<div class="gt-shared-note">divide veículo com: ${coSellers.join(", ")} — conta uma vez só no total do dia</div>` : ""}
   `;
   rotaTd.querySelector(".gri-region-clickable").addEventListener("click", () => {
     openGradeRegionInfo(region.id);
@@ -3355,6 +3412,7 @@ function updateAdminUI() {
     closeDedupeModal();
     closeChangePasswordModal();
     closeGradeCitiesModal();
+    closeRouteSellersModal();
     clearSearchPreview();
     if (map.hasLayer && drawControl._map) map.removeControl(drawControl);
   }
@@ -3376,6 +3434,12 @@ function wireEvents() {
   document.getElementById("tabMapBtn").addEventListener("click", () => switchTab("map"));
   document.getElementById("tabGradeBtn").addEventListener("click", () => switchTab("grade"));
   document.getElementById("tabVehiclesBtn").addEventListener("click", () => switchTab("vehicles"));
+
+  document.getElementById("btnCancelRouteSellers").addEventListener("click", closeRouteSellersModal);
+  document.getElementById("btnConfirmRouteSellers").addEventListener("click", confirmRouteSellers);
+  document.getElementById("routeSellersOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "routeSellersOverlay") closeRouteSellersModal(); // clicar fora fecha
+  });
 
   document.getElementById("btnGradeCitiesReport").addEventListener("click", openGradeCitiesModal);
   document.getElementById("btnCloseGradeCities").addEventListener("click", closeGradeCitiesModal);

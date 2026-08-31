@@ -44,10 +44,19 @@ linhas em vez de cortar.
    da coluna do dia certo (cabeçalho ou célula) — **não precisa configurar frota
    antes**. A região só vira uma linha na tabela depois de ser arrastada pra algum
    dia pelo menos uma vez.
-2. **Preenchimento automático**: assim que a região aparece, a linha já vem com o
+2. **Se a região tiver só um vendedor**, a rota já cai direto na linha dele, sem
+   abrir nada. **Se tiver mais de um**, abre uma caixinha perguntando quem vai
+   atender esse carregamento específico — marque um ou mais (se o veículo for
+   dividido entre eles) e confirme.
+3. **Rota dividida entre vendedores**: quando mais de um vendedor é escolhido pra
+   mesma rota, ela aparece na linha de cada um deles, com o selo **"🔗
+   compartilhado"** e uma notinha "divide veículo com: [os outros]" — o peso e a
+   quantidade de veículos daquele carregamento só contam **uma vez** no total do
+   dia (não duplica por vendedor).
+4. **Preenchimento automático**: assim que a região aparece, a linha já vem com o
    **vendedor** na lateral, e nas 4 colunas daquele dia: quantidade de veículos, o
    nome da região (Rota), o peso, e o **perfil de veículo já travado na região**.
-3. **Cada vendedor reaproveita a mesma linha entre dias diferentes**: se você
+5. **Cada vendedor reaproveita a mesma linha entre dias diferentes**: se você
    arrastar uma segunda região do mesmo vendedor pra outro dia, ela **entra na
    mesma linha** dele (preenchendo a coluna daquele dia), em vez de criar uma linha
    nova — exatamente como na sua planilha. Só cria uma linha nova quando o vendedor
@@ -55,18 +64,17 @@ linhas em vez de cortar.
    "FÁBIO BOIADEIRO" ou "MAICON KARPOVICZ" aparecem repetidos na sua planilha). Uma
    linha tracejada azul em negrito separa visualmente onde termina um vendedor e
    começa o próximo.
-4. **Mudar o perfil daquele carregamento específico, se precisar**: o campo
+6. **Mudar o perfil daquele carregamento específico, se precisar**: o campo
    "Perfil" tem um seletor — normalmente não precisa mexer, já que vem certo da
    região, mas fica disponível caso aquele carregamento específico use um veículo
    diferente do padrão.
-5. **Mais de um veículo naquele dia**: o campo "Veic" tem "−ǀ+" — o peso recalcula
+7. **Mais de um veículo naquele dia**: o campo "Veic" tem "−ǀ+" — o peso recalcula
    sozinho (quantidade × peso do perfil), com um ⚠️ se ficar abaixo do que a região
    exige (passe o mouse pra ver o motivo).
-6. **Tirar uma rota da grade**: clique no "✕" ao lado do nome da região, na coluna
+8. **Tirar uma rota da grade**: clique no "✕" ao lado do nome da região, na coluna
    "Rota".
-7. **Capacidade de embarque de cada dia** aparece no próprio cabeçalho daquele dia,
+9. **Capacidade de embarque de cada dia** aparece no próprio cabeçalho daquele dia,
    recalculada sozinha toda vez que você mexe em alguma coisa.
-   toda vez que você adiciona, remove, ou muda a quantidade de alguma rota.
 
 ### Exportar Excel no formato "Filial" (pra outro sistema)
 No topo do mapa (modo admin), o botão **"📊 Excel (Filial)"** gera um arquivo
