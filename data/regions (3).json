@@ -4,15 +4,16 @@
     "name": "LONDRINA/REGIÃO",
     "vehicleProfile": "3/4 Leve",
     "cities": [
-      "CAMBÉ - PR",
-      "IBIPORÃ - PR",
-      "JATAIZINHO - PR",
-      "LONDRINA - PR",
-      "WARTA - PR",
       "GUARAVERA - PR",
       "IRERÊ - PR",
+      "JATAIZINHO - PR",
       "PAIQUERÊ - PR",
-      "TAMARANA - PR"
+      "TAMARANA - PR",
+      "WARTA - PR",
+      "ROLÂNDIA - PR",
+      "CAMBÉ - PR",
+      "LONDRINA - PR",
+      "IBIPORÃ - PR"
     ],
     "color": "#e08a3c"
   },
@@ -21,11 +22,7 @@
     "name": "ARAPONGAS",
     "vehicleProfile": "3/4 Leve",
     "cities": [
-      "APUCARANA - PR",
-      "ARAPONGAS - PR",
-      "PITANGUEIRAS - PR",
-      "ROLÂNDIA - PR",
-      "SABÁUDIA - PR"
+      "ARAPONGAS - PR"
     ],
     "color": "#3c7ce0"
   },
@@ -48,7 +45,8 @@
       "SANTA ISABEL DO IVAÍ - PR",
       "SÃO PEDRO DO PARANÁ - PR",
       "TERRA RICA - PR",
-      "SANTA MÔNICA - PR"
+      "SANTA MÔNICA - PR",
+      "ROSANA - SP"
     ],
     "color": "#3ce0a8"
   },
@@ -75,9 +73,9 @@
     "cities": [
       "ALTO PARANÁ - PR",
       "NOVA ALIANÇA DO IVAÍ - PR",
-      "PARANAVAÍ - PR",
       "TAMBOARA - PR",
-      "GRACIOSA - PR"
+      "GRACIOSA - PR",
+      "PARANAVAÍ - PR"
     ],
     "color": "#e0c93c"
   },
@@ -86,12 +84,12 @@
     "name": "CIANORTE",
     "vehicleProfile": "3/4 Leve",
     "cities": [
-      "CIANORTE - PR",
       "INDIANÓPOLIS - PR",
       "JAPURÁ - PR",
       "JUSSARA - PR",
       "SÃO MANOEL DO PARANÁ - PR",
-      "SÃO TOMÉ - PR"
+      "SÃO TOMÉ - PR",
+      "CIANORTE - PR"
     ],
     "color": "#181616"
   },
@@ -150,16 +148,6 @@
     "color": "#6ee03c"
   },
   {
-    "id": "r_1786634666508",
-    "name": "TELEM.BORBA / TIBAGI",
-    "vehicleProfile": "Toco",
-    "cities": [
-      "TELÊMACO BORBA - PR",
-      "TIBAGI - PR"
-    ],
-    "color": "#c5e13d"
-  },
-  {
     "id": "r_1786634720502",
     "name": "DOURADINA",
     "vehicleProfile": "3/4 Leve",
@@ -188,7 +176,6 @@
       "PRESIDENTE EPITÁCIO - SP",
       "PRESIDENTE PRUDENTE - SP",
       "PRESIDENTE VENCESLAU - SP",
-      "RANCHARIA - SP",
       "REGENTE FEIJÓ - SP",
       "SANTO ANASTÁCIO - SP",
       "TARABAI - SP"
@@ -204,7 +191,9 @@
       "ESPERANÇA NOVA - PR",
       "PÉROLA - PR",
       "SÃO JORGE DO PATROCÍNIO - PR",
-      "XAMBRÊ - PR"
+      "XAMBRÊ - PR",
+      "CAFEZAL DO SUL - PR",
+      "PEROBAL - PR"
     ],
     "color": "#34a216"
   },
@@ -218,11 +207,10 @@
       "ITAMBÉ - PR",
       "IVATUBA - PR",
       "MANDAGUAÇU - PR",
-      "MANDAGUARI - PR",
       "MARIALVA - PR",
+      "SARANDI - PR",
       "MARINGÁ - PR",
-      "PAIÇANDU - PR",
-      "SARANDI - PR"
+      "PAIÇANDU - PR"
     ],
     "color": "#d35400"
   },
@@ -235,6 +223,7 @@
       "MARIA HELENA - PR",
       "TAPEJARA - PR",
       "TUNEIRAS DO OESTE - PR",
+      "SERRA DOS DOURADOS - PR",
       "UMUARAMA - PR"
     ],
     "color": "#f50000"
@@ -244,30 +233,28 @@
     "name": "GOIOERE",
     "vehicleProfile": "3/4 Leve",
     "cities": [
-      "CAMPO MOURÃO - PR",
       "FAROL - PR",
       "FORMOSA DO OESTE - PR",
       "GOIOERÊ - PR",
       "JANIÓPOLIS - PR",
       "MARILUZ - PR",
       "MOREIRA SALES - PR",
-      "QUARTO CENTENÁRIO - PR"
+      "QUARTO CENTENÁRIO - PR",
+      "CAMPO MOURÃO - PR"
     ],
     "color": "#d88a03"
   },
   {
     "id": "r_1786637737611",
-    "name": "BARBOSA / CAMP. DA LAGOA",
-    "vehicleProfile": "Vuc",
+    "name": "BARBOSA / RONCADOR",
+    "vehicleProfile": "3/4 Leve",
     "cities": [
       "BARBOSA FERRAZ - PR",
-      "CAMPINA DA LAGOA - PR",
       "CORUMBATAÍ DO SUL - PR",
       "FÊNIX - PR",
       "IRETAMA - PR",
       "LUIZIANA - PR",
       "MATO RICO - PR",
-      "NOVA CANTU - PR",
       "NOVA TEBAS - PR",
       "QUINTA DO SOL - PR",
       "RONCADOR - PR"
@@ -283,7 +270,10 @@
       "JURANDA - PR",
       "MAMBORÊ - PR",
       "RANCHO ALEGRE D'OESTE - PR",
-      "UBIRATÃ - PR"
+      "UBIRATÃ - PR",
+      "CAMPINA DA LAGOA - PR",
+      "NOVA CANTU - PR",
+      "CAMPO MOURÃO - PR"
     ],
     "color": "#6d65d7"
   },
@@ -292,18 +282,13 @@
     "name": "PITANGA",
     "vehicleProfile": "3/4 Adaptado",
     "cities": [
+      "ARAPUÃ - PR",
       "ARIRANHA DO IVAÍ - PR",
       "BOA VENTURA DE SÃO ROQUE - PR",
-      "IVAIPORÃ - PR",
-      "JARDIM ALEGRE - PR",
-      "LUNARDELLI - PR",
       "MANOEL RIBAS - PR",
       "PITANGA - PR",
       "SANTA MARIA DO OESTE - PR",
-      "SÃO CARLOS DO IVAÍ - PR",
-      "SÃO JOÃO DO IVAÍ - PR",
-      "TURVO - PR",
-      "ARAPUÃ - PR"
+      "TURVO - PR"
     ],
     "color": "#7e7401"
   },
@@ -312,13 +297,15 @@
     "name": "COLORADO 1",
     "vehicleProfile": "3/4 Leve",
     "cities": [
-      "ÂNGULO - PR",
       "ASTORGA - PR",
-      "ATALAIA - PR",
-      "FLÓRIDA - PR",
-      "IGUARAÇU - PR",
-      "LOBATO - PR",
-      "MUNHOZ DE MELO - PR"
+      "CAFEARA - PR",
+      "CENTENÁRIO DO SUL - PR",
+      "GUARACI - PR",
+      "LUPIONÓPOLIS - PR",
+      "MUNHOZ DE MELO - PR",
+      "SANTA FÉ - PR",
+      "SANTO INÁCIO - PR",
+      "NOSSA SENHORA DAS GRAÇAS - PR"
     ],
     "color": "#220066"
   },
@@ -327,13 +314,13 @@
     "name": "PORECATU",
     "vehicleProfile": "3/4 Leve",
     "cities": [
-      "CENTENÁRIO DO SUL - PR",
       "FLORESTÓPOLIS - PR",
-      "GUARACI - PR",
       "JAGUAPITÃ - PR",
       "MIRASELVA - PR",
       "PORECATU - PR",
-      "PRADO FERREIRA - PR"
+      "PRADO FERREIRA - PR",
+      "PITANGUEIRAS - PR",
+      "SABÁUDIA - PR"
     ],
     "color": "#b77638"
   },
@@ -342,27 +329,19 @@
     "name": "COLORADO 2",
     "vehicleProfile": "3/4 Adaptado",
     "cities": [
-      "CAFEARA - PR",
       "COLORADO - PR",
       "ITAGUAJÉ - PR",
       "JARDIM OLINDA - PR",
-      "LUPIONÓPOLIS - PR",
-      "NOSSA SENHORA DAS GRAÇAS - PR",
       "PARANAPOEMA - PR",
       "SANTA FÉ - PR",
       "SANTA INÊS - PR",
-      "SANTO INÁCIO - PR"
+      "ÂNGULO - PR",
+      "ATALAIA - PR",
+      "FLÓRIDA - PR",
+      "IGUARAÇU - PR",
+      "LOBATO - PR"
     ],
     "color": "#ea9090"
-  },
-  {
-    "id": "r_1786646994693",
-    "name": "FOZ DO IGUACU",
-    "vehicleProfile": "Toco",
-    "cities": [
-      "FOZ DO IGUAÇU - PR"
-    ],
-    "color": "#9b59b6"
   },
   {
     "id": "r_1786710545709",
@@ -386,13 +365,11 @@
     "cities": [
       "ALTO PIQUIRI - PR",
       "BRASILÂNDIA DO SUL - PR",
-      "CAFEZAL DO SUL - PR",
       "FRANCISCO ALVES - PR",
-      "GUAÍRA - PR",
       "IPORÃ - PR",
       "PALOTINA - PR",
-      "PEROBAL - PR",
-      "TERRA ROXA - PR"
+      "TERRA ROXA - PR",
+      "GUAÍRA - PR"
     ],
     "color": "#00ff02"
   },
@@ -407,5 +384,125 @@
       "TERRA BOA - PR"
     ],
     "color": "#ff003c"
+  },
+  {
+    "id": "r_1787162435761",
+    "name": "FAXINAL",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "CALIFÓRNIA - PR",
+      "CRUZMALTINA - PR",
+      "FAXINAL - PR",
+      "MARILÂNDIA DO SUL - PR",
+      "MAUÁ DA SERRA - PR",
+      "RIO BOM - PR",
+      "GRANDES RIOS - PR",
+      "RIO BRANCO DO IVAÍ - PR",
+      "ROSÁRIO DO IVAÍ - PR",
+      "APUCARANA - PR"
+    ],
+    "color": "#183efb"
+  },
+  {
+    "id": "r_1787162539945",
+    "name": "IVAIPORA",
+    "vehicleProfile": "Vuc",
+    "cities": [
+      "IVAIPORÃ - PR",
+      "JARDIM ALEGRE - PR",
+      "LIDIANÓPOLIS - PR",
+      "LUNARDELLI - PR",
+      "SÃO JOÃO DO IVAÍ - PR",
+      "SÃO PEDRO DO IVAÍ - PR"
+    ],
+    "color": "#2ecc00"
+  },
+  {
+    "id": "r_1787162962456",
+    "name": "NOVO ITACOLOMI",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "BORRAZÓPOLIS - PR",
+      "CAMBIRA - PR",
+      "KALORÉ - PR",
+      "MARUMBI - PR",
+      "NOVO ITACOLOMI - PR",
+      "BOM SUCESSO - PR",
+      "MANDAGUARI - PR",
+      "JANDAIA DO SUL - PR"
+    ],
+    "color": "#d6001a"
+  },
+  {
+    "id": "r_1787237734348",
+    "name": "CAMPO MOURÃO",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "CAMPO MOURÃO - PR"
+    ],
+    "color": "#d74c3c"
+  },
+  {
+    "id": "r_1787251970825",
+    "name": "MUFFATO UMUARAMA",
+    "vehicleProfile": "3/4 Adaptado",
+    "cities": [
+      "CIANORTE - PR",
+      "GUAÍRA - PR",
+      "UMUARAMA - PR"
+    ],
+    "color": "#7941be"
+  },
+  {
+    "id": "r_1787252088723",
+    "name": "MUFFATO C.MOURAO",
+    "vehicleProfile": "Vuc",
+    "cities": [
+      "CAMPO MOURÃO - PR"
+    ],
+    "color": "#0000e0"
+  },
+  {
+    "id": "r_1787253565001",
+    "name": "MUFFATO LONDRINA",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "APUCARANA - PR",
+      "ARAPONGAS - PR",
+      "CAMBÉ - PR",
+      "IBIPORÃ - PR",
+      "LONDRINA - PR",
+      "ROLÂNDIA - PR"
+    ],
+    "color": "#3ce0a8"
+  },
+  {
+    "id": "r_1787253836191",
+    "name": "MUFFATO MGÁ",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "MARINGÁ - PR",
+      "SARANDI - PR",
+      "JANDAIA DO SUL - PR"
+    ],
+    "color": "#e03c6e"
+  },
+  {
+    "id": "r_1787253869033",
+    "name": "MUFFATO PVAI",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "PARANAVAÍ - PR"
+    ],
+    "color": "#a83ce0"
+  },
+  {
+    "id": "r_1787325346040",
+    "name": "CSD AMIGÃO",
+    "vehicleProfile": "3/4 Leve",
+    "cities": [
+      "PAIÇANDU - PR"
+    ],
+    "color": "#e03c6e"
   }
 ]
