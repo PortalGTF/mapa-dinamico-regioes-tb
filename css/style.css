@@ -293,6 +293,13 @@ body:not(.is-admin) #gradeRegionsBar { display: none; }
   white-space: normal;
   word-break: break-word;
   text-align: left !important;
+  vertical-align: top;
+}
+.gt-vendor-line {
+  padding: 2px 0;
+}
+.gt-vendor-line + .gt-vendor-line {
+  border-top: 1px dashed var(--line);
 }
 
 .gt-dash-cell { text-align: center; color: var(--muted); background: #fcfcfc; }

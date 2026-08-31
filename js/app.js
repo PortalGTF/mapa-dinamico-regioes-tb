@@ -3000,7 +3000,11 @@ function renderGradeBoard() {
 
   packedRows.forEach((rowData) => {
     const row = document.createElement("tr");
-    row.innerHTML = `<td class="gt-col-vendor">${rowData.vendorKey}</td>`;
+    const vendorLines = rowData.vendorKey
+      .split(", ")
+      .map((name) => `<div class="gt-vendor-line">${name}</div>`)
+      .join("");
+    row.innerHTML = `<td class="gt-col-vendor">${vendorLines}</td>`;
 
     GRADE_DAYS.forEach((day) => {
       const entry = rowData.cells[day];
