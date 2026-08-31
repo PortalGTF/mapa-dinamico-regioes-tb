@@ -2159,6 +2159,101 @@ async function generatePdf() {
   closePdfModal();
 }
 
+// ------------------------------------------------------------
+// Excel no formato "Filial" — uma linha por cidade, com a região e o raio
+// que ela pertence, pronto pra importar em outro sistema.
+// ------------------------------------------------------------
+async function exportFilialExcel() {
+  if (!Auth.isAdmin) return;
+  if (typeof XLSX === "undefined") {
+    alert("A biblioteca de Excel ainda não carregou — aguarde alguns segundos e tente de novo.");
+    return;
+  }
+  if (!originLatLng || originLatLng.lat === null) {
+    alert("Não foi possível calcular distâncias: coordenadas da origem indisponíveis.");
+    return;
+  }
+  if (Regions.list.length === 0) {
+    alert("Nenhuma região cadastrada ainda.");
+    return;
+  }
+
+  const btn = document.getElementById("btnExportFilialExcel");
+  const originalText = btn.textContent;
+  btn.disabled = true;
+
+  // Junta todas as cidades de todas as regiões (sem duplicar) e calcula a
+  // distância de todas de uma vez (rápido, em lote).
+  let allCities = [];
+  Regions.list.forEach((r) => r.cities.forEach((c) => allCities.push(c)));
+  allCities = Array.from(new Set(allCities));
+
+  const destinations = allCities
+    .map((c) => ({ label: c, ...Geocode.get(c) }))
+    .filter((d) => d.lat !== null && d.lat !== undefined);
+
+  await Routing.getRouteMatrix(originLatLng, destinations, (done, total) => {
+    btn.textContent = `Calculando… ${done}/${total}`;
+  });
+
+  // Km máximo de cada região — é isso que define o "raio" dela (mesma lógica
+  // usada na lista de regiões e no PDF).
+  const regionMaxKm = {};
+  Regions.list.forEach((region) => {
+    let maxKm = null;
+    region.cities.forEach((cityLabel) => {
+      const dest = Geocode.get(cityLabel);
+      if (!dest || dest.lat === null) return;
+      const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
+      const route = Routing.cache[key];
+      if (route && (maxKm === null || route.km > maxKm)) maxKm = route.km;
+    });
+    regionMaxKm[region.id] = maxKm;
+  });
+
+  const rows = [];
+  Regions.list
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b, "pt-BR"))
+    .forEach((region) => {
+      const regionKm = regionMaxKm[region.id];
+      const raio = regionKm !== null && regionKm !== undefined ? bracketFor(regionKm) : "";
+
+      region.cities
+        .slice()
+        .sort((a, b) => a.localeCompare(b, "pt-BR"))
+        .forEach((cityLabel) => {
+          const uf = extractUF(cityLabel) || "";
+          const cityName = cityLabel.replace(/-\s*[A-Za-z]{2}\s*$/, "").trim();
+          const dest = Geocode.get(cityLabel);
+          let km = "";
+          if (dest && dest.lat !== null) {
+            const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
+            const route = Routing.cache[key];
+            if (route) km = Math.round(route.km);
+          }
+
+          rows.push({
+            FILIAL: "TERRA BOA",
+            CIDADE: cityName,
+            UF: `${cityName}-${uf}`,
+            "REGIÃO V": region.name,
+            KM: km,
+            "Raio Disp": raio,
+          });
+        });
+    });
+
+  const ws = XLSX.utils.json_to_sheet(rows, { header: ["FILIAL", "CIDADE", "UF", "REGIÃO V", "KM", "Raio Disp"] });
+  ws["!cols"] = [{ wch: 12 }, { wch: 28 }, { wch: 22 }, { wch: 24 }, { wch: 8 }, { wch: 10 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Filial");
+  XLSX.writeFile(wb, "regioes-filial-terra-boa.xlsx");
+
+  btn.disabled = false;
+  btn.textContent = originalText;
+}
+
 async function imageUrlToDataUrl(url) {
   const res = await fetch(url);
   const blob = await res.blob();
@@ -3428,6 +3523,7 @@ function wireEvents() {
   document.getElementById("btnRunCommand").addEventListener("click", runConflictCommand);
 
   document.getElementById("btnOpenPdf").addEventListener("click", openPdfModal);
+  document.getElementById("btnExportFilialExcel").addEventListener("click", exportFilialExcel);
   document.getElementById("btnClosePdf").addEventListener("click", closePdfModal);
   document.getElementById("btnGeneratePdf").addEventListener("click", generatePdf);
   document.querySelectorAll('input[name="pdfScope"]').forEach((radio) => {

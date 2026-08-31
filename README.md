@@ -68,6 +68,26 @@ linhas em vez de cortar.
    recalculada sozinha toda vez que você mexe em alguma coisa.
    toda vez que você adiciona, remove, ou muda a quantidade de alguma rota.
 
+### Exportar Excel no formato "Filial" (pra outro sistema)
+No topo do mapa (modo admin), o botão **"📊 Excel (Filial)"** gera um arquivo
+`.xlsx` de verdade, com uma linha por cidade de todas as regiões, no formato:
+
+| FILIAL | CIDADE | UF | REGIÃO V | KM | Raio Disp |
+|---|---|---|---|---|---|
+| TERRA BOA | PÉROLA | PÉROLA-PR | ALTONIA | 156 | 200 |
+
+- **FILIAL**: sempre "TERRA BOA".
+- **CIDADE**: só o nome da cidade, sem o "- UF".
+- **UF**: nome da cidade + UF juntos, tipo "PÉROLA-PR".
+- **REGIÃO V**: o nome da região que aquela cidade compõe.
+- **KM**: a distância de ida calculada de Terra Boa até aquela cidade (o mesmo
+  cálculo usado no PDF e no raio das regiões).
+- **Raio Disp**: o raio que a região daquela cidade pertence (o mesmo "RAIO ATÉ
+  X KM" que já aparece na lista de regiões), só que sem o texto "km", só o número.
+
+Se alguma distância ainda não tiver sido calculada, o app calcula na hora (o botão
+mostra "Calculando… X/Y" enquanto isso) antes de gerar o arquivo.
+
 ### Relatório "Grade Cidades-Roteiros"
 Clique em **"📋 Grade Cidades-Roteiros"** no topo da tela da Grade — abre uma lista
 com todas as cidades cadastradas, a(s) região(ões)/roteiro(s) que cada uma compõe, e
