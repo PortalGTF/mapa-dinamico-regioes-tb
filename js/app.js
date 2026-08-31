@@ -2344,8 +2344,8 @@ async function generateGradePdf() {
     head: [headRow1, headRow2],
     body,
     startY: 32,
-    theme: "grid",
-    styles: { fontSize: 6.5, cellPadding: 1.2, lineColor: [26, 43, 74], lineWidth: 0.1, valign: "middle" },
+    theme: "plain",
+    styles: { fontSize: 6.5, cellPadding: 1.2, valign: "middle" },
     headStyles: { fillColor: [26, 43, 74], textColor: 255, fontSize: 6.5, halign: "center" },
     columnStyles: { 0: { fontStyle: "bold", cellWidth: 30, valign: "middle" } },
     margin: { left: 8, right: 8 },
@@ -2367,6 +2367,57 @@ async function generateGradePdf() {
           data.cell.styles.fontStyle = "bold";
         }
       }
+    },
+    didDrawCell: (data) => {
+      const { cell, column, section } = data;
+
+      // Topo da tabela: linha sólida
+      if (section === "head" && data.row.index === 0) {
+        doc.setDrawColor(26, 43, 74);
+        doc.setLineWidth(0.5);
+        doc.setLineDashPattern([], 0);
+        doc.line(cell.x, cell.y, cell.x + cell.width, cell.y);
+      }
+
+      // Início de cada dia (Vendedor, e a coluna "Veic" de cada grupo de 4) —
+      // linha sólida e mais grossa, separando visualmente cada dia da semana.
+      const isDayBoundary = column.index === 0 || (column.index - 1) % 4 === 0;
+
+      if (isDayBoundary) {
+        doc.setDrawColor(26, 43, 74);
+        doc.setLineWidth(0.5);
+        doc.setLineDashPattern([], 0);
+        doc.line(cell.x, cell.y, cell.x, cell.y + cell.height);
+      } else {
+        doc.setDrawColor(150, 150, 150);
+        doc.setLineWidth(0.15);
+        doc.setLineDashPattern([0.6, 0.6], 0);
+        doc.line(cell.x, cell.y, cell.x, cell.y + cell.height);
+      }
+
+      // Borda direita da última coluna: sólida, fechando a tabela
+      if (column.index === headRow2.length) {
+        doc.setDrawColor(26, 43, 74);
+        doc.setLineWidth(0.5);
+        doc.setLineDashPattern([], 0);
+        doc.line(cell.x + cell.width, cell.y, cell.x + cell.width, cell.y + cell.height);
+      }
+
+      // Linha horizontal embaixo de cada célula: sólida separando cabeçalho
+      // do corpo, tracejada fina entre as linhas do corpo
+      const isHeaderBottom = section === "head" && data.row.index === 1;
+      if (isHeaderBottom) {
+        doc.setDrawColor(26, 43, 74);
+        doc.setLineWidth(0.5);
+        doc.setLineDashPattern([], 0);
+      } else {
+        doc.setDrawColor(190, 190, 190);
+        doc.setLineWidth(0.15);
+        doc.setLineDashPattern([0.6, 0.6], 0);
+      }
+      doc.line(cell.x, cell.y + cell.height, cell.x + cell.width, cell.y + cell.height);
+
+      doc.setLineDashPattern([], 0); // reseta pro resto do desenho não herdar o tracejado
     },
   });
 
