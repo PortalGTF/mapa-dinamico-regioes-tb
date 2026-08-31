@@ -1,18 +1,6 @@
 {
   "SEG": [
     {
-      "id": "route_1787228747888_jeotu",
-      "regionId": "r_1786997082140",
-      "profile": "3/4 Adaptado",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787228785936_1b7hx",
-      "regionId": "r_1786632723044",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
       "id": "route_1787233514841_14x2j",
       "regionId": "r_1786634720502",
       "profile": "3/4 Leve",
@@ -25,40 +13,19 @@
       "quantity": 1
     },
     {
-      "id": "route_1787237418986_cuwpl",
-      "regionId": "r_1786636604418",
-      "profile": "Vuc",
-      "quantity": 6
-    },
-    {
       "id": "route_1787237675186_uxltp",
       "regionId": "r_1786634613800",
       "profile": "Toco",
       "quantity": 1
     },
     {
-      "id": "route_1787237771163_zszj5",
-      "regionId": "r_1787237734348",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787242629844_9j4t9",
-      "regionId": "r_1786631703669",
-      "profile": "3/4 Leve",
-      "quantity": 5
-    },
-    {
-      "id": "route_1787318682689_m43er",
-      "regionId": "r_1787253869033",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787766321549_gwjk2",
-      "regionId": "r_1786631763235",
-      "profile": "3/4 Leve",
-      "quantity": 1
+      "id": "route_1788190563148_ky9fx",
+      "regionId": "r_1786636604418",
+      "profile": "Vuc",
+      "quantity": 1,
+      "sellers": [
+        "A & D"
+      ]
     }
   ],
   "TER": [
@@ -69,27 +36,15 @@
       "quantity": 1
     },
     {
-      "id": "route_1787237420695_ks3he",
-      "regionId": "r_1786636604418",
-      "profile": "Vuc",
-      "quantity": 6
-    },
-    {
       "id": "route_1787237530050_buvd2",
       "regionId": "r_1786632825243",
       "profile": "3/4 Leve",
       "quantity": 1
     },
     {
-      "id": "route_1787237533815_f9940",
-      "regionId": "r_1786637331507",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
       "id": "route_1787237540256_k9rls",
       "regionId": "r_1787162539945",
-      "profile": "3/4 Leve",
+      "profile": "Vuc",
       "quantity": 1
     },
     {
@@ -101,14 +56,8 @@
     {
       "id": "route_1787237563685_bsfsl",
       "regionId": "r_1786636558633",
-      "profile": "3/4 Adaptado",
+      "profile": "Toco",
       "quantity": 1
-    },
-    {
-      "id": "route_1787242632010_f638e",
-      "regionId": "r_1786631703669",
-      "profile": "3/4 Leve",
-      "quantity": 3
     },
     {
       "id": "route_1787325416351_ct48s",
@@ -117,34 +66,19 @@
       "quantity": 1
     },
     {
-      "id": "route_1787766298618_ghrvr",
-      "regionId": "r_1787162435761",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787766447894_3bkst",
-      "regionId": "r_1787162962456",
-      "profile": "3/4 Leve",
-      "quantity": 1
+      "id": "route_1788190975118_zofzp",
+      "regionId": "r_1786636604418",
+      "profile": "Vuc",
+      "quantity": 1,
+      "sellers": [
+        "A & D"
+      ]
     }
   ],
   "QUA": [
     {
-      "id": "route_1787228788477_4ahzq",
-      "regionId": "r_1786632723044",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
       "id": "route_1787237380214_21vzb",
       "regionId": "r_1786997588898",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787237389849_3x59i",
-      "regionId": "r_1786638085252",
       "profile": "3/4 Leve",
       "quantity": 1
     },
@@ -155,22 +89,10 @@
       "quantity": 1
     },
     {
-      "id": "route_1787237422103_dxykx",
-      "regionId": "r_1786636604418",
-      "profile": "Vuc",
-      "quantity": 6
-    },
-    {
       "id": "route_1787237680163_enjy5",
       "regionId": "r_1786634533628",
       "profile": "3/4 Adaptado",
       "quantity": 1
-    },
-    {
-      "id": "route_1787242633762_moqfm",
-      "regionId": "r_1786631703669",
-      "profile": "3/4 Leve",
-      "quantity": 3
     },
     {
       "id": "route_1787334551011_lzpz1",
@@ -181,7 +103,7 @@
     {
       "id": "route_1787334558990_2hwel",
       "regionId": "r_1786646761635",
-      "profile": "3/4 Leve",
+      "profile": "3/4 Adaptado",
       "quantity": 1
     },
     {
@@ -197,48 +119,21 @@
       "quantity": 1
     },
     {
-      "id": "route_1787763415768_jqg55",
-      "regionId": "r_1786637220909",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787765916372_j658y",
-      "regionId": "r_1786636080834",
-      "profile": "Toco",
-      "quantity": 1
+      "id": "route_1788191185805_p64ad",
+      "regionId": "r_1786636604418",
+      "profile": "Vuc",
+      "quantity": 1,
+      "sellers": [
+        "A & D"
+      ]
     }
   ],
   "QUI": [
-    {
-      "id": "route_1787237423692_6pz6c",
-      "regionId": "r_1786636604418",
-      "profile": "Vuc",
-      "quantity": 6
-    },
-    {
-      "id": "route_1787237459348_zg5li",
-      "regionId": "r_1786632776606",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
     {
       "id": "route_1787237468187_kxvi8",
       "regionId": "r_1786997588898",
       "profile": "3/4 Leve",
       "quantity": 1
-    },
-    {
-      "id": "route_1787237776568_k3jwe",
-      "regionId": "r_1787237734348",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787242635522_ooj7g",
-      "regionId": "r_1786631703669",
-      "profile": "3/4 Leve",
-      "quantity": 5
     },
     {
       "id": "route_1787325434310_fgtkd",
@@ -247,39 +142,18 @@
       "quantity": 1
     },
     {
-      "id": "route_1787766243775_8ul0c",
-      "regionId": "r_1787162962456",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787766324089_35jw8",
-      "regionId": "r_1786631763235",
-      "profile": "3/4 Leve",
-      "quantity": 1
+      "id": "route_1788191189577_rikg1",
+      "regionId": "r_1786636604418",
+      "profile": "Vuc",
+      "quantity": 1,
+      "sellers": [
+        "A & D"
+      ]
     }
   ],
   "SEX": [],
   "SAB": [],
   "DOM": [
-    {
-      "id": "route_1787228687911_vvugk",
-      "regionId": "r_1786637220909",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787228837095_cuk2u",
-      "regionId": "r_1786638085252",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787232863893_u16rh",
-      "regionId": "r_1786632776606",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
     {
       "id": "route_1787232882098_pasec",
       "regionId": "r_1786632665964",
@@ -287,40 +161,22 @@
       "quantity": 1
     },
     {
-      "id": "route_1787237416777_a0t7p",
+      "id": "route_1788189815197_bzw15",
       "regionId": "r_1786636604418",
       "profile": "Vuc",
-      "quantity": 6
+      "quantity": 1,
+      "sellers": [
+        "A & D"
+      ]
     },
     {
-      "id": "route_1787242626609_czhy9",
-      "regionId": "r_1786631703669",
-      "profile": "3/4 Adaptado",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787318564166_fpu1p",
-      "regionId": "r_1787253565001",
-      "profile": "3/4 Leve",
-      "quantity": 5
-    },
-    {
-      "id": "route_1787318642836_3vcu3",
-      "regionId": "r_1787252088723",
-      "profile": "3/4 Leve",
-      "quantity": 1
-    },
-    {
-      "id": "route_1787318669078_ngdla",
-      "regionId": "r_1787253836191",
-      "profile": "3/4 Leve",
-      "quantity": 2
-    },
-    {
-      "id": "route_1787767423206_tbqkv",
-      "regionId": "r_1786631703669",
-      "profile": "3/4 Leve",
-      "quantity": 1
+      "id": "route_1788191195893_owhzt",
+      "regionId": "r_1786636604418",
+      "profile": "Vuc",
+      "quantity": 1,
+      "sellers": [
+        "Alexandre Ticianel"
+      ]
     }
   ]
 }
