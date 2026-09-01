@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initMap();
   await placeOrigin();
 
-  Orders.load(); // a plotagem em si só acontece quando a aba Roteirizador é aberta
+  await Orders.load(); // a plotagem em si só acontece quando a aba Roteirizador é aberta
 
   renderSellerOptions();
   renderSearchCityOptions();
@@ -2987,6 +2987,7 @@ function updateDraftHint() {
   if (Regions.hasDraft()) pendingDrafts.push("regiões");
   if (hasCityDirectoryDraft()) pendingDrafts.push("cidades/vendedores");
   if (Grade.hasDraft()) pendingDrafts.push("grade");
+  if (Orders.hasDraft()) pendingDrafts.push("pedidos");
 
   const hintEl = document.getElementById("draftHint");
   const textEl = document.getElementById("draftHintText");
@@ -3006,6 +3007,7 @@ function exportEverythingNow() {
   setTimeout(() => downloadFile("cities.json", Geocode.exportJSON()), 300);
   setTimeout(() => exportDirectory(), 600);
   setTimeout(() => downloadFile("grade.json", Grade.exportJSON()), 1200);
+  setTimeout(() => downloadFile("orders.json", Orders.exportJSON()), 1500);
 }
 
 // ------------------------------------------------------------
@@ -3040,6 +3042,8 @@ function saveGithubConfig(config) {
 // plota tudo no mapa.
 // ------------------------------------------------------------
 let importedOrderRows = []; // linhas cruas da planilha, antes de processar
+let lastImportAddedCount = 0;
+let lastImportTotalInFile = 0;
 let ordersLayerGroup = null;
 
 function openImportOrdersModal() {
@@ -3049,6 +3053,7 @@ function openImportOrdersModal() {
   document.getElementById("importOrdersStep3").classList.add("hidden");
   document.getElementById("ordersFileInput").value = "";
   document.getElementById("forceManualMapping").checked = false;
+  document.getElementById("appendToExistingOrders").checked = true;
   document.getElementById("importOrdersModal").classList.remove("hidden");
 }
 
@@ -3267,7 +3272,25 @@ function runImportWithMapping(mapping) {
     };
   });
 
-  Orders.setAll(orders);
+  const append = document.getElementById("appendToExistingOrders").checked;
+  let addedCount = orders.length;
+
+  if (append && Orders.hasOrders()) {
+    // Chave de "é o mesmo pedido" — nº do pedido + código do cliente + peso +
+    // cidade. Se já existir um pedido com essa mesma combinação na lista atual,
+    // não duplica — só entra o que for realmente novo.
+    const orderKey = (o) => `${o.orderNumber}|${o.clientCode}|${o.weight}|${o.rawCity}`;
+    const existingKeys = new Set(Orders.list.map(orderKey));
+    const newOnes = orders.filter((o) => !existingKeys.has(orderKey(o)));
+    addedCount = newOnes.length;
+    Orders.setAll([...Orders.list, ...newOnes]);
+  } else {
+    Orders.setAll(orders);
+  }
+
+  lastImportAddedCount = addedCount;
+  lastImportTotalInFile = orders.length;
+
   plotOrdersOnMap();
   renderImportOrdersSummary();
   updateRouterSummaryText();
@@ -3285,10 +3308,17 @@ function renderImportOrdersSummary() {
 
   // Peso total sempre em destaque, bem visível — nunca escondido, mesmo se
   // tiver pedido sem cidade reconhecida.
+  const skippedCount = lastImportTotalInFile - lastImportAddedCount;
+  const appendNote =
+    skippedCount > 0
+      ? `<br>📥 Dessa importação: ${lastImportAddedCount} pedido(s) novo(s) somado(s) à lista, ${skippedCount} já existiam e não foram duplicados.`
+      : "";
+
   document.getElementById("importOrdersSummaryText").innerHTML =
     `<strong>Peso total: ${totalWeight.toLocaleString("pt-BR")} kg (${(totalWeight / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ton)</strong><br>` +
-    `${Orders.list.length} pedido(s) importado(s) — ${matched.length} casado(s) com cidade (${matchedWeight.toLocaleString("pt-BR")} kg), ` +
-    `${unmatched.length} sem cidade reconhecida (${unmatchedWeight.toLocaleString("pt-BR")} kg — ${unmatchedWeight > 0 ? "⚠️ conferir abaixo" : "0 kg, tudo certo"}).`;
+    `${Orders.list.length} pedido(s) na lista — ${matched.length} casado(s) com cidade (${matchedWeight.toLocaleString("pt-BR")} kg), ` +
+    `${unmatched.length} sem cidade reconhecida (${unmatchedWeight.toLocaleString("pt-BR")} kg — ${unmatchedWeight > 0 ? "⚠️ conferir abaixo" : "0 kg, tudo certo"}).` +
+    appendNote;
 
   // Resumo por região: contagem de pedidos + soma de peso
   const byRegion = {};
@@ -3747,7 +3777,17 @@ function closeNewCityFromOrderModal() {
 }
 
 function clearImportedOrders() {
-  if (!confirm("Tirar todos os pedidos importados do mapa?")) return;
+  if (!Auth.isAdmin) return;
+  const count = Orders.list.length;
+  if (count === 0) {
+    alert("Não tem nenhum pedido importado agora.");
+    return;
+  }
+  const sure = confirm(
+    `⚠️ Isso vai apagar TODOS os ${count} pedido(s) importados no Roteirizador, de vez — incluindo qualquer edição de endereço/região que você já tenha feito. Isso NÃO pode ser desfeito.\n\nSe quiser manter um backup antes, cancele e clique em "🚀 Publicar pedidos no GitHub" primeiro.\n\nTem certeza que quer apagar tudo mesmo assim?`
+  );
+  if (!sure) return;
+
   Orders.clear();
   if (ordersLayerGroup && routerMap) {
     routerMap.removeLayer(ordersLayerGroup);
@@ -3870,7 +3910,7 @@ async function githubGetFileSha(owner, repo, path, branch, token) {
   return data.sha;
 }
 
-async function githubPutFile(owner, repo, path, branch, token, content, message) {
+async function githubPutFile(owner, repo, path, branch, token, content, message, isRetry) {
   const sha = await githubGetFileSha(owner, repo, path, branch, token);
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
   const body = { message, content: utf8ToBase64(content), branch };
@@ -3886,10 +3926,17 @@ async function githubPutFile(owner, repo, path, branch, token, content, message)
     body: JSON.stringify(body),
   });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(`${path}: ${res.status} — ${err.message || "erro desconhecido"}`);
+  if (res.ok) return;
+
+  // 409 = o arquivo mudou no GitHub desde a última vez que a gente leu ele
+  // (alguém publicou por cima, ou o "sha" que buscamos ficou desatualizado).
+  // Em vez de falhar direto, busca o sha mais novo e tenta de novo, uma vez.
+  if (res.status === 409 && !isRetry) {
+    return githubPutFile(owner, repo, path, branch, token, content, message, true);
   }
+
+  const err = await res.json().catch(() => ({}));
+  throw new Error(`${path}: ${res.status} — ${err.message || "erro desconhecido"}`);
 }
 
 async function publishAllToGitHub() {
@@ -3914,7 +3961,12 @@ async function publishAllToGitHub() {
     { path: "data/sellers.json", content: JSON.stringify(SELLERS, null, 2) },
     { path: "data/city_to_sellers.json", content: JSON.stringify(CITY_TO_SELLERS, null, 2) },
     { path: "data/cities_list.json", content: JSON.stringify(CITIES_LIST, null, 2) },
+    { path: "data/orders.json", content: Orders.exportJSON() },
   ];
+
+  // Contingência: antes de mexer no GitHub, baixa uma cópia de segurança local
+  // de tudo — se algo der errado lá fora, você não fica sem nada.
+  downloadBackupSnapshot(files);
 
   try {
     for (let i = 0; i < files.length; i++) {
@@ -3922,20 +3974,73 @@ async function publishAllToGitHub() {
       await githubPutFile(config.owner, config.repo, files[i].path, branch, config.token, files[i].content, message);
     }
     statusEl.style.color = "#1a7d3c";
-    statusEl.textContent = "✅ Tudo publicado! O GitHub Pages costuma atualizar em 1-2 minutos.";
+    statusEl.textContent = "✅ Tudo publicado! O GitHub Pages costuma atualizar em 1-2 minutos. Baixei também uma cópia de segurança local, por garantia.";
 
     // Já que está tudo publicado agora, descarta os rascunhos locais — não tem
     // mais nada "pendente", published = draft.
     Regions.discardDraft();
     localStorage.removeItem("regioes_directory_draft");
     Grade.discardDraft();
+    Orders.discardDraft();
     updateDraftHint();
   } catch (e) {
     statusEl.style.color = "#c0392b";
-    statusEl.textContent = `❌ Erro ao publicar: ${e.message}`;
+    statusEl.textContent = `❌ Erro ao publicar: ${e.message} — mas fica tranquilo, a cópia de segurança local já foi baixada antes de tentar, nada foi perdido.`;
   }
 
   btn.disabled = false;
+}
+
+// Baixa um único arquivo .json com tudo junto, como cópia de segurança —
+// usado como contingência antes de qualquer publicação no GitHub.
+function downloadBackupSnapshot(files) {
+  const snapshot = { geradoEm: new Date().toISOString() };
+  files.forEach((f) => {
+    try {
+      snapshot[f.path] = JSON.parse(f.content);
+    } catch (e) {
+      snapshot[f.path] = f.content;
+    }
+  });
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  downloadFile(`backup-regioes-app-${stamp}.json`, JSON.stringify(snapshot, null, 2));
+}
+
+// Publica só os pedidos (mais rápido) — botão de dentro da própria aba Roteirizador
+async function publishOrdersOnly() {
+  const config = getGithubConfig();
+  if (!config || !config.owner || !config.repo || !config.token) {
+    alert('Configure o GitHub primeiro em "Outras ações ▾ → 🚀 Publicar no GitHub (automático)".');
+    return;
+  }
+
+  const btn = document.getElementById("btnPublishOrdersNow");
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Publicando…";
+
+  const content = Orders.exportJSON();
+  downloadBackupSnapshot([{ path: "data/orders.json", content }]); // contingência local também aqui
+
+  try {
+    await githubPutFile(
+      config.owner,
+      config.repo,
+      "data/orders.json",
+      config.branch || "main",
+      config.token,
+      content,
+      `Pedidos atualizados via app — ${new Date().toLocaleString("pt-BR")}`
+    );
+    Orders.discardDraft();
+    updateDraftHint();
+    alert("✅ Pedidos publicados no GitHub! O GitHub Pages costuma atualizar em 1-2 minutos.");
+  } catch (e) {
+    alert(`❌ Erro ao publicar pedidos: ${e.message}\n\nFica tranquilo — a cópia de segurança local já foi baixada antes de tentar, nada foi perdido.`);
+  }
+
+  btn.disabled = false;
+  btn.textContent = originalText;
 }
 
 function openChangePasswordModal() {
@@ -4769,6 +4874,7 @@ function wireEvents() {
   document.getElementById("btnPublishNow").addEventListener("click", publishAllToGitHub);
 
   document.getElementById("btnOpenImportOrders").addEventListener("click", openImportOrdersModal);
+  document.getElementById("btnPublishOrdersNow").addEventListener("click", publishOrdersOnly);
   document.getElementById("btnCloseImportOrders").addEventListener("click", closeImportOrdersModal);
   document.getElementById("btnCancelImportOrders").addEventListener("click", closeImportOrdersModal);
   document.getElementById("btnCloseImportOrdersStep3").addEventListener("click", closeImportOrdersModal);
@@ -4776,7 +4882,10 @@ function wireEvents() {
   document.getElementById("mapColWeight").addEventListener("change", updateWeightPreview);
   document.getElementById("btnProcessImportOrders").addEventListener("click", processImportOrders);
   document.getElementById("btnClearOrders").addEventListener("click", clearImportedOrders);
-  document.getElementById("btnClearOrdersFromRouter").addEventListener("click", clearImportedOrders);
+  document.getElementById("btnClearOrdersFromMenu").addEventListener("click", () => {
+    document.getElementById("otherActionsDropdown").classList.add("hidden");
+    clearImportedOrders();
+  });
 
   document.getElementById("btnStartUnmatchedWizard").addEventListener("click", startUnmatchedCitiesWizard);
   document.getElementById("btnGeocodePendingCity").addEventListener("click", () => {

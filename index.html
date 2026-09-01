@@ -73,6 +73,7 @@
       <button class="dropdown-action-btn" id="btnReverifyFromMenu">Reconferir todas as cidades</button>
       <button class="dropdown-action-btn" id="btnChangePasswordFromMenu">🔑 Trocar senha do admin</button>
       <button class="dropdown-action-btn" id="btnOpenGithubPublish">🚀 Publicar no GitHub (automático)</button>
+      <button class="dropdown-action-btn dropdown-action-danger" id="btnClearOrdersFromMenu">🗑️ Limpar todos os pedidos do Roteirizador</button>
     </div>
   </div>
 
@@ -144,7 +145,7 @@
 <div id="routerView" class="router-view hidden">
   <div class="router-toolbar">
     <button id="btnOpenImportOrders" class="btn btn-outline">📦 Importar Pedidos</button>
-    <button id="btnClearOrdersFromRouter" class="btn btn-outline">🗑️ Limpar pedidos</button>
+    <button id="btnPublishOrdersNow" class="btn btn-primary">🚀 Publicar pedidos no GitHub</button>
     <span id="routerSummaryText" class="hint hint-small"></span>
   </div>
   <div id="routerMap"></div>
@@ -352,6 +353,10 @@
       a planilha tiver a mesma estrutura de colunas, o app já sabe o que é cada
       coisa e importa direto, sem perguntar de novo.
     </p>
+    <label class="legend-toggle" style="margin-bottom:6px;">
+      <input type="checkbox" id="appendToExistingOrders" checked /> Somar a esta lista já existente no mapa
+      (não substitui, e não duplica pedido repetido)
+    </label>
     <label class="legend-toggle" style="margin-bottom:10px;">
       <input type="checkbox" id="forceManualMapping" /> Mapear colunas manualmente
       desta vez (planilha com estrutura diferente)

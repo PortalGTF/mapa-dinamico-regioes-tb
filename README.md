@@ -763,10 +763,40 @@ Clicando nele:
    próxima, sem cadastrar.
 5. Quando não sobrar mais nenhuma, o app avisa que terminou.
 
-### Pedidos não são publicados no GitHub
-Diferente de regiões/grade/cidades, os pedidos importados são dados do dia-a-dia
-(mudam toda hora) — ficam só no seu navegador, não fazem parte do que é publicado.
-Cada pessoa que for rotear precisa importar a própria planilha do dia.
+### Somar pedidos numa importação nova, sem duplicar
+No passo 1 da importação, o checkbox **"Somar a esta lista já existente no mapa"**
+vem marcado por padrão. Com ele marcado, importar uma planilha nova **não substitui**
+o que já estava no mapa — só adiciona o que for realmente novo. Ele reconhece um
+pedido repetido pela combinação de nº do pedido + código do cliente + peso +
+cidade; se já existir um igual na lista, não duplica. Depois de importar, o resumo
+mostra quantos eram novos de verdade ("Dessa importação: N novo(s) somado(s)...").
+Se quiser começar do zero (substituir tudo), desmarque esse checkbox antes de subir
+o arquivo.
+
+### Publicando os pedidos no GitHub (contingência)
+Diferente da primeira versão, os pedidos importados/editados **também podem ser
+publicados no GitHub** (`data/orders.json`) — assim o trabalho de localizar
+endereços e casar região não fica preso só num navegador. Duas formas de publicar:
+- **"🚀 Publicar pedidos no GitHub"**, direto no topo da aba Roteirizador — publica
+  só os pedidos, rápido.
+- **"Publicar tudo agora"** (banner amarelo) ou **"Publicar no GitHub (automático)"**
+  no menu "Outras ações ▾" — publica os pedidos junto com regiões/grade/cidades.
+
+**Sobre nunca perder o trabalho**: toda vez que você publica (qualquer uma das
+formas acima), o app primeiro **baixa uma cópia de segurança local completa**
+(um arquivo `.json` com tudo dentro) automaticamente, antes de mexer no GitHub —
+isso é a contingência: mesmo que a publicação falhe, você já tem esse arquivo salvo.
+Além disso, se o GitHub recusar a atualização por já ter mudado desde a última vez
+que o app conferiu (por exemplo, se alguém publicou por cima ao mesmo tempo), o
+app **tenta de novo sozinho automaticamente**, buscando a versão mais recente antes
+de tentar de novo — na prática, resolve isso sem você precisar fazer nada.
+
+### Limpar todos os pedidos — botão escondido de propósito
+O botão de apagar todos os pedidos do Roteirizador **não fica mais solto no topo da
+tela** (risco de clicar sem querer e perder o trabalho) — agora fica dentro de
+**"Outras ações ▾" → "🗑️ Limpar todos os pedidos do Roteirizador"**, e pede
+confirmação bem explícita, avisando quantos pedidos serão apagados e sugerindo
+publicar antes como backup.
 
 ## 8. Limites a saber
 

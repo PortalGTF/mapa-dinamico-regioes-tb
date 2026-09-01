@@ -1311,6 +1311,8 @@ main { position: relative; flex: 1; }
 }
 .dropdown-action-btn:hover { background: var(--paper); }
 .dropdown-action-btn + .dropdown-action-btn { border-top: 1px solid var(--line); }
+.dropdown-action-danger { color: #c0392b !important; }
+.dropdown-action-danger:hover { background: #fdf3f0 !important; }
 
 /* ---------- Opções do painel de PDF ---------- */
 .pdf-scope-options label,
