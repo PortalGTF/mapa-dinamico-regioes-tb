@@ -241,6 +241,42 @@ const Geocode = {
     }
   },
 
+  // Busca coordenadas por CEP, sempre amarrada ao estado esperado — se o CEP
+  // vier de outro estado (ou cair fora da caixa delimitadora daquele estado),
+  // descarta o resultado em vez de arriscar cair no lugar errado do Brasil.
+  async searchByCep(cep, expectedUF) {
+    const cleanCep = String(cep || "").replace(/\D/g, "");
+    if (cleanCep.length !== 8) return null;
+
+    const stateName = BR_UF_TO_NAME[expectedUF];
+    let url = `${CONFIG.NOMINATIM_URL}?format=json&limit=1&countrycodes=br&addressdetails=1&postalcode=${cleanCep}&country=Brasil`;
+    if (stateName) url += `&state=${encodeURIComponent(stateName)}`;
+
+    try {
+      const data = await this._fetchNominatim(url);
+      if (!data || !data[0]) return null;
+
+      const lat = parseFloat(data[0].lat);
+      const lng = parseFloat(data[0].lon);
+      const stateFound = data[0].address && data[0].address.state;
+      const stateUF = expectedUF && stateFound ? BR_STATES[normalizeStr(stateFound)] : null;
+
+      // Se o Nominatim disse explicitamente que é de outro estado, não confia
+      if (expectedUF && stateUF && stateUF !== expectedUF) return null;
+
+      // Segunda checagem, por segurança: o ponto tem que cair dentro da caixa
+      // delimitadora do estado esperado
+      if (expectedUF && BR_STATE_BBOX[expectedUF]) {
+        const [minLon, minLat, maxLon, maxLat] = BR_STATE_BBOX[expectedUF];
+        if (lng < minLon || lng > maxLon || lat < minLat || lat > maxLat) return null;
+      }
+
+      return { lat, lng };
+    } catch (e) {
+      return null;
+    }
+  },
+
   async geocodeOrigin() {
     const key = "__ORIGIN__";
 

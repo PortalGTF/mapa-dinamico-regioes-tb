@@ -998,6 +998,9 @@ main { position: relative; flex: 1; }
 .orsr-name { font-weight: 700; flex: 1; }
 .orsr-count { color: var(--muted); font-size: 11px; }
 .orsr-weight { font-weight: 700; color: var(--navy); font-size: 12px; }
+.order-region-unmatched { background: #fdf3f0; border-radius: 4px; }
+.order-region-unmatched .orsr-name { color: #c0392b; }
+.order-region-unmatched .orsr-weight { color: #c0392b; }
 
 .legend-toggle {
   display: inline-flex;
@@ -1035,6 +1038,48 @@ main { position: relative; flex: 1; }
 .order-pin span { transform: rotate(45deg); font-size: 10px; }
 .order-pin.order-matched { background: #16a085; }
 .order-pin.order-unmatched { background: #c0392b; }
+
+/* ---------- Tooltip e popup do pedido ---------- */
+.order-hover-tooltip {
+  background: rgba(20, 25, 35, 0.92) !important;
+  color: white !important;
+  border: none !important;
+  font-size: 11px !important;
+  padding: 6px 10px !important;
+  border-radius: 4px !important;
+  font-weight: 600;
+}
+.order-hover-tooltip::before { display: none !important; }
+
+.order-popup-card { width: 260px; padding: 0; }
+.order-popup-header {
+  background: #4a90c2;
+  color: white;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.order-popup-body { padding: 10px 12px; font-size: 12px; line-height: 1.7; }
+.order-popup-body strong { color: var(--navy); }
+.order-popup-actions {
+  display: flex;
+  gap: 14px;
+  padding: 8px 12px 10px;
+  border-top: 1px solid var(--line);
+}
+.order-popup-actions button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+.order-popup-actions button:hover { text-decoration: underline; }
 
 /* ---------- Detalhes da região / raio ---------- */
 .region-detail-summary {

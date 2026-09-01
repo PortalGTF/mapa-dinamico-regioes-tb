@@ -151,6 +151,54 @@
 </div>
 
 <!-- Painel: detalhes de uma região (cidades + cidades-chave), aberto ao clicar em qualquer região na Grade -->
+<!-- Overlay: editar peso/volume/valor de um pedido específico -->
+<div id="editOrderOverlay" class="route-sellers-overlay hidden">
+  <div class="route-sellers-box">
+    <h3 id="editOrderTitle">Editar pedido</h3>
+    <label>Peso (kg)</label>
+    <input type="text" id="editOrderWeight" />
+    <label>Volume</label>
+    <input type="text" id="editOrderVolume" />
+    <label>Valor (R$)</label>
+    <input type="text" id="editOrderValue" />
+    <div class="modal-actions">
+      <button id="btnCancelEditOrder" class="btn btn-outline">Cancelar</button>
+      <button id="btnSaveEditOrder" class="btn btn-primary">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay: assistente de cadastro de cidades que vieram na planilha mas não existiam -->
+<div id="newCityFromOrderOverlay" class="route-sellers-overlay hidden">
+  <div class="route-sellers-box">
+    <h3>Cadastrar cidade nova</h3>
+    <p id="newCityFromOrderStatus" class="hint hint-small"></p>
+
+    <label>Nome da cidade</label>
+    <input type="text" id="newCityFromOrderName" />
+    <label>UF</label>
+    <input type="text" id="newCityFromOrderUf" maxlength="2" style="text-transform:uppercase;" placeholder="Ex: PR" />
+    <button id="btnGeocodePendingCity" class="btn btn-outline btn-small-full">📍 Buscar no mapa</button>
+    <p id="newCityFromOrderOrdersCount" class="hint hint-small"></p>
+
+    <label>Associar à região</label>
+    <select id="newCityFromOrderRegionSelect"></select>
+
+    <button id="btnToggleNewRegionForOrderCity" class="btn btn-outline btn-small-full">+ Criar região nova com essa cidade</button>
+    <div id="newRegionForOrderCityForm" class="new-region-inline-form hidden">
+      <label>Nome da nova região</label>
+      <input type="text" id="newRegionForOrderCityName" placeholder="Ex: NOVA REGIÃO" />
+      <label>Perfil mínimo de veículo</label>
+      <select id="newRegionForOrderCityProfile"></select>
+    </div>
+
+    <div class="modal-actions">
+      <button id="btnSkipPendingCity" class="btn btn-outline">Pular essa</button>
+      <button id="btnSavePendingCity" class="btn btn-primary">Salvar e ir pra próxima</button>
+    </div>
+  </div>
+</div>
+
 <!-- Overlay: escolher quem atende essa rota, ao soltar uma região com mais de um vendedor -->
 <div id="routeSellersOverlay" class="route-sellers-overlay hidden">
   <div class="route-sellers-box">
@@ -265,10 +313,27 @@
     <select id="mapColUf"></select>
     <label>Coluna do Peso em kg (opcional)</label>
     <select id="mapColWeight"></select>
+    <p id="weightPreviewText" class="hint hint-small"></p>
     <label>Coluna do Cliente/Pedido (opcional, só pra identificar cada linha)</label>
     <select id="mapColClient"></select>
     <label>Coluna do Vendedor (opcional)</label>
     <select id="mapColSeller"></select>
+    <label>Coluna do Código do Cliente (opcional)</label>
+    <select id="mapColClientCode"></select>
+    <label>Coluna do Nº do Pedido (opcional)</label>
+    <select id="mapColOrderNumber"></select>
+    <label>Coluna do Volume (opcional)</label>
+    <select id="mapColVolume"></select>
+    <label>Coluna do Valor (opcional)</label>
+    <select id="mapColValue"></select>
+    <label>Coluna do CEP (opcional — ajuda a geocodificar com mais precisão)</label>
+    <select id="mapColCep"></select>
+    <label>Coluna do Endereço (opcional)</label>
+    <select id="mapColAddress"></select>
+    <label>Coluna do Bairro (opcional)</label>
+    <select id="mapColNeighborhood"></select>
+    <label>Coluna de Observações (opcional)</label>
+    <select id="mapColObs"></select>
     <div class="modal-actions">
       <button id="btnCancelImportOrders" class="btn btn-outline">Cancelar</button>
       <button id="btnProcessImportOrders" class="btn btn-primary">Importar e plotar no mapa</button>
@@ -281,6 +346,7 @@
     <div id="importOrdersUnmatchedBox" class="hidden">
       <p class="hint hint-small c-warn-inline">Essas cidades da planilha não bateram com nenhuma cadastrada:</p>
       <div id="importOrdersUnmatchedList" class="gt-empty-msg" style="text-align:left;"></div>
+      <button id="btnStartUnmatchedWizard" class="btn btn-primary btn-small-full">📍 Cadastrar cidades que faltam, uma por uma</button>
     </div>
     <div class="modal-actions">
       <button id="btnClearOrders" class="btn btn-outline">🗑️ Limpar pedidos do mapa</button>

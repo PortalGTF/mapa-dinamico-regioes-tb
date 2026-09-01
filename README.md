@@ -685,7 +685,13 @@ dessa aba (junto com o contorno das regiões).
 2. **Diga qual coluna é qual** — o app tenta adivinhar sozinho (procurando por
    "cidade", "peso", "cliente", "vendedor" no nome das colunas), mas você confirma
    ou corrige. Só a coluna de **Cidade** é obrigatória; peso, cliente, UF e
-   vendedor são opcionais.
+   vendedor são opcionais. Assim que escolher a coluna de peso, aparece uma
+   **prévia da soma total** — confere se esse número bate com o que você espera
+   antes de importar. **Cuidado**: em algumas planilhas o nome da coluna engana —
+   por exemplo, uma coluna chamada "Peso Cx" pode ser só o peso de uma caixa (uma
+   informação de embalagem do produto), não o peso do pedido; já uma coluna chamada
+   "Qtd Total" pode, na prática, já vir em quilos. Sempre confira a prévia antes de
+   confiar no palpite automático.
 3. **Importar e plotar no mapa** — cada linha da planilha vira um ponto 📦 no mapa,
    no centro da cidade dela (ainda não geocodifica endereço exato — ponto sensível
    descrito abaixo). O app casa o nome da cidade da planilha com as cidades já
@@ -705,6 +711,39 @@ mapas gratuito (que só permite 1 busca por segundo), o que ficaria lento demais
 pra planilhas grandes. Pra ver volume por região, isso já é suficiente; se no
 futuro precisar do ponto exato de cada cliente, dá pra evoluir isso numa próxima
 fase.
+
+### Detalhes de cada pedido no mapa (Roteirizador)
+Passe o mouse em cima de um ponto 📦 pra ver um resumo rápido (cliente, peso,
+volume, valor). Clique pra abrir a caixa completa, com pedido, peso, volume,
+valor, endereço, bairro/cidade, região, vendedor e observações — e dois botões:
+**"📍 LOCALIZAR"** (abre aquele ponto no Google Maps) e **"✏️ EDITAR"** (corrige
+peso/volume/valor daquele pedido específico na hora, se precisar). Pra esses
+campos aparecerem, mapeie as colunas correspondentes na tela de importação
+(Nº do Pedido, Código do Cliente, Volume, Valor, CEP, Endereço, Bairro,
+Observações — todas opcionais).
+
+### Cadastrando as cidades que faltam, uma por uma
+Se alguma cidade da planilha não bater com nenhuma cadastrada, aparece o botão
+**"📍 Cadastrar cidades que faltam, uma por uma"** dentro da lista de "não bateram".
+Clicando nele:
+1. O app vai pra **aba Mapa** e mostra a primeira cidade pendente com um pino
+   vermelho 📍 no lugar certo do mapa de verdade (geocodificada na hora). Se você
+   mapeou a coluna de **CEP** na importação, ele tenta localizar por CEP primeiro
+   (mais preciso) — sempre conferindo se o resultado bate com o estado (UF) da
+   linha da planilha; se o CEP não bater com o estado esperado (ou não vier), cai
+   pro jeito de sempre: localizar pelo nome da cidade + UF. Isso evita que um CEP
+   do Paraná, por exemplo, caia geocodificado na Bahia por engano.
+2. Aparece uma caixa em pé (formato retrato, dá pra ver o mapa atrás) perguntando
+   qual região ela deve compor — escolha uma já existente na lista, ou clique em
+   **"+ Criar região nova com essa cidade"** pra criar uma na hora.
+3. Ao clicar em **"Salvar e ir pra próxima"**: a cidade é cadastrada de vez (entra
+   na região escolhida, no diretório de cidades, e — se a planilha trouxe a coluna
+   de vendedor — já associa o vendedor daquele pedido a ela também), os pedidos
+   daquela cidade na planilha já ficam corretos, e o assistente **pula sozinho
+   pra próxima cidade pendente**, sem precisar abrir nada de novo.
+4. Pode clicar em **"Pular essa"** se não quiser decidir agora — ele só avança pra
+   próxima, sem cadastrar.
+5. Quando não sobrar mais nenhuma, o app avisa que terminou.
 
 ### Pedidos não são publicados no GitHub
 Diferente de regiões/grade/cidades, os pedidos importados são dados do dia-a-dia

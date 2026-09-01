@@ -3084,7 +3084,16 @@ async function handleOrdersFileSelected(e) {
   fillColumnSelect("mapColWeight", headers, guess(["peso", "kg"]), true);
   fillColumnSelect("mapColClient", headers, guess(["cliente", "nome", "razao", "pedido"]), true);
   fillColumnSelect("mapColSeller", headers, guess(["vendedor", "representante", "rca"]), true);
+  fillColumnSelect("mapColClientCode", headers, guess(["cliente/loja", "codcliente", "cod cliente", "loja"]), true);
+  fillColumnSelect("mapColOrderNumber", headers, guess(["pedido", "nrpedido"]), true);
+  fillColumnSelect("mapColVolume", headers, guess(["volume", "vol"]), true);
+  fillColumnSelect("mapColValue", headers, guess(["valor", "vl total"]), true);
+  fillColumnSelect("mapColCep", headers, guess(["cep"]), true);
+  fillColumnSelect("mapColAddress", headers, guess(["endereco", "logradouro", "rua"]), true);
+  fillColumnSelect("mapColNeighborhood", headers, guess(["bairro"]), true);
+  fillColumnSelect("mapColObs", headers, guess(["obs"]), true);
 
+  updateWeightPreview();
   document.getElementById("importOrdersStep1").classList.add("hidden");
   document.getElementById("importOrdersStep2").classList.remove("hidden");
 }
@@ -3095,6 +3104,31 @@ function fillColumnSelect(selectId, headers, preselect, optional) {
     (optional ? `<option value="">— nenhuma —</option>` : "") +
     headers.map((h) => `<option value="${h}">${h}</option>`).join("");
   if (preselect) select.value = preselect;
+}
+
+// Soma a coluna de peso escolhida em cima de TODAS as linhas da planilha, e
+// mostra o total — pra você bater o olho e perceber na hora se escolheu a
+// coluna errada, antes de importar de verdade (ex: "peso da caixa" em vez do
+// peso do pedido).
+function updateWeightPreview() {
+  const previewEl = document.getElementById("weightPreviewText");
+  const colWeight = document.getElementById("mapColWeight").value;
+  if (!colWeight) {
+    previewEl.textContent = "";
+    return;
+  }
+  let total = 0;
+  let countValid = 0;
+  importedOrderRows.forEach((row) => {
+    const raw = row[colWeight];
+    if (raw === "" || raw === null || raw === undefined) return;
+    const n = parseFloat(String(raw).replace(",", "."));
+    if (!isNaN(n)) {
+      total += n;
+      countValid++;
+    }
+  });
+  previewEl.innerHTML = `📊 Prévia: somando "<strong>${colWeight}</strong>" em ${countValid} linha(s), dá <strong>${total.toLocaleString("pt-BR")}</strong> (${(total / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ton, se a unidade for kg). Confere se esse número faz sentido antes de importar — se a coluna for "peso da caixa" em vez do peso do pedido, o total vem bem menor do que devia.`;
 }
 
 // Casa o texto de cidade da planilha com uma cidade já cadastrada no app —
@@ -3123,27 +3157,48 @@ function processImportOrders() {
   const colWeight = document.getElementById("mapColWeight").value;
   const colClient = document.getElementById("mapColClient").value;
   const colSeller = document.getElementById("mapColSeller").value;
+  const colClientCode = document.getElementById("mapColClientCode").value;
+  const colOrderNumber = document.getElementById("mapColOrderNumber").value;
+  const colVolume = document.getElementById("mapColVolume").value;
+  const colValue = document.getElementById("mapColValue").value;
+  const colCep = document.getElementById("mapColCep").value;
+  const colAddress = document.getElementById("mapColAddress").value;
+  const colNeighborhood = document.getElementById("mapColNeighborhood").value;
+  const colObs = document.getElementById("mapColObs").value;
 
   if (!colCity) {
     alert("Selecione qual coluna é a cidade — é a única obrigatória.");
     return;
   }
 
+  const toNum = (v) => {
+    if (v === "" || v === null || v === undefined) return null;
+    const n = parseFloat(String(v).replace(",", "."));
+    return isNaN(n) ? null : n;
+  };
+
   const orders = importedOrderRows.map((row, idx) => {
     const rawCity = row[colCity];
     const uf = colUf ? row[colUf] : "";
     const cityLabel = matchCityToKnown(rawCity, uf);
     const regions = cityLabel ? Regions.findByCity(cityLabel) : [];
-    const weightRaw = colWeight ? row[colWeight] : "";
-    const weight = weightRaw !== "" && !isNaN(parseFloat(String(weightRaw).replace(",", "."))) ? parseFloat(String(weightRaw).replace(",", ".")) : null;
 
     return {
       id: "order_" + idx + "_" + Date.now(),
       client: colClient ? String(row[colClient] || "") : "",
+      clientCode: colClientCode ? String(row[colClientCode] || "") : "",
+      orderNumber: colOrderNumber ? String(row[colOrderNumber] || "") : "",
       rawCity: String(rawCity || ""),
+      rawUf: String(uf || ""),
+      cep: colCep ? String(row[colCep] || "") : "",
+      address: colAddress ? String(row[colAddress] || "") : "",
+      neighborhood: colNeighborhood ? String(row[colNeighborhood] || "") : "",
+      obs: colObs ? String(row[colObs] || "") : "",
       cityLabel,
       matched: !!cityLabel,
-      weight,
+      weight: colWeight ? toNum(row[colWeight]) : null,
+      volume: colVolume ? toNum(row[colVolume]) : null,
+      value: colValue ? toNum(row[colValue]) : null,
       seller: colSeller ? String(row[colSeller] || "") : "",
       regionId: regions.length > 0 ? regions[0].id : null,
       regionName: regions.length > 0 ? regions[0].name : null,
@@ -3163,16 +3218,25 @@ function renderImportOrdersSummary() {
   const matched = Orders.list.filter((o) => o.matched);
   const unmatched = Orders.list.filter((o) => !o.matched);
 
-  document.getElementById("importOrdersSummaryText").textContent =
-    `${Orders.list.length} pedido(s) importado(s) — ${matched.length} casado(s) com região, ${unmatched.length} sem cidade reconhecida.`;
+  const sumWeight = (list) => list.reduce((sum, o) => sum + (o.weight || 0), 0);
+  const totalWeight = sumWeight(Orders.list);
+  const matchedWeight = sumWeight(matched);
+  const unmatchedWeight = sumWeight(unmatched);
+
+  // Peso total sempre em destaque, bem visível — nunca escondido, mesmo se
+  // tiver pedido sem cidade reconhecida.
+  document.getElementById("importOrdersSummaryText").innerHTML =
+    `<strong>Peso total: ${totalWeight.toLocaleString("pt-BR")} kg (${(totalWeight / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ton)</strong><br>` +
+    `${Orders.list.length} pedido(s) importado(s) — ${matched.length} casado(s) com cidade (${matchedWeight.toLocaleString("pt-BR")} kg), ` +
+    `${unmatched.length} sem cidade reconhecida (${unmatchedWeight.toLocaleString("pt-BR")} kg — ${unmatchedWeight > 0 ? "⚠️ conferir abaixo" : "0 kg, tudo certo"}).`;
 
   // Resumo por região: contagem de pedidos + soma de peso
   const byRegion = {};
   matched.forEach((o) => {
-    const key = o.regionName || "—";
+    const key = o.regionName || "— sem região definida";
     byRegion[key] = byRegion[key] || { count: 0, weight: 0 };
     byRegion[key].count++;
-    if (o.weight) byRegion[key].weight += o.weight;
+    byRegion[key].weight += o.weight || 0;
   });
 
   const summaryBox = document.getElementById("importOrdersRegionSummary");
@@ -3184,10 +3248,22 @@ function renderImportOrdersSummary() {
     })
     .join("");
 
+  if (unmatched.length > 0) {
+    summaryBox.innerHTML += `<div class="order-region-summary-row order-region-unmatched"><span class="orsr-name">⚠️ Sem cidade reconhecida</span><span class="orsr-count">${unmatched.length} pedido(s)</span><span class="orsr-weight">${unmatchedWeight.toLocaleString("pt-BR")} kg</span></div>`;
+  }
+
   const unmatchedBox = document.getElementById("importOrdersUnmatchedBox");
   if (unmatched.length > 0) {
-    const uniqueUnmatched = Array.from(new Set(unmatched.map((o) => o.rawCity)));
-    document.getElementById("importOrdersUnmatchedList").textContent = uniqueUnmatched.join(", ");
+    // Agrupa por nome de cidade da planilha, somando o peso de cada uma —
+    // assim dá pra ver exatamente quanto peso está sendo perdido por cidade
+    const byCity = {};
+    unmatched.forEach((o) => {
+      byCity[o.rawCity] = (byCity[o.rawCity] || 0) + (o.weight || 0);
+    });
+    document.getElementById("importOrdersUnmatchedList").innerHTML = Object.keys(byCity)
+      .sort((a, b) => byCity[b] - byCity[a])
+      .map((city) => `${city} (${byCity[city].toLocaleString("pt-BR")} kg)`)
+      .join(", ");
     unmatchedBox.classList.remove("hidden");
   } else {
     unmatchedBox.classList.add("hidden");
@@ -3228,19 +3304,287 @@ function plotOrdersOnMap() {
       iconAnchor: [10, 18],
     });
     const marker = L.marker([lat, lng], { icon });
+
+    // Ao passar o mouse: resuminho de uma linha (cliente + código do pedido + peso/volume/valor)
+    const clientPart = order.client ? `${order.client}${order.clientCode ? `(${order.clientCode})` : ""}` : "Pedido";
+    const tooltipParts = [clientPart];
+    if (order.weight !== null) tooltipParts.push(`PESO: ${order.weight.toLocaleString("pt-BR")}`);
+    if (order.volume !== null) tooltipParts.push(`VOL.: ${order.volume.toLocaleString("pt-BR")}`);
+    if (order.value !== null) tooltipParts.push(`VALOR: ${order.value.toLocaleString("pt-BR")}`);
+    marker.bindTooltip(tooltipParts.join(" • "), { className: "order-hover-tooltip", direction: "top", offset: [0, -18] });
+
+    // Ao clicar: caixa detalhada, com botões de localizar e editar
     const popupHtml = `
-      <div class="city-popup">
-        <strong>${order.client || "Pedido"}</strong><br>
-        Cidade: ${order.cityLabel}<br>
-        ${order.regionName ? `Região: ${order.regionName}<br>` : ""}
-        ${order.weight ? `Peso: ${order.weight.toLocaleString("pt-BR")} kg<br>` : ""}
-        ${order.seller ? `Vendedor: ${order.seller}<br>` : ""}
+      <div class="order-popup-card">
+        <div class="order-popup-header">👤 ${order.client || "Cliente não identificado"}${order.clientCode ? ` (${order.clientCode})` : ""}</div>
+        <div class="order-popup-body">
+          ${order.orderNumber ? `<strong>PEDIDO:</strong> ${order.orderNumber}<br>` : ""}
+          ${order.weight !== null ? `<strong>PESO:</strong> ${order.weight.toLocaleString("pt-BR")} kg<br>` : ""}
+          ${order.volume !== null ? `<strong>VOLUME:</strong> ${order.volume.toLocaleString("pt-BR")}<br>` : ""}
+          ${order.value !== null ? `<strong>VALOR:</strong> R$ ${order.value.toLocaleString("pt-BR")}<br>` : ""}
+          ${order.address ? `<strong>END.:</strong> ${order.address}<br>` : ""}
+          <strong>BAIRRO/CIDADE:</strong> ${order.neighborhood ? order.neighborhood + ", " : ""}${order.cityLabel}<br>
+          ${order.regionName ? `<strong>REGIÃO:</strong> ${order.regionName}<br>` : ""}
+          ${order.seller ? `<strong>VENDEDOR:</strong> ${order.seller}<br>` : ""}
+          ${order.obs ? `<strong>OBS.:</strong> ${order.obs}<br>` : ""}
+        </div>
+        <div class="order-popup-actions">
+          <button class="order-popup-locate" data-lat="${lat}" data-lng="${lng}">📍 LOCALIZAR</button>
+          <button class="order-popup-edit" data-order-id="${order.id}">✏️ EDITAR</button>
+        </div>
       </div>`;
     marker.bindPopup(popupHtml);
+
+    marker.on("popupopen", (e) => {
+      const el = e.popup.getElement();
+      el.querySelector(".order-popup-locate").addEventListener("click", (ev) => {
+        const la = ev.target.dataset.lat;
+        const ln = ev.target.dataset.lng;
+        window.open(`https://www.google.com/maps/search/?api=1&query=${la},${ln}`, "_blank");
+      });
+      el.querySelector(".order-popup-edit").addEventListener("click", (ev) => {
+        openEditOrderModal(ev.target.dataset.orderId);
+      });
+    });
+
     markers.push(marker);
   });
 
   ordersLayerGroup = L.layerGroup(markers).addTo(routerMap);
+}
+
+// ------------------------------------------------------------
+// Editar peso/volume/valor de um pedido específico (ex: correção manual)
+// ------------------------------------------------------------
+let editingOrderId = null;
+
+function openEditOrderModal(orderId) {
+  const order = Orders.list.find((o) => o.id === orderId);
+  if (!order) return;
+  editingOrderId = orderId;
+  document.getElementById("editOrderTitle").textContent = `Editar: ${order.client || "Pedido"}`;
+  document.getElementById("editOrderWeight").value = order.weight !== null ? order.weight : "";
+  document.getElementById("editOrderVolume").value = order.volume !== null ? order.volume : "";
+  document.getElementById("editOrderValue").value = order.value !== null ? order.value : "";
+  document.getElementById("editOrderOverlay").classList.remove("hidden");
+}
+
+function closeEditOrderModal() {
+  document.getElementById("editOrderOverlay").classList.add("hidden");
+  editingOrderId = null;
+}
+
+function saveEditOrder() {
+  const order = Orders.list.find((o) => o.id === editingOrderId);
+  if (!order) return;
+  const toNum = (v) => {
+    if (v === "" || v === null || v === undefined) return null;
+    const n = parseFloat(String(v).replace(",", "."));
+    return isNaN(n) ? null : n;
+  };
+  order.weight = toNum(document.getElementById("editOrderWeight").value);
+  order.volume = toNum(document.getElementById("editOrderVolume").value);
+  order.value = toNum(document.getElementById("editOrderValue").value);
+  Orders.save();
+  plotOrdersOnMap();
+  updateRouterSummaryText();
+  closeEditOrderModal();
+}
+
+// ------------------------------------------------------------
+// Assistente de cadastro das cidades que vieram na planilha de pedidos mas
+// ainda não existiam — mostra uma de cada vez, no mapa de verdade (aba
+// Mapa), pra você escolher a região e já ir pra próxima automaticamente.
+// ------------------------------------------------------------
+let pendingNewCitiesQueue = [];
+let currentNewCityIndex = 0;
+let tempNewCityMarker = null;
+
+function startUnmatchedCitiesWizard() {
+  if (!Auth.isAdmin) return;
+
+  // Agrupa os pedidos não casados por cidade+UF única — assim, uma cidade
+  // com vários pedidos só aparece uma vez no assistente
+  const groups = {};
+  Orders.list
+    .filter((o) => !o.matched)
+    .forEach((o) => {
+      const key = normalizeStr(o.rawCity) + "|" + normalizeStr(o.rawUf || "");
+      groups[key] = groups[key] || { rawCity: o.rawCity, rawUf: o.rawUf || "", seller: o.seller, cep: o.cep || "", orders: [] };
+      groups[key].orders.push(o);
+    });
+
+  pendingNewCitiesQueue = Object.values(groups);
+  currentNewCityIndex = 0;
+
+  if (pendingNewCitiesQueue.length === 0) {
+    alert("Não tem nenhuma cidade pendente de cadastro.");
+    return;
+  }
+
+  closeImportOrdersModal();
+  switchTab("map");
+  processNextPendingNewCity();
+}
+
+async function processNextPendingNewCity() {
+  if (currentNewCityIndex >= pendingNewCitiesQueue.length) {
+    if (tempNewCityMarker) {
+      map.removeLayer(tempNewCityMarker);
+      tempNewCityMarker = null;
+    }
+    closeNewCityFromOrderModal();
+    alert("Pronto! Todas as cidades pendentes dessa leva foram cadastradas ou puladas.");
+    return;
+  }
+
+  const item = pendingNewCitiesQueue[currentNewCityIndex];
+
+  document.getElementById("newCityFromOrderStatus").textContent =
+    `Cidade ${currentNewCityIndex + 1} de ${pendingNewCitiesQueue.length}`;
+  document.getElementById("newCityFromOrderName").value = item.rawCity;
+  document.getElementById("newCityFromOrderUf").value = (item.rawUf || "").toUpperCase();
+  document.getElementById("newCityFromOrderOrdersCount").textContent =
+    `${item.orders.length} pedido(s) dessa cidade na planilha importada.`;
+
+  const regionSelect = document.getElementById("newCityFromOrderRegionSelect");
+  regionSelect.innerHTML =
+    `<option value="">— selecione uma região —</option>` +
+    Regions.list
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+      .map((r) => `<option value="${r.id}">${r.name}</option>`)
+      .join("");
+
+  document.getElementById("newRegionForOrderCityForm").classList.add("hidden");
+  document.getElementById("newRegionForOrderCityProfile").innerHTML = VEHICLE_PROFILES.map(
+    (p) => `<option value="${p.name}">${p.name}</option>`
+  ).join("");
+
+  document.getElementById("newCityFromOrderOverlay").classList.remove("hidden");
+
+  await geocodeAndShowPendingCity(item);
+}
+
+async function geocodeAndShowPendingCity(item) {
+  if (tempNewCityMarker) {
+    map.removeLayer(tempNewCityMarker);
+    tempNewCityMarker = null;
+  }
+  const uf = (item.rawUf || "").trim().toUpperCase();
+  if (!uf || uf.length !== 2) return; // sem UF válida, espera a pessoa preencher e clicar em "Buscar no mapa"
+
+  const label = normalizeCityLabel(`${item.rawCity} - ${uf}`);
+
+  // Tenta primeiro pelo CEP (mais preciso, já amarrado ao estado esperado —
+  // nunca deixa um CEP do Paraná cair na Bahia por engano). Se não der certo
+  // (sem CEP, ou o CEP não bateu com o estado), cai pro jeito de sempre:
+  // geocodificar pelo nome da cidade + UF.
+  let coord = null;
+  if (item.cep) {
+    coord = await Geocode.searchByCep(item.cep, uf);
+    if (coord) {
+      Geocode.cache[label] = coord;
+      Geocode.saveLocalCache();
+    }
+  }
+  if (!coord) {
+    await Geocode._geocodeOne(label);
+    coord = Geocode.get(label);
+  }
+
+  if (coord && coord.lat !== null) {
+    tempNewCityMarker = L.marker([coord.lat, coord.lng], {
+      icon: L.divIcon({
+        className: "",
+        html: `<div class="city-pin" style="--pin-color:#e74c3c"><div class="pin-body"></div><div class="pin-icon">📍</div></div>`,
+        iconSize: [30, 40],
+        iconAnchor: [15, 40],
+      }),
+    }).addTo(map);
+    map.setView([coord.lat, coord.lng], 11);
+  } else {
+    alert(`Não consegui localizar "${item.rawCity} - ${uf}" no mapa. Confira o nome/UF e clique em "Buscar no mapa" de novo.`);
+  }
+}
+
+function savePendingCity() {
+  const item = pendingNewCitiesQueue[currentNewCityIndex];
+  const cityName = document.getElementById("newCityFromOrderName").value.trim().toUpperCase();
+  const uf = document.getElementById("newCityFromOrderUf").value.trim().toUpperCase();
+
+  if (!cityName || !uf || uf.length !== 2) {
+    alert("Preencha a cidade e a UF (2 letras) antes de salvar.");
+    return;
+  }
+  const cityLabel = `${cityName} - ${uf}`;
+
+  const coord = Geocode.get(cityLabel);
+  if (!coord || coord.lat === null) {
+    alert('Ainda não localizei essa cidade no mapa — clique em "📍 Buscar no mapa" primeiro.');
+    return;
+  }
+
+  const newRegionFormOpen = !document.getElementById("newRegionForOrderCityForm").classList.contains("hidden");
+  let region;
+
+  if (newRegionFormOpen) {
+    const name = document.getElementById("newRegionForOrderCityName").value.trim();
+    const profile = document.getElementById("newRegionForOrderCityProfile").value;
+    if (!name) {
+      alert("Digite um nome pra região nova.");
+      return;
+    }
+    region = Regions.create({ name, vehicleProfile: profile, cities: [cityLabel] });
+  } else {
+    const regionId = document.getElementById("newCityFromOrderRegionSelect").value;
+    if (!regionId) {
+      alert('Escolha uma região no campo acima, ou clique em "+ Criar região nova com essa cidade".');
+      return;
+    }
+    region = Regions.list.find((r) => r.id === regionId);
+    if (!region.cities.includes(cityLabel)) {
+      Regions.update(region.id, { cities: [...region.cities, cityLabel] });
+    }
+  }
+
+  // Registra de vez a cidade no diretório do app
+  if (!CITIES_LIST.includes(cityLabel)) CITIES_LIST.push(cityLabel);
+  if (item.seller) {
+    CITY_TO_SELLERS[cityLabel] = CITY_TO_SELLERS[cityLabel] || [];
+    if (!CITY_TO_SELLERS[cityLabel].includes(item.seller)) CITY_TO_SELLERS[cityLabel].push(item.seller);
+    rebuildSellersFromCityToSellers();
+    saveCityDirectoryDraft();
+  }
+
+  // Atualiza os pedidos dessa cidade (podem ser vários) pra já caírem certos
+  item.orders.forEach((o) => {
+    o.cityLabel = cityLabel;
+    o.matched = true;
+    o.regionId = region.id;
+    o.regionName = region.name;
+  });
+  Orders.save();
+
+  if (tempNewCityMarker) {
+    map.removeLayer(tempNewCityMarker);
+    tempNewCityMarker = null;
+  }
+  rebuildClusters();
+  renderRegionsList();
+  updateDraftHint();
+
+  currentNewCityIndex++;
+  processNextPendingNewCity();
+}
+
+function skipPendingCity() {
+  currentNewCityIndex++;
+  processNextPendingNewCity();
+}
+
+function closeNewCityFromOrderModal() {
+  document.getElementById("newCityFromOrderOverlay").classList.add("hidden");
 }
 
 function clearImportedOrders() {
@@ -3319,9 +3663,10 @@ function updateRouterSummaryText() {
     el.textContent = "Nenhum pedido importado ainda.";
     return;
   }
-  const matched = Orders.list.filter((o) => o.matched).length;
-  const unmatched = Orders.list.length - matched;
-  el.textContent = `${Orders.list.length} pedido(s) — ${matched} no mapa, ${unmatched} sem cidade reconhecida.`;
+  const matched = Orders.list.filter((o) => o.matched);
+  const unmatched = Orders.list.length - matched.length;
+  const totalWeight = Orders.list.reduce((sum, o) => sum + (o.weight || 0), 0);
+  el.textContent = `${Orders.list.length} pedido(s) — ${matched.length} no mapa, ${unmatched} sem cidade reconhecida — peso total: ${totalWeight.toLocaleString("pt-BR")} kg.`;
 }
 
 function openGithubPublishModal() {
@@ -4097,6 +4442,8 @@ function updateAdminUI() {
     closeChangePasswordModal();
     closeGithubPublishModal();
     closeImportOrdersModal();
+    closeNewCityFromOrderModal();
+    closeEditOrderModal();
     closeGradeCitiesModal();
     closeRouteSellersModal();
     clearSearchPreview();
@@ -4267,9 +4614,26 @@ function wireEvents() {
   document.getElementById("btnCancelImportOrders").addEventListener("click", closeImportOrdersModal);
   document.getElementById("btnCloseImportOrdersStep3").addEventListener("click", closeImportOrdersModal);
   document.getElementById("ordersFileInput").addEventListener("change", handleOrdersFileSelected);
+  document.getElementById("mapColWeight").addEventListener("change", updateWeightPreview);
   document.getElementById("btnProcessImportOrders").addEventListener("click", processImportOrders);
   document.getElementById("btnClearOrders").addEventListener("click", clearImportedOrders);
   document.getElementById("btnClearOrdersFromRouter").addEventListener("click", clearImportedOrders);
+
+  document.getElementById("btnStartUnmatchedWizard").addEventListener("click", startUnmatchedCitiesWizard);
+  document.getElementById("btnGeocodePendingCity").addEventListener("click", () => {
+    const item = pendingNewCitiesQueue[currentNewCityIndex];
+    if (!item) return;
+    item.rawCity = document.getElementById("newCityFromOrderName").value;
+    item.rawUf = document.getElementById("newCityFromOrderUf").value;
+    geocodeAndShowPendingCity(item);
+  });
+  document.getElementById("btnToggleNewRegionForOrderCity").addEventListener("click", () => {
+    document.getElementById("newRegionForOrderCityForm").classList.toggle("hidden");
+  });
+  document.getElementById("btnSavePendingCity").addEventListener("click", savePendingCity);
+  document.getElementById("btnSkipPendingCity").addEventListener("click", skipPendingCity);
+  document.getElementById("btnCancelEditOrder").addEventListener("click", closeEditOrderModal);
+  document.getElementById("btnSaveEditOrder").addEventListener("click", saveEditOrder);
   document.getElementById("btnToggleAllFences").addEventListener("click", toggleAllFences);
 
   document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);
