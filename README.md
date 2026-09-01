@@ -716,11 +716,19 @@ fase.
 Passe o mouse em cima de um ponto 📦 pra ver um resumo rápido (cliente, peso,
 volume, valor). Clique pra abrir a caixa completa, com pedido, peso, volume,
 valor, endereço, bairro/cidade, região, vendedor e observações — e dois botões:
-**"📍 LOCALIZAR"** (abre aquele ponto no Google Maps) e **"✏️ EDITAR"** (corrige
-peso/volume/valor daquele pedido específico na hora, se precisar). Pra esses
+**"📍 LOCALIZAR"** (abre aquele ponto no Google Maps) e **"✏️ EDITAR"**. Pra esses
 campos aparecerem, mapeie as colunas correspondentes na tela de importação
 (Nº do Pedido, Código do Cliente, Volume, Valor, CEP, Endereço, Bairro,
 Observações — todas opcionais).
+
+### Editar cliente (a partir do popup do pedido)
+Clicando em "✏️ EDITAR" no popup de um pedido, abre uma caixa em pé completa
+("EDITAR CLIENTE"), com fundo escurecido deixando ver o mapa atrás — código do
+cliente, nome, endereço, bairro, cidade, UF, CEP, e um campo de **Região** com um
+botão **🔄** que tenta detectar a região sozinho (casando a cidade/UF digitada com
+as regiões já cadastradas — mesma lógica usada na importação). Também dá pra
+corrigir peso/volume/valor ali embaixo. Clique em **"ATUALIZAR"** pra salvar —
+o ponto no mapa e os resumos já atualizam na hora.
 
 ### Cadastrando as cidades que faltam, uma por uma
 Se alguma cidade da planilha não bater com nenhuma cadastrada, aparece o botão

@@ -3362,11 +3362,45 @@ function openEditOrderModal(orderId) {
   const order = Orders.list.find((o) => o.id === orderId);
   if (!order) return;
   editingOrderId = orderId;
-  document.getElementById("editOrderTitle").textContent = `Editar: ${order.client || "Pedido"}`;
+
+  document.getElementById("editOrderCodeSuffix").textContent = order.clientCode ? ` - ${order.clientCode}` : "";
+  document.getElementById("editOrderClientCode").value = order.clientCode || "";
+  document.getElementById("editOrderClientName").value = order.client || "";
+  document.getElementById("editOrderAddress").value = order.address || "";
+  document.getElementById("editOrderNeighborhood").value = order.neighborhood || "";
+  document.getElementById("editOrderCity").value = order.rawCity || "";
+  document.getElementById("editOrderUf").value = (order.rawUf || "").toUpperCase();
+  document.getElementById("editOrderCep").value = order.cep || "";
   document.getElementById("editOrderWeight").value = order.weight !== null ? order.weight : "";
   document.getElementById("editOrderVolume").value = order.volume !== null ? order.volume : "";
   document.getElementById("editOrderValue").value = order.value !== null ? order.value : "";
+
+  const regionSelect = document.getElementById("editOrderRegionSelect");
+  regionSelect.innerHTML =
+    `<option value="">— sem região —</option>` +
+    Regions.list
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
+      .map((r) => `<option value="${r.id}" ${r.id === order.regionId ? "selected" : ""}>${r.name}</option>`)
+      .join("");
+
   document.getElementById("editOrderOverlay").classList.remove("hidden");
+}
+
+// Botão 🔄 — tenta achar a região sozinho, casando a cidade/UF digitada com
+// as cidades já cadastradas (mesma lógica usada na importação da planilha)
+function refreshOrderRegionGuess() {
+  const cityText = document.getElementById("editOrderCity").value;
+  const uf = document.getElementById("editOrderUf").value;
+  const cityLabel = matchCityToKnown(cityText, uf);
+  const regions = cityLabel ? Regions.findByCity(cityLabel) : [];
+
+  const regionSelect = document.getElementById("editOrderRegionSelect");
+  if (regions.length > 0) {
+    regionSelect.value = regions[0].id;
+  } else {
+    alert(`Não achei "${cityText} - ${uf}" em nenhuma região cadastrada — escolha manualmente na lista, ou cadastre essa cidade primeiro.`);
+  }
 }
 
 function closeEditOrderModal() {
@@ -3382,11 +3416,36 @@ function saveEditOrder() {
     const n = parseFloat(String(v).replace(",", "."));
     return isNaN(n) ? null : n;
   };
+
+  order.clientCode = document.getElementById("editOrderClientCode").value.trim();
+  order.client = document.getElementById("editOrderClientName").value.trim();
+  order.address = document.getElementById("editOrderAddress").value.trim();
+  order.neighborhood = document.getElementById("editOrderNeighborhood").value.trim();
+  order.rawCity = document.getElementById("editOrderCity").value.trim();
+  order.rawUf = document.getElementById("editOrderUf").value.trim().toUpperCase();
+  order.cep = document.getElementById("editOrderCep").value.trim();
   order.weight = toNum(document.getElementById("editOrderWeight").value);
   order.volume = toNum(document.getElementById("editOrderVolume").value);
   order.value = toNum(document.getElementById("editOrderValue").value);
+
+  const regionId = document.getElementById("editOrderRegionSelect").value;
+  if (regionId) {
+    const region = Regions.list.find((r) => r.id === regionId);
+    order.regionId = region.id;
+    order.regionName = region.name;
+    order.matched = true;
+    // Se a cidade digitada bate com alguma já cadastrada, atualiza o
+    // cityLabel também (pra continuar plotando no lugar certo do mapa)
+    const cityLabel = matchCityToKnown(order.rawCity, order.rawUf);
+    if (cityLabel) order.cityLabel = cityLabel;
+  } else {
+    order.regionId = null;
+    order.regionName = null;
+  }
+
   Orders.save();
   plotOrdersOnMap();
+  renderImportOrdersSummary();
   updateRouterSummaryText();
   closeEditOrderModal();
 }
@@ -4632,7 +4691,8 @@ function wireEvents() {
   });
   document.getElementById("btnSavePendingCity").addEventListener("click", savePendingCity);
   document.getElementById("btnSkipPendingCity").addEventListener("click", skipPendingCity);
-  document.getElementById("btnCancelEditOrder").addEventListener("click", closeEditOrderModal);
+  document.getElementById("btnCancelEditOrderX").addEventListener("click", closeEditOrderModal);
+  document.getElementById("btnRefreshOrderRegion").addEventListener("click", refreshOrderRegionGuess);
   document.getElementById("btnSaveEditOrder").addEventListener("click", saveEditOrder);
   document.getElementById("btnToggleAllFences").addEventListener("click", toggleAllFences);
 
