@@ -658,6 +658,43 @@ marca oficial use tons ligeiramente diferentes), os valores ficam centralizados 
 topo do arquivo `css/style.css`, dentro do bloco `:root` — é só trocar o valor
 hexadecimal de `--accent` (verde-azulado) ou `--navy` (azul-marinho escuro).
 
+## 8.5 Importar pedidos (fase 1 do roteirizador)
+
+Botão **"📦 Importar Pedidos"** no topo do mapa (modo admin). Primeira etapa de um
+roteirizador automático — essa fase cobre: subir a planilha, casar cada pedido com
+a cidade/região certa, e ver tudo plotado no mapa.
+
+### Como funciona
+1. **Suba o arquivo** (.xlsx, .xls ou .csv) com os pedidos.
+2. **Diga qual coluna é qual** — o app tenta adivinhar sozinho (procurando por
+   "cidade", "peso", "cliente", "vendedor" no nome das colunas), mas você confirma
+   ou corrige. Só a coluna de **Cidade** é obrigatória; peso, cliente, UF e
+   vendedor são opcionais.
+3. **Importar e plotar no mapa** — cada linha da planilha vira um ponto 📦 no mapa,
+   no centro da cidade dela (ainda não geocodifica endereço exato — ponto sensível
+   descrito abaixo). O app casa o nome da cidade da planilha com as cidades já
+   cadastradas nas suas regiões (ignora acento/maiúscula/minúscula), e identifica
+   automaticamente a região de cada pedido.
+4. Aparece um **resumo por região**: quantos pedidos e quantos kg em cada uma, e
+   uma lista separada de cidades que **não bateram** com nenhuma cadastrada (pra
+   você conferir se é erro de digitação na planilha ou cidade nova mesmo).
+5. Um toggle **"📦 Pedidos importados"** aparece na legenda do mapa, pra
+   mostrar/esconder os pontos. Ficam salvos no seu navegador até você importar uma
+   planilha nova ou clicar em "🗑️ Limpar pedidos do mapa".
+
+### Limitação importante desta fase
+O ponto de cada pedido fica no **centro da cidade**, não no endereço exato do
+cliente — geocodificar rua por rua exigiria uma busca por pedido no serviço de
+mapas gratuito (que só permite 1 busca por segundo), o que ficaria lento demais
+pra planilhas grandes. Pra ver volume por região, isso já é suficiente; se no
+futuro precisar do ponto exato de cada cliente, dá pra evoluir isso numa próxima
+fase.
+
+### Pedidos não são publicados no GitHub
+Diferente de regiões/grade/cidades, os pedidos importados são dados do dia-a-dia
+(mudam toda hora) — ficam só no seu navegador, não fazem parte do que é publicado.
+Cada pessoa que for rotear precisa importar a própria planilha do dia.
+
 ## 8. Limites a saber
 
 - **Nominatim** (geocodificação) e **OSRM** (rotas) são serviços públicos e gratuitos,

@@ -988,6 +988,46 @@ main { position: relative; flex: 1; }
 }
 .new-region-inline-form label:first-child { margin-top: 0; }
 
+/* ---------- Importar pedidos ---------- */
+.required-mark { color: #c0392b; }
+
+.order-region-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-bottom: 1px dashed var(--line);
+  font-size: 12.5px;
+}
+.order-region-summary-row:last-child { border-bottom: none; }
+.orsr-name { font-weight: 700; flex: 1; }
+.orsr-count { color: var(--muted); font-size: 11px; }
+.orsr-weight { font-weight: 700; color: var(--navy); font-size: 12px; }
+
+.legend-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 11.5px;
+}
+.legend-toggle input { width: auto; margin: 0; }
+
+.order-pin {
+  width: 20px;
+  height: 20px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.order-pin span { transform: rotate(45deg); font-size: 10px; }
+.order-pin.order-matched { background: #16a085; }
+.order-pin.order-unmatched { background: #c0392b; }
+
 /* ---------- Detalhes da região / raio ---------- */
 .region-detail-summary {
   background: #f4f2ee;

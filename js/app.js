@@ -44,6 +44,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   initMap();
   await placeOrigin();
 
+  Orders.load();
+  if (Orders.hasOrders()) {
+    plotOrdersOnMap();
+    document.getElementById("toggleOrdersLabel").classList.remove("hidden");
+  }
+
   renderSellerOptions();
   renderSearchCityOptions();
   renderRegionsList();
@@ -98,6 +104,7 @@ function makePanelsDraggable() {
   attachDrag("keyCityModal", document.getElementById("keyCityHeader"));
   attachDrag("changePasswordModal", document.getElementById("changePasswordHeader"));
   attachDrag("githubPublishModal", document.getElementById("githubPublishHeader"));
+  attachDrag("importOrdersModal", document.getElementById("importOrdersHeader"));
   attachDrag("gradeCitiesModal", document.getElementById("gradeCitiesHeader"));
   attachDrag("gradeRegionInfoModal", document.getElementById("gradeRegionInfoHeader"));
   attachDrag("dedupeModal", document.getElementById("dedupeModalHeader"));
@@ -2944,6 +2951,225 @@ function saveGithubConfig(config) {
   localStorage.setItem("regioes_github_config", JSON.stringify(config));
 }
 
+// ------------------------------------------------------------
+// Importar pedidos de uma planilha — lê o arquivo, deixa escolher qual
+// coluna é o quê, casa cada linha com a cidade/região já cadastrada, e
+// plota tudo no mapa.
+// ------------------------------------------------------------
+let importedOrderRows = []; // linhas cruas da planilha, antes de processar
+let ordersLayerGroup = null;
+
+function openImportOrdersModal() {
+  if (!Auth.isAdmin) return;
+  document.getElementById("importOrdersStep1").classList.remove("hidden");
+  document.getElementById("importOrdersStep2").classList.add("hidden");
+  document.getElementById("importOrdersStep3").classList.add("hidden");
+  document.getElementById("ordersFileInput").value = "";
+  document.getElementById("importOrdersModal").classList.remove("hidden");
+}
+
+function closeImportOrdersModal() {
+  document.getElementById("importOrdersModal").classList.add("hidden");
+}
+
+async function handleOrdersFileSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (typeof XLSX === "undefined") {
+    alert("A biblioteca de planilhas ainda não carregou — aguarde alguns segundos e tente de novo.");
+    return;
+  }
+
+  const buffer = await file.arrayBuffer();
+  const workbook = XLSX.read(buffer, { type: "array" });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+  if (rows.length === 0) {
+    alert("Não encontrei nenhuma linha de dados nessa planilha.");
+    return;
+  }
+
+  importedOrderRows = rows;
+  const headers = Object.keys(rows[0]);
+
+  // Tenta adivinhar qual coluna é qual, pelo nome do cabeçalho
+  const guess = (keywords) => headers.find((h) => keywords.some((k) => normalizeStr(h).includes(k))) || "";
+
+  fillColumnSelect("mapColCity", headers, guess(["cidade", "municipio"]));
+  fillColumnSelect("mapColUf", headers, guess(["uf", "estado"]), true);
+  fillColumnSelect("mapColWeight", headers, guess(["peso", "kg"]), true);
+  fillColumnSelect("mapColClient", headers, guess(["cliente", "nome", "razao", "pedido"]), true);
+  fillColumnSelect("mapColSeller", headers, guess(["vendedor", "representante", "rca"]), true);
+
+  document.getElementById("importOrdersStep1").classList.add("hidden");
+  document.getElementById("importOrdersStep2").classList.remove("hidden");
+}
+
+function fillColumnSelect(selectId, headers, preselect, optional) {
+  const select = document.getElementById(selectId);
+  select.innerHTML =
+    (optional ? `<option value="">— nenhuma —</option>` : "") +
+    headers.map((h) => `<option value="${h}">${h}</option>`).join("");
+  if (preselect) select.value = preselect;
+}
+
+// Casa o texto de cidade da planilha com uma cidade já cadastrada no app —
+// ignora acento/maiúscula e a UF, se der pra desempatar com ela.
+function matchCityToKnown(rawCityText, ufHint) {
+  if (!rawCityText) return null;
+  const target = normalizeStr(String(rawCityText).replace(/-\s*[A-Za-z]{2}\s*$/, "").trim());
+  if (!target) return null;
+
+  const candidates = CITIES_LIST.filter((c) => {
+    const cityNameOnly = c.replace(/-\s*[A-Za-z]{2}\s*$/, "").trim();
+    return normalizeStr(cityNameOnly) === target;
+  });
+
+  if (candidates.length <= 1) return candidates[0] || null;
+  if (ufHint) {
+    const withUf = candidates.find((c) => extractUF(c) === String(ufHint).trim().toUpperCase());
+    if (withUf) return withUf;
+  }
+  return candidates[0];
+}
+
+function processImportOrders() {
+  const colCity = document.getElementById("mapColCity").value;
+  const colUf = document.getElementById("mapColUf").value;
+  const colWeight = document.getElementById("mapColWeight").value;
+  const colClient = document.getElementById("mapColClient").value;
+  const colSeller = document.getElementById("mapColSeller").value;
+
+  if (!colCity) {
+    alert("Selecione qual coluna é a cidade — é a única obrigatória.");
+    return;
+  }
+
+  const orders = importedOrderRows.map((row, idx) => {
+    const rawCity = row[colCity];
+    const uf = colUf ? row[colUf] : "";
+    const cityLabel = matchCityToKnown(rawCity, uf);
+    const regions = cityLabel ? Regions.findByCity(cityLabel) : [];
+    const weightRaw = colWeight ? row[colWeight] : "";
+    const weight = weightRaw !== "" && !isNaN(parseFloat(String(weightRaw).replace(",", "."))) ? parseFloat(String(weightRaw).replace(",", ".")) : null;
+
+    return {
+      id: "order_" + idx + "_" + Date.now(),
+      client: colClient ? String(row[colClient] || "") : "",
+      rawCity: String(rawCity || ""),
+      cityLabel,
+      matched: !!cityLabel,
+      weight,
+      seller: colSeller ? String(row[colSeller] || "") : "",
+      regionId: regions.length > 0 ? regions[0].id : null,
+      regionName: regions.length > 0 ? regions[0].name : null,
+    };
+  });
+
+  Orders.setAll(orders);
+  plotOrdersOnMap();
+  renderImportOrdersSummary();
+
+  document.getElementById("importOrdersStep2").classList.add("hidden");
+  document.getElementById("importOrdersStep3").classList.remove("hidden");
+  document.getElementById("toggleOrdersLabel").classList.remove("hidden");
+}
+
+function renderImportOrdersSummary() {
+  const matched = Orders.list.filter((o) => o.matched);
+  const unmatched = Orders.list.filter((o) => !o.matched);
+
+  document.getElementById("importOrdersSummaryText").textContent =
+    `${Orders.list.length} pedido(s) importado(s) — ${matched.length} casado(s) com região, ${unmatched.length} sem cidade reconhecida.`;
+
+  // Resumo por região: contagem de pedidos + soma de peso
+  const byRegion = {};
+  matched.forEach((o) => {
+    const key = o.regionName || "—";
+    byRegion[key] = byRegion[key] || { count: 0, weight: 0 };
+    byRegion[key].count++;
+    if (o.weight) byRegion[key].weight += o.weight;
+  });
+
+  const summaryBox = document.getElementById("importOrdersRegionSummary");
+  summaryBox.innerHTML = Object.keys(byRegion)
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .map((name) => {
+      const info = byRegion[name];
+      return `<div class="order-region-summary-row"><span class="orsr-name">${name}</span><span class="orsr-count">${info.count} pedido(s)</span><span class="orsr-weight">${info.weight.toLocaleString("pt-BR")} kg</span></div>`;
+    })
+    .join("");
+
+  const unmatchedBox = document.getElementById("importOrdersUnmatchedBox");
+  if (unmatched.length > 0) {
+    const uniqueUnmatched = Array.from(new Set(unmatched.map((o) => o.rawCity)));
+    document.getElementById("importOrdersUnmatchedList").textContent = uniqueUnmatched.join(", ");
+    unmatchedBox.classList.remove("hidden");
+  } else {
+    unmatchedBox.classList.add("hidden");
+  }
+}
+
+function plotOrdersOnMap() {
+  if (ordersLayerGroup) {
+    map.removeLayer(ordersLayerGroup);
+    ordersLayerGroup = null;
+  }
+  if (!Orders.hasOrders()) return;
+
+  const markers = [];
+  const cityJitterCount = {}; // pra não empilhar vários pedidos exatamente no mesmo ponto
+
+  Orders.list.forEach((order) => {
+    let lat, lng;
+    if (order.matched) {
+      const coord = Geocode.get(order.cityLabel);
+      if (!coord || coord.lat === null) return;
+      const n = (cityJitterCount[order.cityLabel] = (cityJitterCount[order.cityLabel] || 0) + 1);
+      // Espalha um pouquinho os pedidos da mesma cidade, em círculo, pra não
+      // ficarem 100% empilhados um em cima do outro
+      const angle = n * 2.4;
+      const radius = 0.01 + n * 0.002;
+      lat = coord.lat + Math.cos(angle) * radius;
+      lng = coord.lng + Math.sin(angle) * radius;
+    } else {
+      return; // sem cidade reconhecida, não dá pra plotar
+    }
+
+    const icon = L.divIcon({
+      className: "",
+      html: `<div class="order-pin order-matched"><span>📦</span></div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 18],
+    });
+    const marker = L.marker([lat, lng], { icon });
+    const popupHtml = `
+      <div class="city-popup">
+        <strong>${order.client || "Pedido"}</strong><br>
+        Cidade: ${order.cityLabel}<br>
+        ${order.regionName ? `Região: ${order.regionName}<br>` : ""}
+        ${order.weight ? `Peso: ${order.weight.toLocaleString("pt-BR")} kg<br>` : ""}
+        ${order.seller ? `Vendedor: ${order.seller}<br>` : ""}
+      </div>`;
+    marker.bindPopup(popupHtml);
+    markers.push(marker);
+  });
+
+  ordersLayerGroup = L.layerGroup(markers).addTo(map);
+}
+
+function clearImportedOrders() {
+  if (!confirm("Tirar todos os pedidos importados do mapa?")) return;
+  Orders.clear();
+  if (ordersLayerGroup) {
+    map.removeLayer(ordersLayerGroup);
+    ordersLayerGroup = null;
+  }
+  document.getElementById("toggleOrdersLabel").classList.add("hidden");
+  closeImportOrdersModal();
+}
+
 function openGithubPublishModal() {
   if (!Auth.isAdmin) return;
   const config = getGithubConfig();
@@ -3801,6 +4027,7 @@ function updateAdminUI() {
     closeDedupeModal();
     closeChangePasswordModal();
     closeGithubPublishModal();
+    closeImportOrdersModal();
     closeGradeCitiesModal();
     closeRouteSellersModal();
     clearSearchPreview();
@@ -3965,6 +4192,22 @@ function wireEvents() {
   document.getElementById("btnCloseGithubPublish").addEventListener("click", closeGithubPublishModal);
   document.getElementById("btnSaveGithubConfig").addEventListener("click", saveGithubConfigFromForm);
   document.getElementById("btnPublishNow").addEventListener("click", publishAllToGitHub);
+
+  document.getElementById("btnOpenImportOrders").addEventListener("click", openImportOrdersModal);
+  document.getElementById("btnCloseImportOrders").addEventListener("click", closeImportOrdersModal);
+  document.getElementById("btnCancelImportOrders").addEventListener("click", closeImportOrdersModal);
+  document.getElementById("btnCloseImportOrdersStep3").addEventListener("click", closeImportOrdersModal);
+  document.getElementById("ordersFileInput").addEventListener("change", handleOrdersFileSelected);
+  document.getElementById("btnProcessImportOrders").addEventListener("click", processImportOrders);
+  document.getElementById("btnClearOrders").addEventListener("click", clearImportedOrders);
+  document.getElementById("toggleOrdersLayer").addEventListener("change", (e) => {
+    if (!ordersLayerGroup) return;
+    if (e.target.checked) {
+      map.addLayer(ordersLayerGroup);
+    } else {
+      map.removeLayer(ordersLayerGroup);
+    }
+  });
 
   document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);
   document.getElementById("btnNewCityCancel").addEventListener("click", closeNewCityModal);

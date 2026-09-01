@@ -82,6 +82,7 @@
   <button id="btnConflicts" class="btn btn-outline">⚠ Conflitos de vendedor</button>
   <button id="btnOpenPdf" class="btn btn-outline">📄 Gerar PDF</button>
   <button id="btnExportFilialExcel" class="btn btn-outline">📊 Excel (Filial)</button>
+  <button id="btnOpenImportOrders" class="btn btn-outline">📦 Importar Pedidos</button>
   <span class="toolbar-sep"></span>
   <div class="toolbar-search">
     <select id="searchCitySelect"></select>
@@ -124,6 +125,9 @@
       <span><i class="dot dot-origin"></i> 🏠 Origem</span>
       <span><i class="dot dot-unassigned"></i> Sem região</span>
       <span><i class="dot dot-region"></i> Com região (cor = região)</span>
+      <label id="toggleOrdersLabel" class="legend-toggle hidden">
+        <input type="checkbox" id="toggleOrdersLayer" checked /> 📦 Pedidos importados
+      </label>
     </div>
   </main>
 </div>
@@ -234,6 +238,57 @@
     <button id="btnRegionCancel" class="btn btn-outline">Cancelar</button>
     <button id="btnRegionDelete" class="btn btn-danger hidden">Excluir região</button>
     <button id="btnRegionSave" class="btn btn-primary">Salvar região</button>
+  </div>
+</div>
+
+<!-- Painel: importar pedidos de uma planilha -->
+<div id="importOrdersModal" class="side-panel side-panel-wide hidden">
+  <div class="side-panel-header" id="importOrdersHeader">
+    <h3>Importar pedidos</h3>
+    <div class="side-panel-header-actions">
+      <button id="btnCloseImportOrders" class="icon-btn" title="Fechar">✕</button>
+    </div>
+  </div>
+
+  <div id="importOrdersStep1">
+    <p class="hint">
+      Suba uma planilha (.xlsx ou .csv) com os pedidos. Cada linha vira um ponto no
+      mapa, casado com a cidade/região já cadastrada — nessa primeira versão, o
+      ponto vai no centro da cidade (não no endereço exato), então dá pra ver o
+      volume por região rapidinho.
+    </p>
+    <input type="file" id="ordersFileInput" accept=".xlsx,.xls,.csv" />
+  </div>
+
+  <div id="importOrdersStep2" class="hidden">
+    <p class="hint">Diz pra mim qual coluna da sua planilha é cada coisa (já tentei adivinhar):</p>
+    <label>Coluna da Cidade <span class="required-mark">*</span></label>
+    <select id="mapColCity"></select>
+    <label>Coluna da UF (opcional, ajuda a desempatar cidades com nome repetido)</label>
+    <select id="mapColUf"></select>
+    <label>Coluna do Peso em kg (opcional)</label>
+    <select id="mapColWeight"></select>
+    <label>Coluna do Cliente/Pedido (opcional, só pra identificar cada linha)</label>
+    <select id="mapColClient"></select>
+    <label>Coluna do Vendedor (opcional)</label>
+    <select id="mapColSeller"></select>
+    <div class="modal-actions">
+      <button id="btnCancelImportOrders" class="btn btn-outline">Cancelar</button>
+      <button id="btnProcessImportOrders" class="btn btn-primary">Importar e plotar no mapa</button>
+    </div>
+  </div>
+
+  <div id="importOrdersStep3" class="hidden">
+    <p id="importOrdersSummaryText" class="hint"></p>
+    <div id="importOrdersRegionSummary"></div>
+    <div id="importOrdersUnmatchedBox" class="hidden">
+      <p class="hint hint-small c-warn-inline">Essas cidades da planilha não bateram com nenhuma cadastrada:</p>
+      <div id="importOrdersUnmatchedList" class="gt-empty-msg" style="text-align:left;"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="btnClearOrders" class="btn btn-outline">🗑️ Limpar pedidos do mapa</button>
+      <button id="btnCloseImportOrdersStep3" class="btn btn-primary">Fechar</button>
+    </div>
   </div>
 </div>
 
@@ -492,6 +547,7 @@
 <script src="js/routing.js"></script>
 <script src="js/regions.js"></script>
 <script src="js/grade.js"></script>
+<script src="js/orders.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
