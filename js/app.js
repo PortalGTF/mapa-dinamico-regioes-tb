@@ -390,6 +390,20 @@ function makeClusterIconFactory(color) {
 // Recria os grupos de cluster (um por região + um para "sem região") e
 // redistribui cada marcador de cidade no grupo certo, com a cor certa.
 function rebuildClusters() {
+  // Regiões podem ter mudado (cidade adicionada/removida, região criada/excluída)
+  // — invalida a cache de "todas as cercas" pra recalcular na próxima vez que
+  // for exibida, em vez de mostrar um contorno desatualizado.
+  allFencesComputed = false;
+  if (allFencesLayerGroup) {
+    map.removeLayer(allFencesLayerGroup);
+    allFencesLayerGroup = null;
+  }
+  const fencesBtn = document.getElementById("btnToggleAllFences");
+  if (fencesBtn) {
+    fencesBtn.classList.remove("active");
+    fencesBtn.textContent = "🗺️ Ver todas as cercas";
+  }
+
   Object.values(regionClusterGroups).forEach((g) => map.removeLayer(g));
   if (unassignedClusterGroup) map.removeLayer(unassignedClusterGroup);
 
@@ -1153,24 +1167,21 @@ function hideRegionFence() {
 // cada cidade (limite do município), não apenas uma linha ligando os pontos.
 // Isso exige buscar o contorno de cada cidade (rede, com limite de uso), então
 // mostra uma barra de progresso enquanto calcula.
-async function showRegionFence(region) {
-  hideRegionFence();
-
-  const progressEl = document.getElementById("geocodeProgress");
-  const fillEl = document.getElementById("progressFill");
-  const textEl = document.getElementById("progressText");
-  progressEl.classList.remove("hidden");
-  fillEl.style.width = "0%";
-
+// Calcula o GeoJSON da cerca eletrônica "de verdade" de uma região (contorno
+// municipal real, unindo o de cada cidade). Se nenhuma cidade tiver contorno
+// disponível, cai pro casco convexo (melhor que nada). Reaproveitada tanto no
+// mapa principal quanto no mapa do Roteirizador.
+async function computeRegionFenceGeoJSON(region, onProgress) {
   let combined = null;
   const total = region.cities.length;
   let done = 0;
 
   for (const cityLabel of region.cities) {
-    textEl.textContent = `Desenhando contorno da região… ${done}/${total}`;
+    const alreadyCached =
+      Geocode.cache[cityLabel] && Object.prototype.hasOwnProperty.call(Geocode.cache[cityLabel], "boundary");
     const boundary = await Geocode.getCityBoundary(cityLabel);
     done++;
-    fillEl.style.width = `${(done / total) * 100}%`;
+    if (onProgress) onProgress(done, total);
 
     if (boundary) {
       try {
@@ -1180,37 +1191,113 @@ async function showRegionFence(region) {
         // contorno inválido para essa cidade — segue com as demais
       }
     }
-    await new Promise((r) => setTimeout(r, 150)); // uso respeitoso do Nominatim
+    if (!alreadyCached) {
+      await new Promise((r) => setTimeout(r, 150)); // só pausa quando fez uma busca de verdade (uso respeitoso do Nominatim)
+    }
   }
 
-  progressEl.classList.add("hidden");
-
-  if (combined) {
-    regionFenceLayer = L.geoJSON(combined, {
-      style: { color: "#2980b9", weight: 3, dashArray: "8 6", fillColor: "#2980b9", fillOpacity: 0.08 },
-    }).addTo(map);
-  } else {
-    showRegionFenceHullFallback(region);
-  }
+  if (combined) return combined;
+  return regionFenceHullFallbackGeoJSON(region);
 }
 
-// Reserva: se nenhuma cidade da região tiver contorno administrativo disponível,
-// desenha ao menos uma casca convexa ao redor dos pontos (melhor que nada).
-function showRegionFenceHullFallback(region) {
+function regionFenceHullFallbackGeoJSON(region) {
   const coords = region.cities
     .map((c) => Geocode.get(c))
     .filter((c) => c && c.lat !== null)
     .map((c) => [c.lng, c.lat]);
 
-  if (coords.length < 3) return;
+  if (coords.length < 3) return null;
 
-  const points = turf.featureCollection(coords.map((c) => turf.point(c)));
-  const hull = turf.convex(points);
-  if (!hull) return;
+  try {
+    const points = turf.featureCollection(coords.map((c) => turf.point(c)));
+    return turf.convex(points);
+  } catch (e) {
+    return null;
+  }
+}
 
-  regionFenceLayer = L.geoJSON(hull, {
-    style: { color: "#2980b9", weight: 3, dashArray: "8 6", fillColor: "#2980b9", fillOpacity: 0.08 },
-  }).addTo(map);
+// ------------------------------------------------------------
+// "Ver todas as cercas" no mapa principal — mostra a cerca eletrônica de
+// TODAS as regiões de uma vez, sem abrir o painel de detalhes de nenhuma.
+// Calcula uma vez só e guarda pronta; ligar/desligar depois é instantâneo.
+// ------------------------------------------------------------
+let allFencesLayerGroup = null;
+let allFencesComputed = false;
+
+async function toggleAllFences() {
+  const btn = document.getElementById("btnToggleAllFences");
+
+  if (allFencesLayerGroup && map.hasLayer(allFencesLayerGroup)) {
+    map.removeLayer(allFencesLayerGroup);
+    btn.classList.remove("active");
+    btn.textContent = "🗺️ Ver todas as cercas";
+    return;
+  }
+
+  if (allFencesComputed && allFencesLayerGroup) {
+    allFencesLayerGroup.addTo(map);
+    btn.classList.add("active");
+    btn.textContent = "🗺️ Esconder todas as cercas";
+    return;
+  }
+
+  // Primeira vez: calcula tudo (usa o que já estiver em cache, só busca de
+  // verdade o que faltar)
+  const progressEl = document.getElementById("geocodeProgress");
+  const fillEl = document.getElementById("progressFill");
+  const textEl = document.getElementById("progressText");
+  progressEl.classList.remove("hidden");
+  btn.disabled = true;
+
+  const layers = [];
+  for (let i = 0; i < Regions.list.length; i++) {
+    const region = Regions.list[i];
+    fillEl.style.width = `${((i + 1) / Regions.list.length) * 100}%`;
+    textEl.textContent = `Calculando cercas eletrônicas… ${i + 1}/${Regions.list.length} (${region.name})`;
+
+    const geojson = await computeRegionFenceGeoJSON(region);
+    if (!geojson) continue;
+    try {
+      layers.push(
+        L.geoJSON(geojson, {
+          style: { color: region.color, weight: 2, fillColor: region.color, fillOpacity: 0.12 },
+          interactive: false, // só visual — não abre nada ao clicar
+        })
+      );
+    } catch (e) {
+      // segue pras outras regiões se uma falhar
+    }
+  }
+
+  allFencesLayerGroup = L.layerGroup(layers).addTo(map);
+  allFencesComputed = true;
+  progressEl.classList.add("hidden");
+  btn.disabled = false;
+  btn.classList.add("active");
+  btn.textContent = "🗺️ Esconder todas as cercas";
+}
+
+async function showRegionFence(region) {
+  hideRegionFence();
+
+  const progressEl = document.getElementById("geocodeProgress");
+  const fillEl = document.getElementById("progressFill");
+  const textEl = document.getElementById("progressText");
+  progressEl.classList.remove("hidden");
+  fillEl.style.width = "0%";
+
+  const geojson = await computeRegionFenceGeoJSON(region, (done, total) => {
+    textEl.textContent = `Desenhando contorno da região… ${done}/${total}`;
+    fillEl.style.width = `${(done / total) * 100}%`;
+  });
+
+  progressEl.classList.add("hidden");
+
+  if (geojson) {
+    regionFenceLayer = L.geoJSON(geojson, {
+      style: { color: "#2980b9", weight: 3, dashArray: "8 6", fillColor: "#2980b9", fillOpacity: 0.08 },
+    }).addTo(map);
+  }
 }
 
 // ------------------------------------------------------------
@@ -3188,32 +3275,29 @@ function initRouterMapIfNeeded() {
 // igual a cor dela — mais rápido que buscar o contorno municipal real de
 // cada cidade uma por uma, e já dá uma boa noção visual de onde cada
 // região fica pra bater o olho com os pedidos importados.
-function renderRouterRegions() {
+async function renderRouterRegions() {
   if (!routerMap) return;
   if (routerRegionsLayerGroup) {
     routerMap.removeLayer(routerRegionsLayerGroup);
     routerRegionsLayerGroup = null;
   }
+  if (Regions.list.length === 0) return;
 
+  const statusEl = document.getElementById("routerSummaryText");
   const layers = [];
-  Regions.list.forEach((region) => {
-    const coords = region.cities
-      .map((c) => Geocode.get(c))
-      .filter((c) => c && c.lat !== null)
-      .map((c) => [c.lng, c.lat]);
 
-    if (coords.length < 3) return; // casco convexo precisa de pelo menos 3 pontos
+  for (let i = 0; i < Regions.list.length; i++) {
+    const region = Regions.list[i];
+    if (statusEl) {
+      statusEl.textContent = `Carregando cercas eletrônicas… região ${i + 1}/${Regions.list.length} (${region.name})`;
+    }
+
+    const geojson = await computeRegionFenceGeoJSON(region);
+    if (!geojson) continue;
 
     try {
-      const points = turf.featureCollection(coords.map((c) => turf.point(c)));
-      const hull = turf.convex(points);
-      if (!hull) return;
-      const latlngs = hull.geometry.coordinates[0].map(([lng, lat]) => [lat, lng]);
-      const poly = L.polygon(latlngs, {
-        color: region.color,
-        weight: 1.5,
-        fillColor: region.color,
-        fillOpacity: 0.18,
+      const poly = L.geoJSON(geojson, {
+        style: { color: region.color, weight: 1.5, fillColor: region.color, fillOpacity: 0.18 },
       });
       poly.bindPopup(
         `<div class="router-region-popup"><strong>${region.name}</strong><br>${region.cities.length} cidade(s) · perfil: ${region.vehicleProfile}</div>`
@@ -3222,9 +3306,10 @@ function renderRouterRegions() {
     } catch (e) {
       // segue pras outras regiões se uma falhar
     }
-  });
+  }
 
   routerRegionsLayerGroup = L.layerGroup(layers).addTo(routerMap);
+  updateRouterSummaryText();
 }
 
 function updateRouterSummaryText() {
@@ -3546,7 +3631,6 @@ function switchTab(tab) {
     setTimeout(() => routerMap && routerMap.invalidateSize(), 60);
     renderRouterRegions();
     plotOrdersOnMap();
-    updateRouterSummaryText();
   }
 }
 
@@ -4186,6 +4270,7 @@ function wireEvents() {
   document.getElementById("btnProcessImportOrders").addEventListener("click", processImportOrders);
   document.getElementById("btnClearOrders").addEventListener("click", clearImportedOrders);
   document.getElementById("btnClearOrdersFromRouter").addEventListener("click", clearImportedOrders);
+  document.getElementById("btnToggleAllFences").addEventListener("click", toggleAllFences);
 
   document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);
   document.getElementById("btnNewCityCancel").addEventListener("click", closeNewCityModal);

@@ -128,15 +128,25 @@ relance se vai faltar caminhão de algum tipo específico num dia.
 Ao lado da aba "Grade" tem uma aba **"🧭 Roteirizador"**, que só aparece pra quem
 está logado como admin — em modo visualização ela nem aparece na barra. Ela tem seu
 **próprio mapa**, mostrando:
-- O contorno aproximado de cada região (casco convexo em volta das cidades dela,
-  colorido igual à cor da região) — mais rápido de desenhar que a cerca eletrônica
-  municipal exata usada no mapa principal, e já dá uma boa noção visual de onde
-  cada região fica.
+- A **cerca eletrônica de verdade** de cada região (o contorno municipal real,
+  igual a que aparece no mapa principal ao clicar numa região — não é mais uma
+  aproximação), colorida igual à cor da região. Na primeira vez que você abre essa
+  aba, pode demorar um pouco pra calcular o contorno das cidades que ainda não
+  tinham sido consultadas antes; depois de calculado uma vez, fica em cache e abre
+  na hora.
 - Os **pedidos importados** (veja "Importar pedidos" mais abaixo), plotados junto.
 
 É essa aba que vai virar, aos poucos, o roteirizador automático completo (importar
 pedidos → identificar região/peso → emplacar em veículo disponível) — essa versão
 cobre a primeira etapa: importar e visualizar.
+
+### Ver todas as cercas eletrônicas de uma vez (mapa principal)
+No mapa principal, o botão **"🗺️ Ver todas as cercas"** (perto da legenda, embaixo
+à esquerda) mostra o contorno de **todas as regiões ao mesmo tempo**, sem abrir o
+painel de detalhes de nenhuma — só o desenho das cercas, cada uma na cor da região.
+Clique de novo pra esconder. Da segunda vez em diante fica instantâneo (usa o que
+já calculou); só demora um pouco na primeira vez, ou depois de editar alguma
+região (a cache se atualiza sozinha quando isso acontece).
 
 ### Modo visualização com a Grade mais enxuta
 Em modo visualização (sem senha), a faixa de regiões arrastáveis no topo da aba

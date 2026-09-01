@@ -1008,6 +1008,19 @@ main { position: relative; flex: 1; }
 }
 .legend-toggle input { width: auto; margin: 0; }
 
+.legend-toggle-btn {
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.legend-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+.legend-toggle-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
 .order-pin {
   width: 20px;
   height: 20px;
