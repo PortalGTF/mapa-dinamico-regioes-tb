@@ -3048,11 +3048,45 @@ function openImportOrdersModal() {
   document.getElementById("importOrdersStep2").classList.add("hidden");
   document.getElementById("importOrdersStep3").classList.add("hidden");
   document.getElementById("ordersFileInput").value = "";
+  document.getElementById("forceManualMapping").checked = false;
   document.getElementById("importOrdersModal").classList.remove("hidden");
 }
 
 function closeImportOrdersModal() {
   document.getElementById("importOrdersModal").classList.add("hidden");
+}
+
+// Mapeamento padrão, já configurado com os nomes de coluna da sua planilha de
+// pedidos (Qtd Total = peso de verdade nessa planilha, não "Peso Cx"). Usado
+// automaticamente sempre que os cabeçalhos da planilha baterem — nunca mais
+// pergunta, a não ser que você peça pra mapear manualmente de novo.
+const DEFAULT_ORDER_MAPPING = {
+  city: "Cidade",
+  uf: "UF",
+  weight: "Qtd Total",
+  client: "Razao Social",
+  seller: "Vendedor",
+  clientCode: "Cliente/Loja",
+  orderNumber: "Pedido",
+  volume: "",
+  value: "Vl Total Pedido",
+  cep: "CEP",
+  address: "",
+  neighborhood: "Bairro",
+  obs: "Obs. Pedido",
+};
+
+function getSavedOrderMapping() {
+  try {
+    const raw = localStorage.getItem("regioes_orders_column_mapping");
+    return raw ? JSON.parse(raw) : DEFAULT_ORDER_MAPPING;
+  } catch (e) {
+    return DEFAULT_ORDER_MAPPING;
+  }
+}
+
+function saveOrderMapping(mapping) {
+  localStorage.setItem("regioes_orders_column_mapping", JSON.stringify(mapping));
 }
 
 async function handleOrdersFileSelected(e) {
@@ -3075,8 +3109,22 @@ async function handleOrdersFileSelected(e) {
 
   importedOrderRows = rows;
   const headers = Object.keys(rows[0]);
+  const forceManual = document.getElementById("forceManualMapping").checked;
+  const saved = getSavedOrderMapping();
 
-  // Tenta adivinhar qual coluna é qual, pelo nome do cabeçalho
+  // Se já existe um mapeamento salvo e a coluna de cidade dele existe nessa
+  // planilha, usa direto — sem abrir a tela de mapear colunas.
+  if (!forceManual && saved && saved.city && headers.includes(saved.city)) {
+    runImportWithMapping(saved);
+    saveOrderMapping(saved);
+    document.getElementById("importOrdersStep1").classList.add("hidden");
+    document.getElementById("importOrdersStep2").classList.add("hidden");
+    document.getElementById("importOrdersStep3").classList.remove("hidden");
+    return;
+  }
+
+  // Tenta adivinhar qual coluna é qual, pelo nome do cabeçalho — só cai aqui
+  // se pediu mapeamento manual, ou se a planilha mudou de estrutura
   const guess = (keywords) => headers.find((h) => keywords.some((k) => normalizeStr(h).includes(k))) || "";
 
   fillColumnSelect("mapColCity", headers, guess(["cidade", "municipio"]));
@@ -3152,23 +3200,35 @@ function matchCityToKnown(rawCityText, ufHint) {
 }
 
 function processImportOrders() {
-  const colCity = document.getElementById("mapColCity").value;
-  const colUf = document.getElementById("mapColUf").value;
-  const colWeight = document.getElementById("mapColWeight").value;
-  const colClient = document.getElementById("mapColClient").value;
-  const colSeller = document.getElementById("mapColSeller").value;
-  const colClientCode = document.getElementById("mapColClientCode").value;
-  const colOrderNumber = document.getElementById("mapColOrderNumber").value;
-  const colVolume = document.getElementById("mapColVolume").value;
-  const colValue = document.getElementById("mapColValue").value;
-  const colCep = document.getElementById("mapColCep").value;
-  const colAddress = document.getElementById("mapColAddress").value;
-  const colNeighborhood = document.getElementById("mapColNeighborhood").value;
-  const colObs = document.getElementById("mapColObs").value;
+  const mapping = {
+    city: document.getElementById("mapColCity").value,
+    uf: document.getElementById("mapColUf").value,
+    weight: document.getElementById("mapColWeight").value,
+    client: document.getElementById("mapColClient").value,
+    seller: document.getElementById("mapColSeller").value,
+    clientCode: document.getElementById("mapColClientCode").value,
+    orderNumber: document.getElementById("mapColOrderNumber").value,
+    volume: document.getElementById("mapColVolume").value,
+    value: document.getElementById("mapColValue").value,
+    cep: document.getElementById("mapColCep").value,
+    address: document.getElementById("mapColAddress").value,
+    neighborhood: document.getElementById("mapColNeighborhood").value,
+    obs: document.getElementById("mapColObs").value,
+  };
 
-  if (!colCity) {
+  if (!runImportWithMapping(mapping)) return;
+  saveOrderMapping(mapping); // guarda esse mapeamento — próxima importação já usa direto, sem perguntar
+
+  document.getElementById("importOrdersStep2").classList.add("hidden");
+  document.getElementById("importOrdersStep3").classList.remove("hidden");
+}
+
+// Processa as linhas já carregadas (importedOrderRows) usando um mapeamento
+// de colunas já pronto — devolve false se faltar a coluna obrigatória (cidade).
+function runImportWithMapping(mapping) {
+  if (!mapping.city) {
     alert("Selecione qual coluna é a cidade — é a única obrigatória.");
-    return;
+    return false;
   }
 
   const toNum = (v) => {
@@ -3178,30 +3238,32 @@ function processImportOrders() {
   };
 
   const orders = importedOrderRows.map((row, idx) => {
-    const rawCity = row[colCity];
-    const uf = colUf ? row[colUf] : "";
+    const rawCity = row[mapping.city];
+    const uf = mapping.uf ? row[mapping.uf] : "";
     const cityLabel = matchCityToKnown(rawCity, uf);
     const regions = cityLabel ? Regions.findByCity(cityLabel) : [];
 
     return {
       id: "order_" + idx + "_" + Date.now(),
-      client: colClient ? String(row[colClient] || "") : "",
-      clientCode: colClientCode ? String(row[colClientCode] || "") : "",
-      orderNumber: colOrderNumber ? String(row[colOrderNumber] || "") : "",
+      client: mapping.client ? String(row[mapping.client] || "") : "",
+      clientCode: mapping.clientCode ? String(row[mapping.clientCode] || "") : "",
+      orderNumber: mapping.orderNumber ? String(row[mapping.orderNumber] || "") : "",
       rawCity: String(rawCity || ""),
       rawUf: String(uf || ""),
-      cep: colCep ? String(row[colCep] || "") : "",
-      address: colAddress ? String(row[colAddress] || "") : "",
-      neighborhood: colNeighborhood ? String(row[colNeighborhood] || "") : "",
-      obs: colObs ? String(row[colObs] || "") : "",
+      cep: mapping.cep ? String(row[mapping.cep] || "") : "",
+      address: mapping.address ? String(row[mapping.address] || "") : "",
+      neighborhood: mapping.neighborhood ? String(row[mapping.neighborhood] || "") : "",
+      obs: mapping.obs ? String(row[mapping.obs] || "") : "",
       cityLabel,
       matched: !!cityLabel,
-      weight: colWeight ? toNum(row[colWeight]) : null,
-      volume: colVolume ? toNum(row[colVolume]) : null,
-      value: colValue ? toNum(row[colValue]) : null,
-      seller: colSeller ? String(row[colSeller] || "") : "",
+      weight: mapping.weight ? toNum(row[mapping.weight]) : null,
+      volume: mapping.volume ? toNum(row[mapping.volume]) : null,
+      value: mapping.value ? toNum(row[mapping.value]) : null,
+      seller: mapping.seller ? String(row[mapping.seller] || "") : "",
       regionId: regions.length > 0 ? regions[0].id : null,
       regionName: regions.length > 0 ? regions[0].name : null,
+      preciseLat: null,
+      preciseLng: null,
     };
   });
 
@@ -3209,9 +3271,7 @@ function processImportOrders() {
   plotOrdersOnMap();
   renderImportOrdersSummary();
   updateRouterSummaryText();
-
-  document.getElementById("importOrdersStep2").classList.add("hidden");
-  document.getElementById("importOrdersStep3").classList.remove("hidden");
+  return true;
 }
 
 function renderImportOrdersSummary() {
@@ -3283,7 +3343,11 @@ function plotOrdersOnMap() {
 
   Orders.list.forEach((order) => {
     let lat, lng;
-    if (order.matched) {
+    if (order.preciseLat !== null && order.preciseLat !== undefined) {
+      // Cliente já teve o endereço buscado com precisão (CEP/bairro/cidade/UF)
+      lat = order.preciseLat;
+      lng = order.preciseLng;
+    } else if (order.matched) {
       const coord = Geocode.get(order.cityLabel);
       if (!coord || coord.lat === null) return;
       const n = (cityJitterCount[order.cityLabel] = (cityJitterCount[order.cityLabel] || 0) + 1);
@@ -3305,13 +3369,13 @@ function plotOrdersOnMap() {
     });
     const marker = L.marker([lat, lng], { icon });
 
-    // Ao passar o mouse: resuminho de uma linha (cliente + código do pedido + peso/volume/valor)
-    const clientPart = order.client ? `${order.client}${order.clientCode ? `(${order.clientCode})` : ""}` : "Pedido";
-    const tooltipParts = [clientPart];
+    // Ao passar o mouse: "PED: 041255 - CÓD.CLI: 019451/01 - DIEGO FERNANDO LOPES - PESO: 245"
+    const tooltipParts = [];
+    if (order.orderNumber) tooltipParts.push(`PED: ${order.orderNumber}`);
+    if (order.clientCode) tooltipParts.push(`CÓD.CLI: ${order.clientCode}`);
+    tooltipParts.push(order.client || "Cliente não identificado");
     if (order.weight !== null) tooltipParts.push(`PESO: ${order.weight.toLocaleString("pt-BR")}`);
-    if (order.volume !== null) tooltipParts.push(`VOL.: ${order.volume.toLocaleString("pt-BR")}`);
-    if (order.value !== null) tooltipParts.push(`VALOR: ${order.value.toLocaleString("pt-BR")}`);
-    marker.bindTooltip(tooltipParts.join(" • "), { className: "order-hover-tooltip", direction: "top", offset: [0, -18] });
+    marker.bindTooltip(tooltipParts.join(" - "), { className: "order-hover-tooltip", direction: "top", offset: [0, -18] });
 
     // Ao clicar: caixa detalhada, com botões de localizar e editar
     const popupHtml = `
@@ -3362,6 +3426,7 @@ function openEditOrderModal(orderId) {
   const order = Orders.list.find((o) => o.id === orderId);
   if (!order) return;
   editingOrderId = orderId;
+  pendingOrderPreciseCoord = order.preciseLat !== null ? { lat: order.preciseLat, lng: order.preciseLng } : null;
 
   document.getElementById("editOrderCodeSuffix").textContent = order.clientCode ? ` - ${order.clientCode}` : "";
   document.getElementById("editOrderClientCode").value = order.clientCode || "";
@@ -3389,6 +3454,36 @@ function openEditOrderModal(orderId) {
 
 // Botão 🔄 — tenta achar a região sozinho, casando a cidade/UF digitada com
 // as cidades já cadastradas (mesma lógica usada na importação da planilha)
+// Busca o endereço/ponto preciso combinando CEP+bairro+cidade+UF, e já
+// preenche o campo Endereço com o que achou — guarda o ponto preciso pra
+// usar na plotagem, em vez do centro da cidade.
+let pendingOrderPreciseCoord = null;
+
+async function geocodeOrderAddress() {
+  const btn = document.getElementById("btnGeocodeOrderAddress");
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Buscando…";
+
+  const result = await Geocode.searchAddressDetailed({
+    cep: document.getElementById("editOrderCep").value,
+    bairro: document.getElementById("editOrderNeighborhood").value,
+    cidade: document.getElementById("editOrderCity").value,
+    uf: document.getElementById("editOrderUf").value,
+  });
+
+  btn.disabled = false;
+  btn.textContent = originalText;
+
+  if (!result) {
+    alert("Não consegui localizar esse endereço com precisão. Confere o CEP/cidade/UF, ou deixe assim mesmo (fica no centro da cidade).");
+    return;
+  }
+
+  document.getElementById("editOrderAddress").value = result.displayName;
+  pendingOrderPreciseCoord = { lat: result.lat, lng: result.lng };
+}
+
 function refreshOrderRegionGuess() {
   const cityText = document.getElementById("editOrderCity").value;
   const uf = document.getElementById("editOrderUf").value;
@@ -3441,6 +3536,11 @@ function saveEditOrder() {
   } else {
     order.regionId = null;
     order.regionName = null;
+  }
+
+  if (pendingOrderPreciseCoord) {
+    order.preciseLat = pendingOrderPreciseCoord.lat;
+    order.preciseLng = pendingOrderPreciseCoord.lng;
   }
 
   Orders.save();
@@ -4693,6 +4793,7 @@ function wireEvents() {
   document.getElementById("btnSkipPendingCity").addEventListener("click", skipPendingCity);
   document.getElementById("btnCancelEditOrderX").addEventListener("click", closeEditOrderModal);
   document.getElementById("btnRefreshOrderRegion").addEventListener("click", refreshOrderRegionGuess);
+  document.getElementById("btnGeocodeOrderAddress").addEventListener("click", geocodeOrderAddress);
   document.getElementById("btnSaveEditOrder").addEventListener("click", saveEditOrder);
   document.getElementById("btnToggleAllFences").addEventListener("click", toggleAllFences);
 

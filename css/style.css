@@ -327,12 +327,13 @@ body:not(.is-admin) #gradeRegionsBar { display: none; }
 .route-sellers-box .checklist { max-height: 260px; margin-top: 10px; }
 
 .edit-client-box { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.edit-client-box-compact { width: 280px; }
 .edit-client-header {
   background: #4a90c2;
   color: white;
   font-weight: 700;
-  font-size: 13px;
-  padding: 14px 16px;
+  font-size: 12px;
+  padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -343,25 +344,33 @@ body:not(.is-admin) #gradeRegionsBar { display: none; }
 .edit-client-box input,
 .edit-client-box select,
 .edit-client-box .btn-small-full {
-  margin-left: 18px;
-  margin-right: 18px;
-  width: calc(100% - 36px);
+  margin-left: 12px;
+  margin-right: 12px;
+  width: calc(100% - 24px);
 }
-.edit-client-box label { margin-top: 10px; margin-bottom: 3px; font-size: 11px; color: var(--muted); font-weight: 600; display: block; }
-.edit-client-box label:first-of-type { margin-top: 16px; }
-.edit-client-row { display: flex; gap: 10px; }
+.edit-client-box input,
+.edit-client-box select {
+  padding: 5px 7px;
+  font-size: 11.5px;
+  margin-bottom: 0;
+}
+.edit-client-box label { margin-top: 7px; margin-bottom: 2px; font-size: 10px; color: var(--muted); font-weight: 600; display: block; }
+.edit-client-box label:first-of-type { margin-top: 10px; }
+.edit-client-row { display: flex; gap: 6px; }
 .edit-client-row > div { flex: 1; }
 .edit-client-row-region { align-items: flex-end; }
 .edit-client-row-region .icon-btn {
-  margin: 0 18px 0 0;
-  height: 34px;
-  width: 34px;
+  margin: 0 12px 0 0;
+  height: 28px;
+  width: 28px;
   border: 1px solid var(--line);
   border-radius: 6px;
   color: var(--accent);
+  font-size: 12px;
 }
-.edit-client-divider { border-top: 1px dashed var(--line); margin: 16px 18px 0; }
-.edit-client-box .btn-small-full { margin-top: 16px; margin-bottom: 18px; width: calc(100% - 36px); }
+.edit-client-box .btn-small-full { font-size: 10.5px; padding: 6px; margin-top: 8px; }
+.edit-client-divider { border-top: 1px dashed var(--line); margin: 10px 12px 0; }
+.edit-client-box .btn-primary.btn-small-full { margin-top: 10px; margin-bottom: 12px; }
 
 .gt-shared-tag {
   display: inline-flex;

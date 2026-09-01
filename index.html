@@ -153,7 +153,7 @@
 <!-- Painel: detalhes de uma região (cidades + cidades-chave), aberto ao clicar em qualquer região na Grade -->
 <!-- Overlay: editar peso/volume/valor de um pedido específico -->
 <div id="editOrderOverlay" class="route-sellers-overlay hidden">
-  <div class="route-sellers-box edit-client-box">
+  <div class="route-sellers-box edit-client-box edit-client-box-compact">
     <div class="edit-client-header">
       <span>👥 EDITAR CLIENTE<span id="editOrderCodeSuffix"></span></span>
       <button id="btnCancelEditOrderX" class="icon-btn" title="Fechar">✕</button>
@@ -165,22 +165,32 @@
     <label>Nome do Cliente</label>
     <input type="text" id="editOrderClientName" />
 
-    <label>Endereço</label>
-    <input type="text" id="editOrderAddress" />
-
-    <label>Bairro</label>
-    <input type="text" id="editOrderNeighborhood" />
+    <div class="edit-client-row">
+      <div>
+        <label>Bairro</label>
+        <input type="text" id="editOrderNeighborhood" />
+      </div>
+      <div style="flex:0 0 90px;">
+        <label>CEP</label>
+        <input type="text" id="editOrderCep" />
+      </div>
+    </div>
 
     <div class="edit-client-row">
       <div>
         <label>Cidade</label>
         <input type="text" id="editOrderCity" />
       </div>
-      <div>
+      <div style="flex:0 0 55px;">
         <label>UF</label>
         <input type="text" id="editOrderUf" maxlength="2" style="text-transform:uppercase;" />
       </div>
     </div>
+
+    <button id="btnGeocodeOrderAddress" class="btn btn-outline btn-small-full">📍 Buscar endereço (CEP+bairro+cidade+UF)</button>
+
+    <label>Endereço</label>
+    <input type="text" id="editOrderAddress" />
 
     <div class="edit-client-row edit-client-row-region">
       <div style="flex:1;">
@@ -189,9 +199,6 @@
       </div>
       <button id="btnRefreshOrderRegion" class="icon-btn" title="Detectar região automaticamente pela cidade/UF">🔄</button>
     </div>
-
-    <label>CEP</label>
-    <input type="text" id="editOrderCep" />
 
     <div class="edit-client-divider"></div>
 
@@ -341,11 +348,14 @@
 
   <div id="importOrdersStep1">
     <p class="hint">
-      Suba uma planilha (.xlsx ou .csv) com os pedidos. Cada linha vira um ponto no
-      mapa, casado com a cidade/região já cadastrada — nessa primeira versão, o
-      ponto vai no centro da cidade (não no endereço exato), então dá pra ver o
-      volume por região rapidinho.
+      Suba uma planilha (.xlsx ou .csv) com os pedidos. Da segunda vez em diante, se
+      a planilha tiver a mesma estrutura de colunas, o app já sabe o que é cada
+      coisa e importa direto, sem perguntar de novo.
     </p>
+    <label class="legend-toggle" style="margin-bottom:10px;">
+      <input type="checkbox" id="forceManualMapping" /> Mapear colunas manualmente
+      desta vez (planilha com estrutura diferente)
+    </label>
     <input type="file" id="ordersFileInput" accept=".xlsx,.xls,.csv" />
   </div>
 

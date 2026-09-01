@@ -712,23 +712,33 @@ pra planilhas grandes. Pra ver volume por região, isso já é suficiente; se no
 futuro precisar do ponto exato de cada cliente, dá pra evoluir isso numa próxima
 fase.
 
+### Importação sem perguntar de novo
+A primeira importação já vem com um mapeamento padrão configurado (baseado na sua
+planilha de pedidos: Cidade, UF, Qtd Total como peso, Razao Social como cliente,
+Cliente/Loja como código, Pedido, Vendedor, CEP, Bairro e Obs. Pedido). Da segunda
+vez em diante, se a planilha subida tiver essas mesmas colunas, o app já importa
+direto — **não abre mais a tela de mapear colunas**. Se um dia a planilha vier com
+estrutura diferente, marque **"Mapear colunas manualmente desta vez"** antes de
+escolher o arquivo, na tela de importar.
+
 ### Detalhes de cada pedido no mapa (Roteirizador)
-Passe o mouse em cima de um ponto 📦 pra ver um resumo rápido (cliente, peso,
-volume, valor). Clique pra abrir a caixa completa, com pedido, peso, volume,
-valor, endereço, bairro/cidade, região, vendedor e observações — e dois botões:
-**"📍 LOCALIZAR"** (abre aquele ponto no Google Maps) e **"✏️ EDITAR"**. Pra esses
-campos aparecerem, mapeie as colunas correspondentes na tela de importação
-(Nº do Pedido, Código do Cliente, Volume, Valor, CEP, Endereço, Bairro,
-Observações — todas opcionais).
+Passe o mouse em cima de um ponto 📦 pra ver um resumo no formato "PED: 041255 -
+CÓD.CLI: 019451/01 - NOME DO CLIENTE - PESO: 245". Clique pra abrir a caixa
+completa, com pedido, peso, volume, valor, endereço, bairro/cidade, região,
+vendedor e observações — e dois botões: **"📍 LOCALIZAR"** (abre aquele ponto no
+Google Maps) e **"✏️ EDITAR"**. Pra esses campos aparecerem, o mapeamento (acima)
+precisa ter as colunas correspondentes.
 
 ### Editar cliente (a partir do popup do pedido)
-Clicando em "✏️ EDITAR" no popup de um pedido, abre uma caixa em pé completa
+Clicando em "✏️ EDITAR" no popup de um pedido, abre uma caixa compacta em pé
 ("EDITAR CLIENTE"), com fundo escurecido deixando ver o mapa atrás — código do
-cliente, nome, endereço, bairro, cidade, UF, CEP, e um campo de **Região** com um
-botão **🔄** que tenta detectar a região sozinho (casando a cidade/UF digitada com
-as regiões já cadastradas — mesma lógica usada na importação). Também dá pra
-corrigir peso/volume/valor ali embaixo. Clique em **"ATUALIZAR"** pra salvar —
-o ponto no mapa e os resumos já atualizam na hora.
+cliente, nome, bairro, CEP, cidade, UF, e o botão **"📍 Buscar endereço
+(CEP+bairro+cidade+UF)"**, que geocodifica combinando tudo isso (sempre conferido
+contra a UF esperada, pra nunca cair no estado errado) e já preenche o campo
+Endereço com o que achou. A partir daí, esse pedido específico passa a usar esse
+**ponto exato no mapa**, em vez do centro da cidade. Também tem o campo de
+**Região** com o botão **🔄** que detecta sozinho, e os campos de peso/volume/valor
+embaixo. Clique em **"ATUALIZAR"** pra salvar.
 
 ### Cadastrando as cidades que faltam, uma por uma
 Se alguma cidade da planilha não bater com nenhuma cadastrada, aparece o botão

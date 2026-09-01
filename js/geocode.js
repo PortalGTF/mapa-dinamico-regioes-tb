@@ -277,6 +277,38 @@ const Geocode = {
     }
   },
 
+  // Busca o endereço/coordenadas mais precisos possível, combinando CEP,
+  // bairro, cidade e UF (o que tiver disponível) — usado no cadastro/edição
+  // de cliente, pra não depender só do centro da cidade.
+  async searchAddressDetailed({ cep, bairro, cidade, uf }) {
+    const stateName = BR_UF_TO_NAME[String(uf || "").toUpperCase()] || "";
+    const cleanCep = String(cep || "").replace(/\D/g, "");
+
+    let url = `${CONFIG.NOMINATIM_URL}?format=json&limit=1&countrycodes=br&addressdetails=1&country=Brasil`;
+    if (cleanCep.length === 8) url += `&postalcode=${cleanCep}`;
+    if (cidade) url += `&city=${encodeURIComponent(cidade)}`;
+    if (stateName) url += `&state=${encodeURIComponent(stateName)}`;
+
+    try {
+      const data = await this._fetchNominatim(url);
+      if (data && data[0]) {
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+
+        // Mesma checagem de segurança: se caiu fora da caixa do estado
+        // esperado, não confia no resultado
+        const expectedUF = String(uf || "").toUpperCase();
+        if (expectedUF && BR_STATE_BBOX[expectedUF]) {
+          const [minLon, minLat, maxLon, maxLat] = BR_STATE_BBOX[expectedUF];
+          if (lng < minLon || lng > maxLon || lat < minLat || lat > maxLat) return null;
+        }
+
+        return { lat, lng, displayName: data[0].display_name };
+      }
+    } catch (e) {}
+    return null;
+  },
+
   async geocodeOrigin() {
     const key = "__ORIGIN__";
 
