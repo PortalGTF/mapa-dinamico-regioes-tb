@@ -3011,29 +3011,98 @@ function exportEverythingNow() {
 }
 
 // ------------------------------------------------------------
-// Trocar senha do admin — gera um novo js/config.js já com o
-// hash da senha nova, pronto pra subir no GitHub.
-// ------------------------------------------------------------
-// ------------------------------------------------------------
 // Publicar direto no GitHub — sem precisar baixar/subir manual. Usa a API
 // do GitHub direto do navegador, com um token de acesso pessoal que fica
-// salvo só localmente (localStorage), nunca é enviado pra mais ninguém.
+// salvo criptografado dentro do próprio repositório GitHub — não fica preso
+// a um navegador/computador. Só quem entrar com a senha de PUBLICADOR
+// consegue decifrar e usar.
 // ------------------------------------------------------------
 function utf8ToBase64(str) {
   return btoa(unescape(encodeURIComponent(str)));
 }
 
-function getGithubConfig() {
+function bytesToBase64(bytes) {
+  let binary = "";
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  return btoa(binary);
+}
+
+function base64ToBytes(b64) {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+async function deriveKeyFromPassword(password, saltB64) {
+  const salt = base64ToBytes(saltB64);
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, [
+    "deriveKey",
+  ]);
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt, iterations: 150000, hash: "SHA-256" },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+// Criptografa {owner, repo, branch, token} usando uma chave derivada da senha
+// de publicador — o resultado (sal + IV + dado cifrado) pode ficar público no
+// repositório sem risco, já que só quem souber a senha consegue decifrar.
+async function encryptGithubConfig(password, configObj) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const saltB64 = bytesToBase64(salt);
+  const key = await deriveKeyFromPassword(password, saltB64);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const enc = new TextEncoder();
+  const plaintext = enc.encode(JSON.stringify(configObj));
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
+  return { salt: saltB64, iv: bytesToBase64(iv), data: bytesToBase64(new Uint8Array(ciphertext)) };
+}
+
+// Tenta decifrar com a senha informada — se a senha estiver errada, o
+// AES-GCM falha sozinho (autenticado), e a função devolve null.
+async function decryptGithubConfig(password, encrypted) {
   try {
-    const raw = localStorage.getItem("regioes_github_config");
-    return raw ? JSON.parse(raw) : null;
+    const key = await deriveKeyFromPassword(password, encrypted.salt);
+    const iv = base64ToBytes(encrypted.iv);
+    const data = base64ToBytes(encrypted.data);
+    const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
+    return JSON.parse(new TextDecoder().decode(plaintext));
   } catch (e) {
-    return null;
+    return null; // senha errada, ou ainda não existe configuração publicada
   }
 }
 
-function saveGithubConfig(config) {
-  localStorage.setItem("regioes_github_config", JSON.stringify(config));
+let currentPublisherPassword = null; // só em memória, nunca gravado em disco
+let publisherGithubConfig = null; // {owner, repo, branch, token} — só em memória, por sessão
+
+function clearPublisherGithubConfig() {
+  currentPublisherPassword = null;
+  publisherGithubConfig = null;
+}
+
+// Busca o arquivo de configuração publicado (se existir) e tenta decifrar
+// com a senha de publicador que a pessoa acabou de digitar — funciona igual
+// em qualquer computador/navegador/rede, porque o dado vem do GitHub, não do
+// localStorage de ninguém.
+async function tryLoadPublishedGithubConfig(password) {
+  try {
+    const res = await fetch("data/github_publish_config.json", { cache: "no-store" });
+    if (!res.ok) return; // ainda não existe — é a primeira vez configurando
+    const encrypted = await res.json();
+    const decrypted = await decryptGithubConfig(password, encrypted);
+    if (decrypted) publisherGithubConfig = decrypted;
+  } catch (e) {
+    // sem internet, ou arquivo corrompido — segue sem, a pessoa configura na mão
+  }
+}
+
+function getGithubConfig() {
+  return publisherGithubConfig;
 }
 
 // ------------------------------------------------------------
@@ -3869,12 +3938,12 @@ function updateRouterSummaryText() {
 }
 
 function openGithubPublishModal() {
-  if (!Auth.isAdmin) return;
-  const config = getGithubConfig();
-  document.getElementById("ghOwner").value = (config && config.owner) || "";
-  document.getElementById("ghRepo").value = (config && config.repo) || "";
-  document.getElementById("ghBranch").value = (config && config.branch) || "main";
-  document.getElementById("ghToken").value = (config && config.token) || "";
+  if (!Auth.isPublisher) return;
+  const config = getGithubConfig() || {};
+  document.getElementById("ghOwner").value = config.owner || "";
+  document.getElementById("ghRepo").value = config.repo || "";
+  document.getElementById("ghBranch").value = config.branch || "main";
+  document.getElementById("ghToken").value = config.token || "";
   document.getElementById("githubPublishStatus").textContent = "";
   document.getElementById("githubPublishModal").classList.remove("hidden");
 }
@@ -3883,20 +3952,47 @@ function closeGithubPublishModal() {
   document.getElementById("githubPublishModal").classList.add("hidden");
 }
 
-function saveGithubConfigFromForm() {
+async function saveGithubConfigFromForm() {
+  if (!Auth.isPublisher) return;
   const owner = document.getElementById("ghOwner").value.trim();
   const repo = document.getElementById("ghRepo").value.trim();
   const branch = document.getElementById("ghBranch").value.trim() || "main";
   const token = document.getElementById("ghToken").value.trim();
+  const statusEl = document.getElementById("githubPublishStatus");
 
   if (!owner || !repo || !token) {
     alert("Preencha usuário, repositório e token antes de salvar.");
     return;
   }
-  saveGithubConfig({ owner, repo, branch, token });
-  const statusEl = document.getElementById("githubPublishStatus");
+  if (!currentPublisherPassword) {
+    alert("Não consegui identificar sua senha de publicador nessa sessão — saia e entre de novo (com a senha de publicador) antes de salvar.");
+    return;
+  }
+
+  const config = { owner, repo, branch, token };
+  publisherGithubConfig = config; // já vale pra essa sessão, mesmo que a publicação abaixo falhe
+
   statusEl.style.color = "";
-  statusEl.textContent = "Configuração salva neste navegador.";
+  statusEl.textContent = "Salvando configuração de forma segura, dentro do próprio GitHub…";
+
+  try {
+    const encrypted = await encryptGithubConfig(currentPublisherPassword, config);
+    await githubPutFile(
+      owner,
+      repo,
+      "data/github_publish_config.json",
+      branch,
+      token,
+      JSON.stringify(encrypted, null, 2),
+      `Configuração de publicação atualizada — ${new Date().toLocaleString("pt-BR")}`
+    );
+    statusEl.style.color = "#1a7d3c";
+    statusEl.textContent =
+      "✅ Salvo! Agora, em qualquer computador, quem entrar com a senha de publicador já tem essa configuração pronta — não precisa digitar de novo.";
+  } catch (e) {
+    statusEl.style.color = "#c0392b";
+    statusEl.textContent = `⚠️ Salvei pra usar agora nesta sessão, mas não consegui publicar a configuração no GitHub pra outros computadores: ${e.message}`;
+  }
 }
 
 async function githubGetFileSha(owner, repo, path, branch, token) {
@@ -3940,6 +4036,10 @@ async function githubPutFile(owner, repo, path, branch, token, content, message,
 }
 
 async function publishAllToGitHub() {
+  if (!Auth.isPublisher) {
+    alert("Só quem entrar com a senha de publicador consegue publicar no GitHub.");
+    return;
+  }
   const config = getGithubConfig();
   if (!config || !config.owner || !config.repo || !config.token) {
     alert("Preencha e salve a configuração do GitHub antes de publicar.");
@@ -4008,6 +4108,10 @@ function downloadBackupSnapshot(files) {
 
 // Publica só os pedidos (mais rápido) — botão de dentro da própria aba Roteirizador
 async function publishOrdersOnly() {
+  if (!Auth.isPublisher) {
+    alert("Só quem entrar com a senha de publicador consegue publicar no GitHub.");
+    return;
+  }
   const config = getGithubConfig();
   if (!config || !config.owner || !config.repo || !config.token) {
     alert('Configure o GitHub primeiro em "Outras ações ▾ → 🚀 Publicar no GitHub (automático)".');
@@ -4047,6 +4151,8 @@ function openChangePasswordModal() {
   if (!Auth.isAdmin) return;
   document.getElementById("newAdminPassword").value = "";
   document.getElementById("newAdminPasswordConfirm").value = "";
+  document.getElementById("newPublisherPassword").value = "";
+  document.getElementById("newPublisherPasswordConfirm").value = "";
   document.getElementById("changePasswordError").textContent = "";
   document.getElementById("changePasswordModal").classList.remove("hidden");
 }
@@ -4059,22 +4165,42 @@ async function generateNewConfigFile() {
   if (!Auth.isAdmin) return;
   const pwd = document.getElementById("newAdminPassword").value;
   const pwd2 = document.getElementById("newAdminPasswordConfirm").value;
+  const pubPwd = document.getElementById("newPublisherPassword").value;
+  const pubPwd2 = document.getElementById("newPublisherPasswordConfirm").value;
   const errorEl = document.getElementById("changePasswordError");
 
-  if (!pwd || pwd.length < 4) {
-    errorEl.textContent = "Digite uma senha com pelo menos 4 caracteres.";
+  if (!pwd && !pubPwd) {
+    errorEl.textContent = "Preencha pelo menos uma das duas senhas pra trocar.";
     return;
   }
-  if (pwd !== pwd2) {
-    errorEl.textContent = "As senhas digitadas não coincidem.";
+  if (pwd && pwd.length < 4) {
+    errorEl.textContent = "A senha de admin precisa ter pelo menos 4 caracteres.";
+    return;
+  }
+  if (pwd && pwd !== pwd2) {
+    errorEl.textContent = "As senhas de admin digitadas não coincidem.";
+    return;
+  }
+  if (pubPwd && pubPwd.length < 4) {
+    errorEl.textContent = "A senha de publicador precisa ter pelo menos 4 caracteres.";
+    return;
+  }
+  if (pubPwd && pubPwd !== pubPwd2) {
+    errorEl.textContent = "As senhas de publicador digitadas não coincidem.";
     return;
   }
 
-  const enc = new TextEncoder().encode(pwd);
-  const buf = await crypto.subtle.digest("SHA-256", enc);
-  const hash = Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  const sha256 = async (text) => {
+    const enc = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest("SHA-256", enc);
+    return Array.from(new Uint8Array(buf))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  };
+
+  // Se um campo ficou em branco, mantém o hash que já está valendo hoje
+  const adminHash = pwd ? await sha256(pwd) : CONFIG.ADMIN_PASSWORD_HASH;
+  const publisherHash = pubPwd ? await sha256(pubPwd) : CONFIG.PUBLISHER_PASSWORD_HASH;
 
   const colorsFormatted = CONFIG.REGION_COLORS.map((c) => `"${c}"`).join(", ");
 
@@ -4091,9 +4217,15 @@ const CONFIG = {
   ORIGIN_LAT: ${CONFIG.ORIGIN_LAT},
   ORIGIN_LNG: ${CONFIG.ORIGIN_LNG},
 
-  // Hash SHA-256 da senha de administrador (gerado pelo app em ${new Date().toLocaleDateString("pt-BR")})
+  // Hash SHA-256 da senha de ADMIN — edita tudo, menos publicar no GitHub
+  // (gerado pelo app em ${new Date().toLocaleDateString("pt-BR")})
   ADMIN_PASSWORD_HASH:
-    "${hash}",
+    "${adminHash}",
+
+  // Hash SHA-256 da senha de PUBLICADOR — tudo do admin + publicar no GitHub
+  // (gerado pelo app em ${new Date().toLocaleDateString("pt-BR")})
+  PUBLISHER_PASSWORD_HASH:
+    "${publisherHash}",
 
   // Centro inicial do mapa
   MAP_CENTER: [${CONFIG.MAP_CENTER[0]}, ${CONFIG.MAP_CENTER[1]}],
@@ -4114,7 +4246,7 @@ const CONFIG = {
   downloadFile("config.js", configContent);
   closeChangePasswordModal();
   alert(
-    "Novo config.js baixado! Suba esse arquivo no GitHub, dentro da pasta js/, substituindo o antigo. A senha nova passa a valer assim que publicar."
+    "Novo config.js baixado! Suba esse arquivo no GitHub, dentro da pasta js/, substituindo o antigo. As senhas novas passam a valer assim que publicar.\n\nImportante: se você trocou a senha de PUBLICADOR, a configuração criptografada antiga do GitHub (token etc.) vai parar de decifrar com a senha nova — entre de novo como publicador e salve a configuração do GitHub outra vez, com a senha nova."
   );
 }
 
@@ -4681,11 +4813,12 @@ function updateAdminUI() {
   const adminToolbar = document.getElementById("adminToolbar");
 
   document.body.classList.toggle("is-admin", Auth.isAdmin);
+  document.body.classList.toggle("is-publisher", Auth.isPublisher);
   if (!Auth.isAdmin && currentTab === "router") switchTab("map");
 
   if (Auth.isAdmin) {
-    badge.textContent = "Modo admin";
-    badge.className = "badge badge-admin";
+    badge.textContent = Auth.isPublisher ? "🚀 Modo publicador" : "Modo admin";
+    badge.className = Auth.isPublisher ? "badge badge-admin badge-publisher" : "badge badge-admin";
     btnLogin.classList.add("hidden");
     btnLogout.classList.remove("hidden");
     adminToolbar.classList.toggle("hidden", currentTab !== "map");
@@ -4761,6 +4894,10 @@ function wireEvents() {
     const pwd = document.getElementById("loginPassword").value;
     const ok = await Auth.tryLogin(pwd);
     if (ok) {
+      if (Auth.isPublisher) {
+        currentPublisherPassword = pwd; // só em memória, nunca salvo em disco
+        await tryLoadPublishedGithubConfig(pwd);
+      }
       document.getElementById("loginModal").classList.add("hidden");
       updateAdminUI();
     } else {

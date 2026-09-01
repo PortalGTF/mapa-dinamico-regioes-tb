@@ -66,6 +66,7 @@ button { font-family: inherit; }
 }
 .badge-view { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.75); }
 .badge-admin { background: var(--accent); color: white; }
+.badge-publisher { background: #8e44ad !important; }
 
 .btn {
   border: 1px solid var(--line);
@@ -155,6 +156,8 @@ button { font-family: inherit; }
 /* Esconde coisas que só fazem sentido pro admin (logística) — controlado pela
    classe "is-admin" no <body>, atualizada sempre que o modo admin muda. */
 body:not(.is-admin) #tabRouterBtn { display: none; }
+body:not(.is-publisher) #btnOpenGithubPublish { display: none; }
+body:not(.is-publisher) #btnPublishOrdersNow { display: none; }
 body:not(.is-admin) #gradeRegionsBar { display: none; }
 
 .tab-bar {

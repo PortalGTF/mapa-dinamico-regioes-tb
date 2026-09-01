@@ -18,12 +18,21 @@ const CONFIG = {
   ORIGIN_LAT: -23.7678,
   ORIGIN_LNG: -52.4439,
 
-  // Hash SHA-256 da senha de administrador.
+  // Hash SHA-256 da senha de administrador (edita tudo, mas NÃO consegue publicar
+  // no GitHub — só quem entrar com a senha de publicador abaixo consegue).
   // Senha padrão de fábrica: "trocaresta123"
-  // TROQUE ISSO antes de publicar! Use o arquivo gerar-senha.html
-  // incluído neste projeto para gerar o hash da sua própria senha.
+  // TROQUE ISSO antes de publicar! Use "Outras ações ▾ → Trocar senha do admin"
+  // dentro do próprio app, ou o arquivo gerar-senha.html.
   ADMIN_PASSWORD_HASH:
     "73a534f435ea8de7dbde719b1ddb852f636267abe87ce458e083e40dfce3a6f1",
+
+  // Hash SHA-256 da senha de PUBLICADOR — dá tudo que o admin tem, e também
+  // libera "Publicar no GitHub" (que sobe direto na sua conta). Fica só com
+  // quem manda de verdade publicar as mudanças.
+  // Senha padrão de fábrica: "publicaresta456"
+  // TROQUE ISSO também! Mesmo lugar do admin, no mesmo painel de trocar senha.
+  PUBLISHER_PASSWORD_HASH:
+    "0a79a18d2d7dc2f059092b3e4f5457a8fec7cabd791abc9146484e163b3f2f6b",
 
   // Centro inicial do mapa (região Norte/Noroeste do Paraná)
   MAP_CENTER: [-23.9, -51.9],

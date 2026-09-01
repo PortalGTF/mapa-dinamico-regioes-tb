@@ -773,6 +773,37 @@ mostra quantos eram novos de verdade ("Dessa importação: N novo(s) somado(s)..
 Se quiser começar do zero (substituir tudo), desmarque esse checkbox antes de subir
 o arquivo.
 
+### Duas senhas: admin e publicador
+Agora o app tem **dois níveis de acesso**, com senhas diferentes:
+- **Senha de admin**: edita tudo (regiões, grade, cidades, vendedores, pedidos),
+  mas **não consegue publicar no GitHub** — só trabalha com rascunho local.
+- **Senha de publicador**: tem tudo que o admin tem, **mais** a capacidade de
+  publicar direto no GitHub (os botões "🚀 Publicar..." só aparecem pra quem entrou
+  com essa senha).
+
+Assim, um colaborador pode editar à vontade no computador dele, e quando terminar,
+te avisa — só você, com a senha de publicador, consegue de fato subir aquilo pro
+GitHub. Pra trocar as duas senhas, use **"Outras ações ▾" → "🔑 Trocar senha do
+admin"** (o painel agora tem os dois campos).
+
+### A configuração do GitHub funciona em qualquer computador
+Diferente da primeira versão (que salvava o token só no navegador de quem
+configurou), agora a configuração do GitHub (usuário, repositório, branch, token)
+fica **guardada criptografada dentro do próprio repositório**
+(`data/github_publish_config.json`), usando uma chave derivada da sua senha de
+publicador (PBKDF2 + AES-GCM, via Web Crypto nativa do navegador — sem bibliotecas
+externas). Isso quer dizer:
+- Configura **uma vez**, em qualquer computador, com a senha de publicador.
+- A partir daí, **em qualquer outro computador, rede ou navegador**, quem entrar
+  com a senha de publicador certa já tem a configuração pronta pra publicar — não
+  precisa digitar usuário/repositório/token de novo.
+- Se alguém digitar a senha errada (ou for só admin comum), o arquivo não decifra
+  — ele fica ilegível pra quem não sabe a senha certa, mesmo estando público no
+  repositório. Só a senha de publicador consegue abrir.
+- Se um dia trocar a senha de publicador, precisa entrar de novo com a senha nova
+  e salvar a configuração do GitHub outra vez (senão o arquivo antigo não decifra
+  mais com a senha nova).
+
 ### Publicando os pedidos no GitHub (contingência)
 Diferente da primeira versão, os pedidos importados/editados **também podem ser
 publicados no GitHub** (`data/orders.json`) — assim o trabalho de localizar
