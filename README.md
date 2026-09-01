@@ -124,14 +124,19 @@ dia da semana, **quantos veículos de cada perfil** são necessários (somando a
 quantidade de todos os carregamentos daquele perfil naquele dia). Ajuda a ver de
 relance se vai faltar caminhão de algum tipo específico num dia.
 
-### Aba "Veículos" (só pro admin/logística)
-Ao lado da aba "Grade" tem uma aba **"🚚 Veículos"**, que só aparece pra quem está
-logado como admin — em modo visualização ela nem aparece na barra. Mostra o mesmo
-resumo de "quantos veículos de cada perfil por dia" que já existe embaixo da Grade,
-só que numa tela própria, maior, com um **gráfico de barras** colorido por perfil de
-veículo — bom pra logística bater o olho e ver rapidinho onde pode faltar caminhão
-de algum tipo. O resumo continua também embaixo da tabela da Grade, como já estava
-— essa aba nova é um complemento, não substitui.
+### Aba "Roteirizador" (só pro admin/logística)
+Ao lado da aba "Grade" tem uma aba **"🧭 Roteirizador"**, que só aparece pra quem
+está logado como admin — em modo visualização ela nem aparece na barra. Ela tem seu
+**próprio mapa**, mostrando:
+- O contorno aproximado de cada região (casco convexo em volta das cidades dela,
+  colorido igual à cor da região) — mais rápido de desenhar que a cerca eletrônica
+  municipal exata usada no mapa principal, e já dá uma boa noção visual de onde
+  cada região fica.
+- Os **pedidos importados** (veja "Importar pedidos" mais abaixo), plotados junto.
+
+É essa aba que vai virar, aos poucos, o roteirizador automático completo (importar
+pedidos → identificar região/peso → emplacar em veículo disponível) — essa versão
+cobre a primeira etapa: importar e visualizar.
 
 ### Modo visualização com a Grade mais enxuta
 Em modo visualização (sem senha), a faixa de regiões arrastáveis no topo da aba
@@ -660,9 +665,10 @@ hexadecimal de `--accent` (verde-azulado) ou `--navy` (azul-marinho escuro).
 
 ## 8.5 Importar pedidos (fase 1 do roteirizador)
 
-Botão **"📦 Importar Pedidos"** no topo do mapa (modo admin). Primeira etapa de um
-roteirizador automático — essa fase cobre: subir a planilha, casar cada pedido com
-a cidade/região certa, e ver tudo plotado no mapa.
+Botão **"📦 Importar Pedidos"**, dentro da aba **"🧭 Roteirizador"** (modo admin).
+Primeira etapa de um roteirizador automático — essa fase cobre: subir a planilha,
+casar cada pedido com a cidade/região certa, e ver tudo plotado no mapa próprio
+dessa aba (junto com o contorno das regiões).
 
 ### Como funciona
 1. **Suba o arquivo** (.xlsx, .xls ou .csv) com os pedidos.

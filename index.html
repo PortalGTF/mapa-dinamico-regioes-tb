@@ -37,7 +37,7 @@
 <div id="tabBar" class="tab-bar">
   <button class="tab-btn active" id="tabMapBtn" data-tab="map">🗺️ Mapa</button>
   <button class="tab-btn" id="tabGradeBtn" data-tab="grade">📅 Grade</button>
-  <button class="tab-btn" id="tabVehiclesBtn" data-tab="vehicles">🚚 Veículos</button>
+  <button class="tab-btn" id="tabRouterBtn" data-tab="router">🧭 Roteirizador</button>
 
   <div id="gradeTabExtras" class="grade-tab-extras hidden">
     <span class="grade-tab-hint">Arraste uma região até o dia certo — perfil e peso já vêm preenchidos.</span>
@@ -82,7 +82,6 @@
   <button id="btnConflicts" class="btn btn-outline">⚠ Conflitos de vendedor</button>
   <button id="btnOpenPdf" class="btn btn-outline">📄 Gerar PDF</button>
   <button id="btnExportFilialExcel" class="btn btn-outline">📊 Excel (Filial)</button>
-  <button id="btnOpenImportOrders" class="btn btn-outline">📦 Importar Pedidos</button>
   <span class="toolbar-sep"></span>
   <div class="toolbar-search">
     <select id="searchCitySelect"></select>
@@ -125,9 +124,6 @@
       <span><i class="dot dot-origin"></i> 🏠 Origem</span>
       <span><i class="dot dot-unassigned"></i> Sem região</span>
       <span><i class="dot dot-region"></i> Com região (cor = região)</span>
-      <label id="toggleOrdersLabel" class="legend-toggle hidden">
-        <input type="checkbox" id="toggleOrdersLayer" checked /> 📦 Pedidos importados
-      </label>
     </div>
   </main>
 </div>
@@ -143,14 +139,14 @@
   </main>
 </div>
 
-<!-- Aba: Veículos (resumo + gráfico) — só visível pro admin -->
-<div id="vehiclesView" class="vehicles-view hidden">
-  <div class="vehicles-header">
-    <h2>Resumo de veículos por dia</h2>
-    <p class="hint hint-small">Quantidade de cada perfil de veículo necessária por dia, com base nas rotas já montadas na Grade. Atualiza sozinho conforme você mexe na Grade.</p>
+<!-- Aba: Roteirizador (mapa próprio com regiões + pedidos importados) — só admin -->
+<div id="routerView" class="router-view hidden">
+  <div class="router-toolbar">
+    <button id="btnOpenImportOrders" class="btn btn-outline">📦 Importar Pedidos</button>
+    <button id="btnClearOrdersFromRouter" class="btn btn-outline">🗑️ Limpar pedidos</button>
+    <span id="routerSummaryText" class="hint hint-small"></span>
   </div>
-  <div id="vehiclesChart" class="vehicles-chart"></div>
-  <div id="vehiclesTableWrap"></div>
+  <div id="routerMap"></div>
 </div>
 
 <!-- Painel: detalhes de uma região (cidades + cidades-chave), aberto ao clicar em qualquer região na Grade -->

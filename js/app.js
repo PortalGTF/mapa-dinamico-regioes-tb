@@ -44,11 +44,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initMap();
   await placeOrigin();
 
-  Orders.load();
-  if (Orders.hasOrders()) {
-    plotOrdersOnMap();
-    document.getElementById("toggleOrdersLabel").classList.remove("hidden");
-  }
+  Orders.load(); // a plotagem em si só acontece quando a aba Roteirizador é aberta
 
   renderSellerOptions();
   renderSearchCityOptions();
@@ -3070,10 +3066,10 @@ function processImportOrders() {
   Orders.setAll(orders);
   plotOrdersOnMap();
   renderImportOrdersSummary();
+  updateRouterSummaryText();
 
   document.getElementById("importOrdersStep2").classList.add("hidden");
   document.getElementById("importOrdersStep3").classList.remove("hidden");
-  document.getElementById("toggleOrdersLabel").classList.remove("hidden");
 }
 
 function renderImportOrdersSummary() {
@@ -3112,8 +3108,9 @@ function renderImportOrdersSummary() {
 }
 
 function plotOrdersOnMap() {
+  if (!routerMap) return; // só desenha se a aba Roteirizador já foi aberta ao menos uma vez
   if (ordersLayerGroup) {
-    map.removeLayer(ordersLayerGroup);
+    routerMap.removeLayer(ordersLayerGroup);
     ordersLayerGroup = null;
   }
   if (!Orders.hasOrders()) return;
@@ -3156,18 +3153,90 @@ function plotOrdersOnMap() {
     markers.push(marker);
   });
 
-  ordersLayerGroup = L.layerGroup(markers).addTo(map);
+  ordersLayerGroup = L.layerGroup(markers).addTo(routerMap);
 }
 
 function clearImportedOrders() {
   if (!confirm("Tirar todos os pedidos importados do mapa?")) return;
   Orders.clear();
-  if (ordersLayerGroup) {
-    map.removeLayer(ordersLayerGroup);
+  if (ordersLayerGroup && routerMap) {
+    routerMap.removeLayer(ordersLayerGroup);
     ordersLayerGroup = null;
   }
-  document.getElementById("toggleOrdersLabel").classList.add("hidden");
+  updateRouterSummaryText();
   closeImportOrdersModal();
+}
+
+// ------------------------------------------------------------
+// Mapa próprio da aba Roteirizador — mostra as regiões (contorno
+// aproximado, por casco convexo das cidades) junto com os pedidos
+// importados, pra ver visualmente onde cada pedido cai.
+// ------------------------------------------------------------
+let routerMap = null;
+let routerRegionsLayerGroup = null;
+
+function initRouterMapIfNeeded() {
+  if (routerMap) return;
+  routerMap = L.map("routerMap", { zoomControl: true }).setView(CONFIG.MAP_CENTER, CONFIG.MAP_ZOOM);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap contributors",
+    maxZoom: 19,
+  }).addTo(routerMap);
+}
+
+// Desenha um polígono aproximado (casco convexo) de cada região, colorido
+// igual a cor dela — mais rápido que buscar o contorno municipal real de
+// cada cidade uma por uma, e já dá uma boa noção visual de onde cada
+// região fica pra bater o olho com os pedidos importados.
+function renderRouterRegions() {
+  if (!routerMap) return;
+  if (routerRegionsLayerGroup) {
+    routerMap.removeLayer(routerRegionsLayerGroup);
+    routerRegionsLayerGroup = null;
+  }
+
+  const layers = [];
+  Regions.list.forEach((region) => {
+    const coords = region.cities
+      .map((c) => Geocode.get(c))
+      .filter((c) => c && c.lat !== null)
+      .map((c) => [c.lng, c.lat]);
+
+    if (coords.length < 3) return; // casco convexo precisa de pelo menos 3 pontos
+
+    try {
+      const points = turf.featureCollection(coords.map((c) => turf.point(c)));
+      const hull = turf.convex(points);
+      if (!hull) return;
+      const latlngs = hull.geometry.coordinates[0].map(([lng, lat]) => [lat, lng]);
+      const poly = L.polygon(latlngs, {
+        color: region.color,
+        weight: 1.5,
+        fillColor: region.color,
+        fillOpacity: 0.18,
+      });
+      poly.bindPopup(
+        `<div class="router-region-popup"><strong>${region.name}</strong><br>${region.cities.length} cidade(s) · perfil: ${region.vehicleProfile}</div>`
+      );
+      layers.push(poly);
+    } catch (e) {
+      // segue pras outras regiões se uma falhar
+    }
+  });
+
+  routerRegionsLayerGroup = L.layerGroup(layers).addTo(routerMap);
+}
+
+function updateRouterSummaryText() {
+  const el = document.getElementById("routerSummaryText");
+  if (!el) return;
+  if (!Orders.hasOrders()) {
+    el.textContent = "Nenhum pedido importado ainda.";
+    return;
+  }
+  const matched = Orders.list.filter((o) => o.matched).length;
+  const unmatched = Orders.list.length - matched;
+  el.textContent = `${Orders.list.length} pedido(s) — ${matched} no mapa, ${unmatched} sem cidade reconhecida.`;
 }
 
 function openGithubPublishModal() {
@@ -3453,27 +3522,31 @@ function confirmRouteSellers() {
 }
 
 function switchTab(tab) {
-  // Some é admin, a aba Veículos não existe pra visualização — cai pro mapa
-  if (tab === "vehicles" && !Auth.isAdmin) tab = "map";
+  // Some é admin, a aba Roteirizador não existe pra visualização — cai pro mapa
+  if (tab === "router" && !Auth.isAdmin) tab = "map";
 
   currentTab = tab;
   document.getElementById("layout").classList.toggle("hidden", tab !== "map");
   document.getElementById("adminToolbar").classList.toggle("hidden", tab !== "map" || !Auth.isAdmin);
   document.getElementById("gradeView").classList.toggle("hidden", tab !== "grade");
   document.getElementById("gradeTabExtras").classList.toggle("hidden", tab !== "grade");
-  document.getElementById("vehiclesView").classList.toggle("hidden", tab !== "vehicles");
+  document.getElementById("routerView").classList.toggle("hidden", tab !== "router");
 
   document.getElementById("tabMapBtn").classList.toggle("active", tab === "map");
   document.getElementById("tabGradeBtn").classList.toggle("active", tab === "grade");
-  document.getElementById("tabVehiclesBtn").classList.toggle("active", tab === "vehicles");
+  document.getElementById("tabRouterBtn").classList.toggle("active", tab === "router");
 
   if (tab === "map") {
     setTimeout(() => map && map.invalidateSize(), 60);
   } else if (tab === "grade") {
     renderGradeBoard();
     renderGradeRegionList();
-  } else if (tab === "vehicles") {
-    renderVehiclesView();
+  } else if (tab === "router") {
+    initRouterMapIfNeeded();
+    setTimeout(() => routerMap && routerMap.invalidateSize(), 60);
+    renderRouterRegions();
+    plotOrdersOnMap();
+    updateRouterSummaryText();
   }
 }
 
@@ -3698,97 +3771,9 @@ function renderGradeBoard() {
 
   board.appendChild(buildGradeFleetSummary());
 }
-
 // Tabela resumo: quantos veículos de cada perfil são necessários em cada dia,
 // somando a quantidade de todas as rotas daquele perfil naquele dia.
 // ------------------------------------------------------------
-// Aba Veículos — mesmo resumo que já aparece embaixo da Grade, só que numa
-// aba própria, maior, com gráfico — só visível pro admin.
-// ------------------------------------------------------------
-const PROFILE_CHART_COLORS = {
-  Vuc: "#3498db",
-  "3/4 Leve": "#2ecc71",
-  "3/4 Adaptado": "#f39c12",
-  Toco: "#9b59b6",
-  Truck: "#e74c3c",
-};
-
-function renderVehiclesView() {
-  document.getElementById("vehiclesChart").innerHTML = buildFleetChartSVG();
-  const tableWrap = document.getElementById("vehiclesTableWrap");
-  tableWrap.innerHTML = "";
-  tableWrap.appendChild(buildGradeFleetSummary());
-}
-
-function buildFleetChartSVG() {
-  const width = 900;
-  const height = 260;
-  const marginLeft = 34;
-  const marginBottom = 26;
-  const marginTop = 14;
-  const chartW = width - marginLeft - 16;
-  const chartH = height - marginBottom - marginTop;
-
-  const data = GRADE_DAYS.map((day) => {
-    const counts = {};
-    VEHICLE_PROFILES.forEach((p) => {
-      counts[p.name] = Grade.days[day]
-        .filter((r) => r.profile === p.name && Regions.list.some((reg) => reg.id === r.regionId))
-        .reduce((s, r) => s + (r.quantity || 1), 0);
-    });
-    return { day, counts };
-  });
-
-  let maxVal = 1;
-  data.forEach((d) => VEHICLE_PROFILES.forEach((p) => { if (d.counts[p.name] > maxVal) maxVal = d.counts[p.name]; }));
-  maxVal = Math.max(2, Math.ceil(maxVal / 2) * 2);
-
-  const groupWidth = chartW / GRADE_DAYS.length;
-  const barGap = 3;
-  const barWidth = (groupWidth - barGap * (VEHICLE_PROFILES.length + 1)) / VEHICLE_PROFILES.length;
-
-  let gridLines = "";
-  const steps = 4;
-  for (let i = 0; i <= steps; i++) {
-    const val = Math.round((maxVal / steps) * i);
-    const y = marginTop + chartH - (val / maxVal) * chartH;
-    gridLines += `<line x1="${marginLeft}" y1="${y.toFixed(1)}" x2="${width - 16}" y2="${y.toFixed(1)}" stroke="#e2e6ea" stroke-width="1" />`;
-    gridLines += `<text x="${marginLeft - 8}" y="${(y + 4).toFixed(1)}" font-size="10" fill="#767066" text-anchor="end">${val}</text>`;
-  }
-
-  let bars = "";
-  let labels = "";
-  data.forEach((d, di) => {
-    const groupX = marginLeft + di * groupWidth;
-    VEHICLE_PROFILES.forEach((p, pi) => {
-      const val = d.counts[p.name] || 0;
-      const barH = (val / maxVal) * chartH;
-      const x = groupX + barGap + pi * (barWidth + barGap);
-      const y = marginTop + chartH - barH;
-      const color = PROFILE_CHART_COLORS[p.name] || "#7f8c8d";
-      bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${barH.toFixed(1)}" fill="${color}" rx="2"><title>${p.name} — ${GRADE_DAY_NAMES[d.day]}: ${val}</title></rect>`;
-      if (val > 0) {
-        bars += `<text x="${(x + barWidth / 2).toFixed(1)}" y="${(y - 4).toFixed(1)}" font-size="9" fill="#1a2332" text-anchor="middle" font-weight="700">${val}</text>`;
-      }
-    });
-    labels += `<text x="${(groupX + groupWidth / 2).toFixed(1)}" y="${height - 8}" font-size="10.5" fill="#1a2332" text-anchor="middle" font-weight="700">${GRADE_DAY_NAMES[d.day].toUpperCase()}</text>`;
-  });
-
-  const legend = VEHICLE_PROFILES.map((p) => {
-    const color = PROFILE_CHART_COLORS[p.name] || "#7f8c8d";
-    return `<span class="vc-legend-item"><span class="vc-legend-dot" style="background:${color}"></span>${p.name}</span>`;
-  }).join("");
-
-  return `
-    <svg viewBox="0 0 ${width} ${height}" class="vc-svg">
-      ${gridLines}
-      ${bars}
-      ${labels}
-    </svg>
-    <div class="vc-legend">${legend}</div>
-  `;
-}
-
 function buildGradeFleetSummary() {
   const summary = document.createElement("table");
   summary.className = "grade-fleet-summary";
@@ -4003,7 +3988,7 @@ function updateAdminUI() {
   const adminToolbar = document.getElementById("adminToolbar");
 
   document.body.classList.toggle("is-admin", Auth.isAdmin);
-  if (!Auth.isAdmin && currentTab === "vehicles") switchTab("map");
+  if (!Auth.isAdmin && currentTab === "router") switchTab("map");
 
   if (Auth.isAdmin) {
     badge.textContent = "Modo admin";
@@ -4050,7 +4035,7 @@ function wireEvents() {
 
   document.getElementById("tabMapBtn").addEventListener("click", () => switchTab("map"));
   document.getElementById("tabGradeBtn").addEventListener("click", () => switchTab("grade"));
-  document.getElementById("tabVehiclesBtn").addEventListener("click", () => switchTab("vehicles"));
+  document.getElementById("tabRouterBtn").addEventListener("click", () => switchTab("router"));
 
   document.getElementById("btnCancelRouteSellers").addEventListener("click", closeRouteSellersModal);
   document.getElementById("btnConfirmRouteSellers").addEventListener("click", confirmRouteSellers);
@@ -4200,14 +4185,7 @@ function wireEvents() {
   document.getElementById("ordersFileInput").addEventListener("change", handleOrdersFileSelected);
   document.getElementById("btnProcessImportOrders").addEventListener("click", processImportOrders);
   document.getElementById("btnClearOrders").addEventListener("click", clearImportedOrders);
-  document.getElementById("toggleOrdersLayer").addEventListener("change", (e) => {
-    if (!ordersLayerGroup) return;
-    if (e.target.checked) {
-      map.addLayer(ordersLayerGroup);
-    } else {
-      map.removeLayer(ordersLayerGroup);
-    }
-  });
+  document.getElementById("btnClearOrdersFromRouter").addEventListener("click", clearImportedOrders);
 
   document.getElementById("btnNewCity").addEventListener("click", openNewCityModal);
   document.getElementById("btnNewCityCancel").addEventListener("click", closeNewCityModal);
