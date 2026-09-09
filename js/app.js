@@ -45,6 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await placeOrigin();
 
   await Orders.load(); // a plotagem em si só acontece quando a aba Roteirizador é aberta
+  await Vehicles.load();
 
   renderSellerOptions();
   renderSearchCityOptions();
@@ -101,6 +102,8 @@ function makePanelsDraggable() {
   attachDrag("changePasswordModal", document.getElementById("changePasswordHeader"));
   attachDrag("githubPublishModal", document.getElementById("githubPublishHeader"));
   attachDrag("importOrdersModal", document.getElementById("importOrdersHeader"));
+  attachDrag("fleetManagerModal", document.getElementById("fleetManagerHeader"));
+  attachDrag("assignmentResultModal", document.getElementById("assignmentResultHeader"));
   attachDrag("gradeCitiesModal", document.getElementById("gradeCitiesHeader"));
   attachDrag("gradeRegionInfoModal", document.getElementById("gradeRegionInfoHeader"));
   attachDrag("dedupeModal", document.getElementById("dedupeModalHeader"));
@@ -2988,6 +2991,7 @@ function updateDraftHint() {
   if (hasCityDirectoryDraft()) pendingDrafts.push("cidades/vendedores");
   if (Grade.hasDraft()) pendingDrafts.push("grade");
   if (Orders.hasDraft()) pendingDrafts.push("pedidos");
+  if (Vehicles.hasDraft()) pendingDrafts.push("frota");
 
   const hintEl = document.getElementById("draftHint");
   const textEl = document.getElementById("draftHintText");
@@ -3008,6 +3012,7 @@ function exportEverythingNow() {
   setTimeout(() => exportDirectory(), 600);
   setTimeout(() => downloadFile("grade.json", Grade.exportJSON()), 1200);
   setTimeout(() => downloadFile("orders.json", Orders.exportJSON()), 1500);
+  setTimeout(() => downloadFile("vehicles.json", Vehicles.exportJSON()), 1800);
 }
 
 // ------------------------------------------------------------
@@ -3114,6 +3119,261 @@ let importedOrderRows = []; // linhas cruas da planilha, antes de processar
 let lastImportAddedCount = 0;
 let lastImportTotalInFile = 0;
 let ordersLayerGroup = null;
+
+// ------------------------------------------------------------
+// Gerenciar Frota — cadastro de veículos/placas de verdade, com
+// transportadora, perfil e status. Base pra próxima fase (emplacamento
+// automático de pedidos).
+// ------------------------------------------------------------
+function openFleetManagerModal() {
+  if (!Auth.isAdmin) return;
+  document.getElementById("fleetProfile").innerHTML = VEHICLE_PROFILES.map(
+    (p) => `<option value="${p.name}">${p.name} (${p.capacity_kg.toLocaleString("pt-BR")} kg)</option>`
+  ).join("");
+  resetFleetForm();
+  renderFleetSummary();
+  renderFleetVehicleList();
+  document.getElementById("fleetManagerModal").classList.remove("hidden");
+}
+
+function closeFleetManagerModal() {
+  document.getElementById("fleetManagerModal").classList.add("hidden");
+}
+
+function resetFleetForm() {
+  document.getElementById("editingFleetVehicleId").value = "";
+  document.getElementById("fleetPlaca").value = "";
+  document.getElementById("fleetCarrierName").value = "";
+  document.getElementById("fleetCarrierCode").value = "";
+  document.getElementById("fleetDriver").value = "";
+  document.getElementById("fleetStatus").value = "Livre";
+  document.getElementById("btnSaveFleetVehicle").textContent = "+ Adicionar veículo";
+}
+
+function saveFleetVehicle() {
+  if (!Auth.isAdmin) return;
+  const editingId = document.getElementById("editingFleetVehicleId").value;
+  const placa = document.getElementById("fleetPlaca").value.trim();
+  const profile = document.getElementById("fleetProfile").value;
+  const carrierName = document.getElementById("fleetCarrierName").value.trim();
+  const carrierCode = document.getElementById("fleetCarrierCode").value.trim();
+  const driver = document.getElementById("fleetDriver").value.trim();
+  const status = document.getElementById("fleetStatus").value;
+
+  if (!placa) {
+    alert("Digite a placa do veículo.");
+    return;
+  }
+
+  if (editingId) {
+    Vehicles.update(editingId, { placa: placa.toUpperCase(), profile, carrierName, carrierCode, driver, status });
+  } else {
+    Vehicles.create({ placa, profile, carrierName, carrierCode, driver, status });
+  }
+
+  updateDraftHint();
+  resetFleetForm();
+  renderFleetSummary();
+  renderFleetVehicleList();
+}
+
+function editFleetVehicle(id) {
+  const v = Vehicles.list.find((v) => v.id === id);
+  if (!v) return;
+  document.getElementById("editingFleetVehicleId").value = v.id;
+  document.getElementById("fleetPlaca").value = v.placa;
+  document.getElementById("fleetProfile").value = v.profile;
+  document.getElementById("fleetCarrierName").value = v.carrierName;
+  document.getElementById("fleetCarrierCode").value = v.carrierCode;
+  document.getElementById("fleetDriver").value = v.driver;
+  document.getElementById("fleetStatus").value = v.status;
+  document.getElementById("btnSaveFleetVehicle").textContent = "Salvar alteração";
+  document.getElementById("fleetPlaca").focus();
+}
+
+function deleteFleetVehicle(id) {
+  const v = Vehicles.list.find((v) => v.id === id);
+  if (!v) return;
+  if (!confirm(`Excluir o veículo placa ${v.placa}?`)) return;
+  Vehicles.remove(id);
+  updateDraftHint();
+  renderFleetSummary();
+  renderFleetVehicleList();
+}
+
+function statusSlug(status) {
+  return normalizeStr(status).replace(/\s+/g, "");
+}
+
+function renderFleetSummary() {
+  const total = Vehicles.list.length;
+  const livre = Vehicles.list.filter((v) => v.status === "Livre").length;
+  const ocupado = Vehicles.list.filter((v) => v.status === "Ocupado").length;
+  const manutencao = Vehicles.list.filter((v) => v.status === "Manutenção").length;
+
+  document.getElementById("fleetSummary").innerHTML = `
+    <div class="fleet-summary-chip fsc-total">Total<strong>${total}</strong></div>
+    <div class="fleet-summary-chip fsc-livre">Livres<strong>${livre}</strong></div>
+    <div class="fleet-summary-chip fsc-ocupado">Ocupados<strong>${ocupado}</strong></div>
+    <div class="fleet-summary-chip fsc-manutencao">Manutenção<strong>${manutencao}</strong></div>
+  `;
+}
+
+function renderFleetVehicleList() {
+  const box = document.getElementById("fleetVehicleList");
+  if (Vehicles.list.length === 0) {
+    box.innerHTML = `<p class="hint hint-small">Nenhum veículo cadastrado ainda.</p>`;
+    return;
+  }
+
+  box.innerHTML = Vehicles.list
+    .slice()
+    .sort((a, b) => a.placa.localeCompare(b.placa))
+    .map((v) => {
+      const cap = profileCapacity(v.profile);
+      return `
+        <div class="fleet-vehicle-row">
+          <span class="fvr-placa">${v.placa}</span>
+          <span class="fvr-info">
+            <div class="fvr-carrier">${v.carrierName || "—"}${v.carrierCode ? ` (${v.carrierCode})` : ""}</div>
+            <div class="fvr-meta">${v.profile || "sem perfil"}${cap !== null ? ` · ${cap.toLocaleString("pt-BR")} kg` : ""}${v.driver ? ` · ${v.driver}` : ""}</div>
+          </span>
+          <span class="fvr-status-badge st-${statusSlug(v.status)}">${v.status}</span>
+          <span class="fvr-actions">
+            <button class="fvr-edit" data-id="${v.id}" title="Editar">✏️</button>
+            <button class="fvr-delete" data-id="${v.id}" title="Excluir">🗑️</button>
+          </span>
+        </div>`;
+    })
+    .join("");
+
+  box.querySelectorAll(".fvr-edit").forEach((btn) => {
+    btn.addEventListener("click", () => editFleetVehicle(btn.dataset.id));
+  });
+  box.querySelectorAll(".fvr-delete").forEach((btn) => {
+    btn.addEventListener("click", () => deleteFleetVehicle(btn.dataset.id));
+  });
+}
+
+// ------------------------------------------------------------
+// Motor de emplacamento automático (fase 3 do roteirizador) — agrupa
+// pedidos casados por região, soma o peso, e casa com o menor veículo
+// livre que aguenta aquele peso e o perfil mínimo da região.
+// ------------------------------------------------------------
+let lastAssignmentResults = [];
+
+function runAutoAssignment() {
+  if (!Auth.isAdmin) return;
+
+  const matchedOrders = Orders.list.filter((o) => o.matched && o.regionId);
+  if (matchedOrders.length === 0) {
+    alert("Não tem nenhum pedido casado com região pra emplacar. Importe pedidos primeiro.");
+    return;
+  }
+
+  // 1) Agrupa pedidos por região, somando peso
+  const byRegion = {};
+  matchedOrders.forEach((o) => {
+    byRegion[o.regionId] = byRegion[o.regionId] || { regionName: o.regionName, totalWeight: 0, orders: [] };
+    byRegion[o.regionId].totalWeight += o.weight || 0;
+    byRegion[o.regionId].orders.push(o);
+  });
+
+  // 2) Veículos livres, do menor pro maior (economiza os grandes pras regiões pesadas)
+  const freeVehicles = Vehicles.list
+    .filter((v) => v.status === "Livre")
+    .map((v) => ({ ...v, capacity: profileCapacity(v.profile) || 0 }))
+    .sort((a, b) => a.capacity - b.capacity);
+
+  const usedVehicleIds = new Set();
+  const results = [];
+
+  // Regiões mais pesadas primeiro, pra não "gastar" um veículo grande numa
+  // região leve e deixar faltar veículo pra uma região pesada depois
+  Object.keys(byRegion)
+    .sort((a, b) => byRegion[b].totalWeight - byRegion[a].totalWeight)
+    .forEach((regionId) => {
+      const group = byRegion[regionId];
+      const region = Regions.list.find((r) => r.id === regionId);
+      const minCapacity = region ? profileCapacity(region.vehicleProfile) || 0 : 0;
+
+      const candidate = freeVehicles.find(
+        (v) => !usedVehicleIds.has(v.id) && v.capacity >= group.totalWeight && v.capacity >= minCapacity
+      );
+
+      if (candidate) {
+        usedVehicleIds.add(candidate.id);
+        group.orders.forEach((o) => {
+          o.assignedPlaca = candidate.placa;
+          o.assignedVehicleId = candidate.id;
+        });
+        results.push({
+          regionName: group.regionName,
+          totalWeight: group.totalWeight,
+          placa: candidate.placa,
+          ok: true,
+        });
+      } else {
+        results.push({ regionName: group.regionName, totalWeight: group.totalWeight, placa: null, ok: false });
+      }
+    });
+
+  // 3) Marca os veículos usados como Ocupado
+  usedVehicleIds.forEach((id) => Vehicles.update(id, { status: "Ocupado" }));
+
+  Orders.save();
+  lastAssignmentResults = results;
+
+  plotOrdersOnMap();
+  renderAssignmentResult();
+  document.getElementById("assignmentResultModal").classList.remove("hidden");
+}
+
+function renderAssignmentResult() {
+  const box = document.getElementById("assignmentResultList");
+  if (lastAssignmentResults.length === 0) {
+    box.innerHTML = `<p class="hint hint-small">Nenhum resultado ainda.</p>`;
+    return;
+  }
+
+  const okCount = lastAssignmentResults.filter((r) => r.ok).length;
+  const failCount = lastAssignmentResults.length - okCount;
+
+  box.innerHTML =
+    `<p class="hint hint-small"><strong>${okCount} região(ões) emplacada(s)</strong>${failCount > 0 ? `, ${failCount} sem veículo compatível` : ""}.</p>` +
+    lastAssignmentResults
+      .map(
+        (r) => `
+      <div class="assignment-row ${r.ok ? "ar-ok" : "ar-fail"}">
+        <span class="ar-region">${r.regionName}</span>
+        <span class="ar-weight">${r.totalWeight.toLocaleString("pt-BR")} kg</span>
+        <span class="ar-vehicle">${r.placa || "—"}</span>
+        <span class="ar-status ${r.ok ? "ok" : "fail"}">${r.ok ? "✅ Emplacado" : "⚠️ Sem veículo"}</span>
+      </div>`
+      )
+      .join("");
+}
+
+function clearAssignments() {
+  if (!confirm("Desfazer o emplacamento? Os veículos usados voltam pra \"Livre\", e os pedidos perdem a placa atribuída.")) return;
+
+  const usedVehicleIds = new Set(Orders.list.map((o) => o.assignedVehicleId).filter(Boolean));
+  usedVehicleIds.forEach((id) => Vehicles.update(id, { status: "Livre" }));
+
+  Orders.list.forEach((o) => {
+    delete o.assignedPlaca;
+    delete o.assignedVehicleId;
+  });
+  Orders.save();
+
+  lastAssignmentResults = [];
+  renderAssignmentResult();
+  plotOrdersOnMap();
+}
+
+function closeAssignmentResultModal() {
+  document.getElementById("assignmentResultModal").classList.add("hidden");
+}
 
 function openImportOrdersModal() {
   if (!Auth.isAdmin) return;
@@ -3462,7 +3722,7 @@ function plotOrdersOnMap() {
 
     const icon = L.divIcon({
       className: "",
-      html: `<div class="order-pin order-matched"><span>📦</span></div>`,
+      html: `<div class="order-pin ${order.assignedPlaca ? "order-assigned" : "order-matched"}"><span>${order.assignedPlaca ? "🚚" : "📦"}</span></div>`,
       iconSize: [20, 20],
       iconAnchor: [10, 18],
     });
@@ -3488,6 +3748,7 @@ function plotOrdersOnMap() {
           ${order.address ? `<strong>END.:</strong> ${order.address}<br>` : ""}
           <strong>BAIRRO/CIDADE:</strong> ${order.neighborhood ? order.neighborhood + ", " : ""}${order.cityLabel}<br>
           ${order.regionName ? `<strong>REGIÃO:</strong> ${order.regionName}<br>` : ""}
+          ${order.assignedPlaca ? `<strong>🚚 VEÍCULO:</strong> ${order.assignedPlaca}<br>` : ""}
           ${order.seller ? `<strong>VENDEDOR:</strong> ${order.seller}<br>` : ""}
           ${order.obs ? `<strong>OBS.:</strong> ${order.obs}<br>` : ""}
         </div>
@@ -4062,6 +4323,7 @@ async function publishAllToGitHub() {
     { path: "data/city_to_sellers.json", content: JSON.stringify(CITY_TO_SELLERS, null, 2) },
     { path: "data/cities_list.json", content: JSON.stringify(CITIES_LIST, null, 2) },
     { path: "data/orders.json", content: Orders.exportJSON() },
+    { path: "data/vehicles.json", content: Vehicles.exportJSON() },
   ];
 
   // Contingência: antes de mexer no GitHub, baixa uma cópia de segurança local
@@ -4082,6 +4344,7 @@ async function publishAllToGitHub() {
     localStorage.removeItem("regioes_directory_draft");
     Grade.discardDraft();
     Orders.discardDraft();
+    Vehicles.discardDraft();
     updateDraftHint();
   } catch (e) {
     statusEl.style.color = "#c0392b";
@@ -4839,6 +5102,8 @@ function updateAdminUI() {
     closeChangePasswordModal();
     closeGithubPublishModal();
     closeImportOrdersModal();
+    closeFleetManagerModal();
+    closeAssignmentResultModal();
     closeNewCityFromOrderModal();
     closeEditOrderModal();
     closeGradeCitiesModal();
@@ -5011,6 +5276,13 @@ function wireEvents() {
   document.getElementById("btnPublishNow").addEventListener("click", publishAllToGitHub);
 
   document.getElementById("btnOpenImportOrders").addEventListener("click", openImportOrdersModal);
+  document.getElementById("btnOpenFleetManager").addEventListener("click", openFleetManagerModal);
+  document.getElementById("btnCloseFleetManager").addEventListener("click", closeFleetManagerModal);
+  document.getElementById("btnSaveFleetVehicle").addEventListener("click", saveFleetVehicle);
+  document.getElementById("btnRunAutoAssignment").addEventListener("click", runAutoAssignment);
+  document.getElementById("btnCloseAssignmentResult").addEventListener("click", closeAssignmentResultModal);
+  document.getElementById("btnCloseAssignmentResult2").addEventListener("click", closeAssignmentResultModal);
+  document.getElementById("btnClearAssignments").addEventListener("click", clearAssignments);
   document.getElementById("btnPublishOrdersNow").addEventListener("click", publishOrdersOnly);
   document.getElementById("btnCloseImportOrders").addEventListener("click", closeImportOrdersModal);
   document.getElementById("btnCancelImportOrders").addEventListener("click", closeImportOrdersModal);

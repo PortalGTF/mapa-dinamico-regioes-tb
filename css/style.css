@@ -1035,6 +1035,88 @@ main { position: relative; flex: 1; }
 /* ---------- Importar pedidos ---------- */
 .required-mark { color: #c0392b; }
 
+/* ---------- Gerenciar Frota ---------- */
+/* ---------- Resultado do emplacamento automático ---------- */
+.assignment-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  border-bottom: 1px dashed var(--line);
+  font-size: 12px;
+}
+.assignment-row:last-child { border-bottom: none; }
+.assignment-row.ar-ok { background: #f4faf6; }
+.assignment-row.ar-fail { background: #fdf3f0; }
+.ar-region { font-weight: 700; flex: 1; }
+.ar-weight { color: var(--muted); font-size: 11px; min-width: 70px; }
+.ar-vehicle { font-weight: 700; font-family: monospace; min-width: 90px; }
+.ar-status { font-size: 11px; font-weight: 700; }
+.ar-status.ok { color: #1a7d3c; }
+.ar-status.fail { color: #c0392b; }
+
+.fleet-summary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.fleet-summary-chip {
+  flex: 1;
+  min-width: 90px;
+  text-align: center;
+  border-radius: 8px;
+  padding: 8px 6px;
+  font-size: 11px;
+}
+.fleet-summary-chip strong { display: block; font-size: 18px; }
+.fleet-summary-chip.fsc-livre { background: #e8f7f0; color: #1a7d3c; }
+.fleet-summary-chip.fsc-ocupado { background: #fdf3f0; color: #c0392b; }
+.fleet-summary-chip.fsc-manutencao { background: #fff7d6; color: #7a5b00; }
+.fleet-summary-chip.fsc-total { background: var(--paper); color: var(--navy); }
+
+.fleet-form {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 14px;
+  background: #fafafa;
+}
+
+.fleet-vehicle-list { max-height: 42vh; overflow-y: auto; }
+.fleet-vehicle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  border-bottom: 1px dashed var(--line);
+  font-size: 12px;
+}
+.fleet-vehicle-row:last-child { border-bottom: none; }
+.fvr-placa { font-weight: 700; font-family: monospace; font-size: 13px; min-width: 78px; }
+.fvr-info { flex: 1; }
+.fvr-info .fvr-carrier { font-weight: 600; }
+.fvr-info .fvr-meta { color: var(--muted); font-size: 10.5px; }
+.fvr-status-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.fvr-status-badge.st-livre { background: #e8f7f0; color: #1a7d3c; }
+.fvr-status-badge.st-ocupado { background: #fdf3f0; color: #c0392b; }
+.fvr-status-badge.st-manutencao { background: #fff7d6; color: #7a5b00; }
+.fvr-actions { display: flex; gap: 6px; }
+.fvr-actions button {
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+}
+.fvr-actions button.fvr-delete { color: #c0392b; }
+
 .order-region-summary-row {
   display: flex;
   align-items: center;
@@ -1086,6 +1168,7 @@ main { position: relative; flex: 1; }
 }
 .order-pin span { transform: rotate(45deg); font-size: 10px; }
 .order-pin.order-matched { background: #16a085; }
+.order-pin.order-assigned { background: #2980b9; }
 .order-pin.order-unmatched { background: #c0392b; }
 
 /* ---------- Tooltip e popup do pedido ---------- */

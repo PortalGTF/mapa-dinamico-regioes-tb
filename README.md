@@ -673,6 +673,64 @@ marca oficial use tons ligeiramente diferentes), os valores ficam centralizados 
 topo do arquivo `css/style.css`, dentro do bloco `:root` — é só trocar o valor
 hexadecimal de `--accent` (verde-azulado) ou `--navy` (azul-marinho escuro).
 
+## 8.7 Emplacamento automático (fase 3 do roteirizador)
+
+Botão **"⚙️ Emplacar Automático"**, dentro da aba Roteirizador (modo admin). É o
+motor que junta tudo que já foi construído nas fases 1 e 2.
+
+### Como o algoritmo decide
+1. Agrupa todos os pedidos já casados com região, somando o peso de cada região.
+2. Ordena as regiões da mais pesada pra mais leve (pra não "gastar" um veículo
+   grande numa região leve e faltar veículo pra uma pesada depois).
+3. Pra cada região, procura o **menor veículo livre** que: (a) aguenta o peso
+   total daquela região, e (b) atende o perfil mínimo de veículo já travado na
+   região (o mesmo perfil usado na Grade).
+4. Se achar, atribui aquele veículo à região inteira — o veículo passa pra
+   status "Ocupado" na Frota, e todos os pedidos daquela região ganham a placa
+   atribuída.
+5. Se não achar nenhum veículo livre grande o suficiente, marca a região como
+   "⚠️ sem veículo compatível" — não divide a carga entre vários veículos
+   automaticamente (fica pra você decidir manualmente esse caso).
+
+### Depois de rodar
+- Um relatório mostra região por região: peso, placa atribuída (ou aviso), e
+  status.
+- No mapa, os pedidos já emplacados trocam o ícone de 📦 pra 🚚, e mostram a
+  placa no popup.
+- **"🗑️ Desfazer emplacamento"** limpa tudo (devolve os veículos usados pra
+  "Livre" e tira a placa dos pedidos), caso queira rodar de novo com outra
+  configuração de frota.
+
+### Limitação desta versão
+O algoritmo não divide uma região pesada entre vários veículos menores — só
+considera um veículo por região. Se isso for necessário no seu dia a dia, dá
+pra evoluir numa próxima fase.
+
+## 8.6 Gerenciar Frota (fase 2 do roteirizador)
+
+Botão **"🚚 Gerenciar Frota"**, dentro da aba Roteirizador (modo admin). Cadastro
+de veículos/placas de verdade — base pra próxima fase (emplacar pedidos
+automaticamente por peso disponível).
+
+### O que cadastra por veículo
+- **Placa** (obrigatória)
+- **Perfil** — usa os mesmos perfis já cadastrados no app (Vuc, Toco, etc.), então
+  a capacidade em kg já vem junto automaticamente
+- **Transportadora** — nome e código
+- **Motorista** (opcional)
+- **Status** — Livre, Ocupado, ou Manutenção
+
+### Como usar
+Preenche o formulário e clica em "+ Adicionar veículo". A lista embaixo mostra
+todos os veículos cadastrados, com um resumo no topo (quantos livres, ocupados, em
+manutenção, total). Clique no lápis ✏️ pra editar um veículo (o formulário vira
+"Salvar alteração"), ou na lixeira 🗑️ pra excluir.
+
+### Publicação
+A frota entra no mesmo esquema de rascunho local / publicação das outras abas —
+faz parte do "Publicar tudo agora" e do "Exportar tudo agora", salva em
+`data/vehicles.json`.
+
 ## 8.5 Importar pedidos (fase 1 do roteirizador)
 
 Botão **"📦 Importar Pedidos"**, dentro da aba **"🧭 Roteirizador"** (modo admin).
