@@ -2290,29 +2290,11 @@ async function exportFilialExcel() {
     btn.textContent = `Calculando… ${done}/${total}`;
   });
 
-  // Km máximo de cada região — é isso que define o "raio" dela (mesma lógica
-  // usada na lista de regiões e no PDF).
-  const regionMaxKm = {};
-  Regions.list.forEach((region) => {
-    let maxKm = null;
-    region.cities.forEach((cityLabel) => {
-      const dest = Geocode.get(cityLabel);
-      if (!dest || dest.lat === null) return;
-      const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
-      const route = Routing.cache[key];
-      if (route && (maxKm === null || route.km > maxKm)) maxKm = route.km;
-    });
-    regionMaxKm[region.id] = maxKm;
-  });
-
   const rows = [];
   Regions.list
     .slice()
     .sort((a, b) => a.name.localeCompare(b, "pt-BR"))
     .forEach((region) => {
-      const regionKm = regionMaxKm[region.id];
-      const raio = regionKm !== null && regionKm !== undefined ? bracketFor(regionKm) : "";
-
       region.cities
         .slice()
         .sort((a, b) => a.localeCompare(b, "pt-BR"))
@@ -2321,10 +2303,16 @@ async function exportFilialExcel() {
           const cityName = cityLabel.replace(/-\s*[A-Za-z]{2}\s*$/, "").trim();
           const dest = Geocode.get(cityLabel);
           let km = "";
+          let raio = "";
           if (dest && dest.lat !== null) {
             const key = `${originLatLng.lat},${originLatLng.lng}|${dest.lat},${dest.lng}`;
             const route = Routing.cache[key];
-            if (route) km = Math.round(route.km);
+            if (route) {
+              km = Math.round(route.km);
+              // Raio Disp é o raio da CIDADE (arredondado pra cima, de 50 em
+              // 50 km) — cada cidade tem o seu, não o da região inteira.
+              raio = bracketFor(route.km);
+            }
           }
 
           rows.push({

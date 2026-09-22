@@ -99,8 +99,13 @@ No topo do mapa (modo admin), o botão **"📊 Excel (Filial)"** gera um arquivo
 - **REGIÃO V**: o nome da região que aquela cidade compõe.
 - **KM**: a distância de ida calculada de Terra Boa até aquela cidade (o mesmo
   cálculo usado no PDF e no raio das regiões).
-- **Raio Disp**: o raio que a região daquela cidade pertence (o mesmo "RAIO ATÉ
-  X KM" que já aparece na lista de regiões), só que sem o texto "km", só o número.
+- **Raio Disp**: o raio **daquela cidade específica**, arredondado pra cima de 50
+  em 50 km (até 50 → 50, de 51 até 100 → 100, de 101 até 150 → 150, e assim por
+  diante). É calculado individualmente por cidade, com o KM dela mesma — duas
+  cidades da mesma região podem ter Raio Disp diferente entre si, se estiverem a
+  distâncias diferentes de Terra Boa. (Não confundir com o "RAIO ATÉ X KM" que
+  aparece na lista de regiões — aquele é sobre a região inteira, baseado na
+  cidade mais distante dela; o Raio Disp da planilha é por cidade.)
 
 Se alguma distância ainda não tiver sido calculada, o app calcula na hora (o botão
 mostra "Calculando… X/Y" enquanto isso) antes de gerar o arquivo.
